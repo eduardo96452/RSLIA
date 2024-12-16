@@ -1,0 +1,46 @@
+/* Ajuste de tamaño para la imagen de usuario */
+img {
+  width: 100px; /* Tamaño más pequeño para la imagen */
+  height: 100px;
+  object-fit: cover;
+}
+
+/* Fondo beige para la tarjeta */
+.card {
+  background-color: #626365; /* Color beige */
+}
+
+/* Estilos para el borde negro alrededor de la imagen */
+.border-dark {
+  border: 9px solid black;
+  border-radius: 5%;
+}
+
+.container {
+  max-width: 960px;
+}
+
+ul {
+  list-style: none;
+}
+
+.floating-menu {
+  width: 200px;
+}
+
+.menu-item {
+  padding: 10px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.menu-item.active {
+  background-color: #f8f9fa;
+  border-color: #007bff;
+  font-weight: bold;
+}
+
+.menu-item:hover {
+  background-color: #f1f1f1;
+}

@@ -1,0 +1,101 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm ">
+    <div class="container-fluid">
+        <div class="navbar-brand d-flex align-items-center">
+            <img src="Logo.jpg" alt="OWLREVIEW Logo" class="me-2" style="height: 2rem;" />
+            <span class="ms-2 fs-4 text-dark"><strong>OWLREVIEW</strong></span>
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link text-dark" href="/panel_principal"><strong>User</strong></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark" href="/Perfil"><strong>Perfil</strong></a>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link text-dark" routerLink="/log-in"><strong>
+                        <i class="fa-solid fa-arrow-right"></i> Cerrar Sesion
+                <li class="nav-item">
+                </li></strong>
+                </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="d-flex">
+    <div class="container ">
+        <!-- Contenido Principal -->
+        <div class="col-md-12 p-4">
+            <h3>Panel principal</h3>
+            <br />
+            <div class="row">
+                <!-- Card 1 -->
+                <div class="col-md-4 mb-4">
+                    <div class="card text-white bg-primary h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Documentos procesados</h5>
+                            <p class="card-text display-4 text-center">0</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="col-md-4 mb-4">
+                    <div class="card text-white bg-success h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Revisiones creadas</h5>
+                            <p class="card-text display-4 text-center">0</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="col-md-4 mb-4">
+                    <div class="card text-white bg-warning h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Informes creados</h5>
+                            <p class="card-text display-4 text-center">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Gráficos / Secciones adicionales -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="container text-center">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <h5 class="card-title">Mis revisiones</h5>
+                                    </div>
+                                    <div class="col">
+                                        <button type="button" routerLink="/Descripción_General"
+                                            class="btn btn-primary p-2">Crer una revisión</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <p class="card-text align-items-center text-center">Aquí se muestran las revisiones que
+                                estan en progreso.</p>
+                            <!-- Espacio para gráficos usando librerías como Chart.js -->
+                            <div
+                                style="height: 100px; background-color: #f8f9fa; text-align: center; line-height: 300px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<footer class="bg-white shadow-sm mt-1">
+    <div class="container py-2">
+        <p class="text-center text-muted small">
+            © 2024 OWLREVIEW. Todos los derechos reservados.
+        </p>
+    </div>
+</footer>

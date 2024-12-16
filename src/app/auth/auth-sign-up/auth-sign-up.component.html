@@ -1,0 +1,127 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="Logo.jpg" alt="OWLREVIEW Logo" class="me-2" style="height: 2rem;" />
+      <span class="ms-2 fs-4 text-dark">OWLREVIEW</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/about">Acerca de</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/contact">Contacto</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+  <div class="w-100 max-w-md bg-white rounded shadow-sm p-4">
+    <div class="text-center mb-4">
+      <a class="d-flex align-items-center mb-4 text-dark h3 font-weight-bold">
+        <img src="Logo.jpg" alt="OWLREVIEW Logo" class="me-2" style="height: 2rem;" />
+        OlwReview    
+      </a>
+    </div>
+    <h2 class="h3 font-weight-bold text-center text-secondary mb-2">Crear una cuenta</h2>
+    <p class="text-center text-muted mb-4">Únete a OlwReview para Revisiones Sistemáticas de Literatura</p>
+    <form (ngSubmit)="handleEmailSignup()" #signupForm="ngForm">
+      <div class="mb-3">
+        <label for="name" class="form-label">Nombre completo</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          [(ngModel)]="name"
+          required
+          #nameInput="ngModel"
+          class="form-control"
+          [ngClass]="{'is-invalid': nameInput.invalid && (nameInput.dirty || nameInput.touched)}"
+          placeholder="John Doe"
+        >
+        <div *ngIf="nameInput.invalid && (nameInput.dirty || nameInput.touched)" class="invalid-feedback">
+          El nombre completo es obligatorio.
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">Correo electrónico</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          email
+          #emailInput="ngModel"
+          class="form-control"
+          [ngClass]="{'is-invalid': emailInput.invalid && (emailInput.dirty || emailInput.touched)}"
+          placeholder="you@example.com"
+        >
+        <div *ngIf="emailInput.invalid && (emailInput.dirty || emailInput.touched)" class="invalid-feedback">
+          Por favor, ingrese una dirección de correo electrónico válida.
+        </div>
+      </div>
+      <div class="mb-4">
+        <label for="password" class="form-label">Contraseña</label>
+        <div class="position-relative">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            name="password"
+            [(ngModel)]="password"
+            required
+            minlength="8"
+            #passwordInput="ngModel"
+            class="form-control"
+            [ngClass]="{'is-invalid': passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)}"
+          >
+          <button
+            type="button"
+            (click)="togglePasswordVisibility()"
+            class="position-absolute top-50 end-0 translate-middle-y btn btn-link"
+          >
+            <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h5 w-5 text-muted" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+              <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+            </svg>
+            <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" class="h5 w-5 text-muted" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" />
+              <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+            </svg>
+          </button>
+        </div>
+        <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="invalid-feedback">
+          La contraseña debe tener al menos 8 caracteres.
+        </div>
+      </div>
+      <button
+        type="submit"
+        [disabled]="signupForm.form.invalid"
+        class="w-100 btn btn-primary py-2 rounded-3"
+      >
+        Crear cuenta
+      </button>
+    </form>
+    <div class="px-4 py-3 bg-light border-top">
+      <p class="text-center text-muted small">
+        ¿Ya tienes una cuenta? 
+        <a routerLink="/log-in" class="text-primary">
+          Iniciar sesión
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<footer class="bg-white shadow-sm mt-4">
+  <div class="container py-4">
+    <p class="text-center text-muted small">
+      © 2024 OWLREVIEW. Todos los derechos reservados.
+    </p>
+  </div>
+</footer>
