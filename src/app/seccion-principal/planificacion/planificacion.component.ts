@@ -3,6 +3,11 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
+interface Question {
+  id: number;
+  value: string;
+}
+
 @Component({
   selector: 'app-planificacion',
   standalone: true,
@@ -12,4 +17,18 @@ import { RouterLink } from '@angular/router';
 })
 export class PlanificacionComponent {
   paginaSeleccionada: string = 'pagina1';
+
+  questions: Question[] = [];
+
+  addQuestion() {
+    this.questions.push({ id: Date.now(), value: '' });
+  }
+
+  saveQuestion(question: Question) {
+    console.log('Saving question:', question.value);
+  }
+
+  cancelQuestion(id: number) {
+    this.questions = this.questions.filter(q => q.id !== id);
+  }
 }
