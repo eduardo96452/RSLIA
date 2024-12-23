@@ -41,7 +41,7 @@
                         <div class="floating-menu">
                             <div class="menu-item " routerLink="/detalle_revision">Descripción General</div>
                             <div class="menu-item active" routerLink="/planificacion">Planificación</div>
-                            <div class="menu-item ">Revisión de datos</div>
+                            <div class="menu-item " routerLink="/estudios">Revisión de datos</div>
                             <div class="menu-item ">Proyección de informes</div>
                         </div>
                     </div>
@@ -65,14 +65,6 @@
                                     <button class="nav-link" id="tab2" data-bs-toggle="tab" data-bs-target="#pagina2"
                                         type="button" role="tab" aria-controls="pagina2" aria-selected="false">
                                         Lista de verificación de evaluación de calidad
-                                    </button>
-                                </li>
-
-                                <!-- Página 3 -->
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="tab3" data-bs-toggle="tab" data-bs-target="#pagina3"
-                                        type="button" role="tab" aria-controls="pagina3" aria-selected="false">
-                                        Formulario de extracción de datos
                                     </button>
                                 </li>
                             </ul>
@@ -140,9 +132,10 @@
                                                 <select class="form-select mb-4" id="paginaSelect"
                                                     [(ngModel)]="paginaSeleccionada">
 
-                                                    <option value="pagina1">Página 1</option>
-                                                    <option value="pagina2">Página 2</option>
-                                                    <option value="pagina3">Página 3</option>
+                                                    <option value="pagina1">PICO</option>
+                                                    <option value="pagina2">PICOC</option>
+                                                    <option value="pagina3">PICOTT</option>
+                                                    <option value="pagina4">SPICE</option>
                                                 </select>
                                             </div>
                                             <div class="card-body">
@@ -151,7 +144,7 @@
                                                         <div class="container">
                                                             <div class="row">
                                                                 <div class="col">
-                                                                    <h5>Contenido de la Página 1</h5>
+                                                                    <h5>PICO</h5>
                                                                 </div>
                                                                 <div class="col text-end">
                                                                     <button class="btn btn-warning" type="submit">
@@ -162,8 +155,35 @@
                                                             </div>
                                                             <div class="row">
                                                                 <div class="col">
-                                                                    <p>Este es el contenido de la primera página.
-                                                                    </p>
+                                                                    <form>
+                                                                        <div class="mb-3">
+                                                                            <label for="población"
+                                                                                class="form-label">Población</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="población">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="intervención"
+                                                                                class="form-label">Intervención</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="intervención">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="comparación"
+                                                                                class="form-label">Comparación</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="comparación">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="resultado"
+                                                                                class="form-label">Resultado</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="resultado">
+                                                                        </div>
+                                                                    </form>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -175,7 +195,7 @@
                                                         <div class="container">
                                                             <div class="row">
                                                                 <div class="col">
-                                                                    <h5>Contenido de la Página 2</h5>
+                                                                    <h5>PICOC</h5>
                                                                 </div>
                                                                 <div class="col text-end">
                                                                     <button class="btn btn-warning" type="submit">
@@ -186,8 +206,41 @@
                                                             </div>
                                                             <div class="row">
                                                                 <div class="col">
-                                                                    <p>Este es el contenido de la segunda página.
-                                                                    </p>
+                                                                    <form>
+                                                                        <div class="mb-3">
+                                                                            <label for="población1"
+                                                                                class="form-label">Población</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="población1">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="intervención1"
+                                                                                class="form-label">Intervención</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="intervención1">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="comparación1"
+                                                                                class="form-label">Comparación</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="comparación1">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="resultado1"
+                                                                                class="form-label">Resultado</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="resultado1">
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <label for="contexto1"
+                                                                                class="form-label">Contexto</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="contexto1">
+                                                                        </div>
+                                                                    </form>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -197,7 +250,7 @@
                                                         <div class="container">
                                                             <div class="row">
                                                                 <div class="col">
-                                                                    <h5>Contenido de la Página 3</h5>
+                                                                    <h5>PICOTT</h5>
                                                                 </div>
                                                                 <div class="col text-end">
                                                                     <button class="btn btn-warning" type="submit">
@@ -208,8 +261,104 @@
                                                             </div>
                                                             <div class="row">
                                                                 <div class="col">
-                                                                    <p>Este es el contenido de la tercera página.
-                                                                    </p>
+                                                                    <form>
+                                                                        <div class="mb-3">
+                                                                            <label for="población2"
+                                                                                class="form-label">Población</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="población2">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="intervención2"
+                                                                                class="form-label">Intervención</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="intervención2">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="comparación2"
+                                                                                class="form-label">Comparación</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="comparación2">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="resultado2"
+                                                                                class="form-label">Resultado</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="resultado2">
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <label for="tipregunta2"
+                                                                                class="form-label">Tipo de
+                                                                                pregunta</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="tipregunta2">
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <label for="tiarticulo2"
+                                                                                class="form-label">Tipo de
+                                                                                articulo</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="tiarticulo2">
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="card p-3" *ngIf="paginaSeleccionada === 'pagina4'">
+                                                        <div class="container">
+                                                            <div class="row">
+                                                                <div class="col">
+                                                                    <h5>PICOTT</h5>
+                                                                </div>
+                                                                <div class="col text-end">
+                                                                    <button class="btn btn-warning" type="submit">
+                                                                        <i class="bi bi-bug-fill"></i>
+                                                                        &nbsp; Sugerencia IA
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row">
+                                                                <div class="col">
+                                                                    <form>
+                                                                        <div class="mb-3">
+                                                                            <label for="escenario3"
+                                                                                class="form-label">Escenario</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="escenario3">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="perspectiva3"
+                                                                                class="form-label">Perspectiva</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="perspectiva3">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="intervención3"
+                                                                                class="form-label">Intervención</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="intervención3">
+                                                                        </div>
+                                                                        <br />
+                                                                        <div class="mb-3">
+                                                                            <label for="comparacion3"
+                                                                                class="form-label">Comparación</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="comparacion3">
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <label for="evaluación3"
+                                                                                class="form-label">Evaluación</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="evaluación3">
+                                                                        </div>
+                                                                    </form>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -242,7 +391,7 @@
                                                     </div>
                                                     <button class="btn btn-secondary btn-sm" (click)="addQuestion()">
                                                         <i class="bi bi-plus"></i> Agregar pregunta
-                                                      </button>
+                                                    </button>
                                                 </div>
                                             </div>
                                             <div class="card-body">
@@ -259,7 +408,8 @@
                                                         </div>
                                                         <div class="d-flex justify-content-end gap-2">
                                                             <button class="btn btn-primary"
-                                                                (click)="saveQuestion(question)"><i class="fa-solid fa-paper-plane"></i> &nbsp; 
+                                                                (click)="saveQuestion(question)"><i
+                                                                    class="fa-solid fa-paper-plane"></i> &nbsp;
                                                                 Guardar
                                                             </button>
                                                         </div>
@@ -291,53 +441,250 @@
                                                             </button>
                                                         </div>
                                                     </div>
-                                                    <button class="btn btn-secondary btn-sm" (click)="addQuestion()">
-                                                        <i class="bi bi-plus"></i> Agregar pregunta
-                                                      </button>
                                                 </div>
                                             </div>
                                             <div class="card-body">
+
+                                                <div class="container mt-4">
+                                                    <table class="table table-bordered">
+                                                        <thead class="thead-dark">
+                                                            <tr>
+                                                                <th>Palabras Claves</th>
+                                                                <th>Relacionado</th>
+                                                                <th>Sinónimo</th>
+                                                                <th>Acción</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr *ngFor="let row of tableData; let i = index">
+                                                                <!-- Palabras Claves -->
+                                                                <td>
+                                                                    <input type="text" class="form-control"
+                                                                        [(ngModel)]="row.keyword"
+                                                                        [readonly]="!row.isEditing" />
+                                                                </td>
+
+                                                                <!-- Relacionado -->
+                                                                <td>
+                                                                    <select class="form-select"
+                                                                        [(ngModel)]="row.related"
+                                                                        [disabled]="!row.isEditing">
+                                                                        <option *ngFor="let option of methodologies"
+                                                                            [value]="option">
+                                                                            {{ option }}
+                                                                        </option>
+                                                                    </select>
+                                                                </td>
+
+                                                                <!-- Sinónimo -->
+                                                                <td>
+                                                                    <input type="text" class="form-control"
+                                                                        [(ngModel)]="row.synonyms"
+                                                                        [readonly]="!row.isEditing"
+                                                                        (ngModelChange)="formatSynonyms(i)" />
+                                                                </td>
+
+                                                                <!-- Acción -->
+                                                                <td>
+                                                                    <button class="btn btn-primary btn-sm me-2"
+                                                                        (click)="toggleEdit(i)">
+                                                                        {{ row.isEditing ? 'Guardar' : 'Editar' }}
+                                                                    </button>
+                                                                    <button class="btn btn-danger btn-sm"
+                                                                        (click)="deleteRow(i)">
+                                                                        Eliminar
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+                                            <div class="card-footer">
                                                 <div class="container">
-                                                    <div *ngFor="let question of questions" class="mb-3">
-                                                        <div class="input-group mb-2">
-                                                            <input type="text" class="form-control"
-                                                                [(ngModel)]="question.value"
-                                                                placeholder="Escriba su pregunta de investigación">
-                                                            <button class="btn btn-outline-secondary" type="button"
-                                                                (click)="cancelQuestion(question.id)">
-                                                                <i class="bi bi-x"></i>
+                                                    <div class="row">
+                                                        <div class="col col-sm-5 col-md-5">
+                                                            <button class="btn btn-secondary" data-bs-toggle="modal"
+                                                                (click)="addRow()" data-bs-target="#staticBackdrop"><i
+                                                                    class="bi bi-plus"></i>
+                                                                &nbsp;
+                                                                Añadir palabra clave
                                                             </button>
                                                         </div>
-                                                        <div class="d-flex justify-content-end gap-2">
-                                                            <button class="btn btn-primary"
-                                                                (click)="saveQuestion(question)"><i class="fa-solid fa-paper-plane"></i> &nbsp; 
-                                                                Guardar
+                                                        <div class="col text-end">
+                                                            <button class="btn btn-primary" type="submit">
+                                                                <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar
+                                                                palabras claves y sinonimos
                                                             </button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <br />
+                                        <div class="card" style="flex-grow: 1;">
+                                            <!-- Card Header -->
+                                            <div class="card-header p-2">
+                                                <div class="container">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <h4 class="card-title mb-0">
+                                                                <i class="bi bi-stack-overflow"></i>&nbsp; Cadena de
+                                                                búsqueda
+                                                            </h4>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <button class="btn btn-warning" type="submit">
+                                                                <i class="bi bi-bug-fill"></i>
+                                                                &nbsp; Sugerencia IA
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Card Body -->
+                                            <div class="card-body">
+                                                <form>
+                                                    <div class="mb-3">
+                                                        <textarea class="form-control" id="cadena" rows="5"
+                                                            placeholder="Ingrese su cadena de busqueda, Utilice mayúsculas para los operadores booleanos ( AND , OR ), comillas dobles para palabras compuestas y paréntesis para separar lógicamente las palabras clave y los sinónimos."
+                                                            maxlength="100"></textarea>
+                                                        <div class="text-end text-muted mt-1">
+                                                            <small>0/100 caracteres</small>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+
+                                            <!-- Card Footer -->
                                             <div class="card-footer text-end">
                                                 <button class="btn btn-primary" type="submit">
-                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar la(s)
-                                                    pregunta(s)
+                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar cadena de
+                                                    búsqueda
                                                 </button>
                                             </div>
                                         </div>
+                                        <br />
+                                        <div class="card" style="flex-grow: 1;">
+                                            <!-- Card Header -->
+                                            <div class="card-header p-2">
+                                                <div class="container">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <h4 class="card-title mb-0">
+                                                                <i class="bi bi-stack"></i>&nbsp; Criterios de selección
+                                                            </h4>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <button class="btn btn-warning" type="submit">
+                                                                <i class="bi bi-bug-fill"></i>
+                                                                &nbsp; Sugerencia IA
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Card Body -->
+                                            <div class="card-body">
+                                                <form>
+                                                    <div class="container">
+                                                        <div class="row">
+                                                            <div class="col">
+                                                                <div class="container mt-4">
+                                                                    <h2>Criterios de exclusión</h2>
+                                                                    <form (submit)="addItem()">
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" class="form-control"
+                                                                                placeholder="Ingrese un elemento para excluir"
+                                                                                [(ngModel)]="inputValue"
+                                                                                name="inputValue" required />
+                                                                            <button type="submit"
+                                                                                class="btn btn-secondary"><i
+                                                                                class="bi bi-plus"></i>
+                                                                            &nbsp; Agregar</button>
+                                                                        </div>
+                                                                    </form>
 
+                                                                    <table class="table table-bordered">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Excluidos</th>
+                                                                                <th>Acción</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <tr
+                                                                                *ngFor="let item of items; let i = index">
+                                                                                <td>{{ item }}</td>
+                                                                                <td>
+                                                                                    <button class="btn btn-danger"
+                                                                                        (click)="removeItem(i)">
+                                                                                        X
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col">
+                                                                <div class="container mt-4">
+                                                                    <h2>Criterios de inclusión</h2>
+                                                                    <form (submit)="addInclusion()">
+                                                                        <div class="input-group mb-3">
+                                                                            <input type="text" class="form-control"
+                                                                                placeholder="Ingrese un elemento para incluir"
+                                                                                [(ngModel)]="inclusionValue"
+                                                                                name="inclusionValue" required />
+                                                                            <button type="submit"
+                                                                                class="btn btn-secondary"><i
+                                                                                class="bi bi-plus"></i>
+                                                                            &nbsp; Agregar</button>
+                                                                        </div>
+                                                                    </form>
 
+                                                                    <table class="table table-bordered">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Incluidos</th>
+                                                                                <th>Acción</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <tr
+                                                                                *ngFor="let inclusion of inclusions; let i = index">
+                                                                                <td>{{ inclusion }}</td>
+                                                                                <td>
+                                                                                    <button class="btn btn-danger"
+                                                                                        (click)="removeInclusion(i)">
+                                                                                        X
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+
+                                            <!-- Card Footer -->
+                                            <div class="card-footer text-end">
+                                                <button class="btn btn-primary" type="submit">
+                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar criterios de
+                                                    selección
+                                                </button>
+                                            </div>
+                                        </div>
 
                                     </div>
                                     <!-- Contenido Página 2 -->
                                     <div class="tab-pane fade p-3" id="pagina2" role="tabpanel" aria-labelledby="tab2">
                                         <h5>Contenido de la Página 2</h5>
                                         <p>Este es el contenido de la segunda página.</p>
-                                    </div>
-
-                                    <!-- Contenido Página 3 -->
-                                    <div class="tab-pane fade p-3" id="pagina3" role="tabpanel" aria-labelledby="tab3">
-                                        <h5>Contenido de la Página 3</h5>
-                                        <p>Este es el contenido de la tercera página.</p>
                                     </div>
                                 </div>
                             </div>
