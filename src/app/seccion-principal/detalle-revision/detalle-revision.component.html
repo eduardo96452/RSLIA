@@ -1,38 +1,14 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm ">
-  <div class="container-fluid">
-    <div class="navbar-brand d-flex align-items-center">
-      <img src="Logo.jpg" alt="OWLREVIEW Logo" class="me-2" style="height: 2rem;" />
-      <span class="ms-2 fs-4 text-dark"><strong>OWLREVIEW</strong></span>
-    </div>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link text-dark" href="/panel_principal"><strong>User</strong></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-dark" href="/Perfil"><strong>Perfil</strong></a>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link text-dark" routerLink="/log-in"><strong>
-              <i class="fa-solid fa-arrow-right"></i> Cerrar Sesion</strong>
-          </button>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
+<app-navbar></app-navbar>
+
+
 <main>
   <div>
-    <div class="container py-5">
+    <div class="container py-4">
       <div class="row align-items-start">
-        <div class="col col-sm-3 col-md-3">
+        <div class="col col-sm col-md-3">
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="/panel_principal">Usuario</a></li>
+              <li class="breadcrumb-item"><a href="/panel_principal">{{ userData?.nombre_usuario || 'Usuario' }}</a></li>
               <li class="breadcrumb-item active" aria-current="page">Tema_reseña</li>
             </ol>
           </nav>
@@ -45,55 +21,52 @@
               <div class="menu-item ">Proyección de informes</div>
             </div>
           </div>
+          <br />
         </div>
 
-        <div class="col">
+        <div class="col col-sm col-md-9">
           <!-- Tarjeta Principal -->
           <div class="card" style="flex-grow: 1;">
-
-            <!-- Card Header -->
             <div class="card-header">
               <h2 class="card-title mb-0">
                 <i class="fa-solid fa-pencil"></i>&nbsp; Editar reseña
               </h2>
             </div>
-
-            <!-- Card Body -->
             <div class="card-body">
-              <form>
+              <form [formGroup]="form">
                 <!-- Campo Título -->
                 <div class="mb-3">
                   <label for="title" class="form-label">Título de la reseña</label>
-                  <input type="text" class="form-control" id="title" placeholder="Escribe el título de la reseña" />
+                  <input type="text" class="form-control" id="title" formControlName="titulo_revision"
+                    placeholder="Escribe el título de la reseña" [(ngModel)]="reviewData.titulo_revision"
+                    name="titulo_revision" (ngModelChange)="onFieldChange()" />
                 </div>
 
                 <!-- Campo Selección de Metodología -->
                 <div class="input-group mb-3">
                   <label class="input-group-text" for="inputGroupSelect01">Metodología de reseña</label>
-                  <select class="form-select" id="inputGroupSelect01">
-                    <option selected>Seleccione la metodología...</option>
-                    <option value="1">Revisión Sistemática</option>
-                    <option value="2">Meta-análisis</option>
-                    <option value="3">Revisión de Alcance</option>
+                  <select class="form-select" id="inputGroupSelect01" [(ngModel)]="reviewData.tipo_revision"
+                    name="tipo_revision" formControlName="tipo_revision" (ngModelChange)="onFieldChange()">
+                    <option value="Revisión Sistemática">Revisión Sistemática</option>
+                    <option value="Meta-análisis">Meta-análisis</option>
+                    <option value="Revisión de Alcance">Revisión de Alcance</option>
                   </select>
                 </div>
 
                 <!-- Campo Descripción -->
                 <div class="mb-3">
                   <label for="description" class="form-label">Descripción de la reseña</label>
-                  <textarea class="form-control" id="description" rows="5"
-                    placeholder="Ingrese una descripción detallada de la reseña" maxlength="500"></textarea>
-                  <div class="text-end text-muted mt-1">
-                    <small>0/500 caracteres</small>
-                  </div>
+                  <textarea class="form-control" id="description" rows="5" formControlName="descripcion"
+                    placeholder="Ingrese una descripción detallada de la reseña" [(ngModel)]="reviewData.descripcion"
+                    name="descripcion" (ngModelChange)="onFieldChange()"></textarea>
                 </div>
               </form>
             </div>
-
-            <!-- Card Footer -->
             <div class="card-footer text-end">
-              <button routerLink="/planificacion" class="btn btn-primary" type="submit">
-                <i class="fa-solid fa-paper-plane"></i> &nbsp; Siguiente
+              <button [routerLink]="isModified ? null : '/planificacion'" class="btn btn-primary" type="submit"
+                (click)="isModified ? updateReview() : navigateToNext()">
+                <i class="fa-solid" [ngClass]="isModified ? 'fa-save' : 'fa-paper-plane'"></i> &nbsp;
+                {{ isModified ? 'Actualizar' : 'Siguiente' }}
               </button>
             </div>
           </div>

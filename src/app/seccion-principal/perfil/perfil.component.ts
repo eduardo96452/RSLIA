@@ -1,114 +1,119 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
+import { NavbarComponent } from '../../principal/navbar/navbar.component';
+import { SupabaseService } from '../../conexion/supabase.service';
 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent, ReactiveFormsModule],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.css'
 })
 export class PerfilComponent implements OnInit {
-  isSidebarOpen = true;
-  searchQuery = '';
-  activeMenuItem = 'Descripción General';
-  isUserMenuOpen = false;
-  profileImage: string | null = null;
-  isModalOpen = false;
+  userForm: FormGroup;
+  imageFile: File | null = null;
+  imageUrl: string | null = null;
 
-  userInfo = {
-    nombre_usuario: '',
-    nombre: '',
-    apellido: '',
-    correo_electronico: '',
-    institucion: '',
-  };
-
-  constructor(private _authService: AuthService, private router: Router) {}
+  constructor(private fb: FormBuilder, private authService: AuthService, private supabase: SupabaseService) {
+    this.userForm = this.fb.group({
+      nombre_usuario: [{ value: '', disabled: true }],
+      nombre: [''],
+      apellido: [''],
+      correo_electronico: [''],
+      institucion: ['']
+    });
+  }
 
   ngOnInit(): void {
     this.loadUserData();
   }
 
-  openImageModal() {
-    this.isModalOpen = true;
-  }
-
-  closeImageModal() {
-    this.isModalOpen = false;
-  }
-
   async loadUserData() {
-    const session = await this._authService.getSession();
-    if (session) {
-      const userData = await this._authService.getUserDataByUID(session.user.id);
-      if (userData) {
-        this.userInfo = {
-          nombre_usuario: userData.nombre_usuario,
-          nombre: userData.nombre,
-          apellido: userData.apellido,
-          correo_electronico: userData.correo_electronico,
-          institucion: userData.institucion,
-        };
+    const session = await this.authService.getSession();
+    const uid = session?.user?.id;
+  
+    if (uid) {
+      const userData = await this.authService.getUserDataByUID(uid);
+  
+      if (userData && Object.keys(userData).length > 0) { // Verificar que userData no sea undefined y tenga datos
+        this.userForm.patchValue({
+          nombre_usuario: userData.nombre_usuario || '', // Default a '' si está undefined
+          nombre: userData.nombre || '',
+          apellido: userData.apellido || '',
+          correo_electronico: userData.correo_electronico || '',
+          institucion: userData.institucion || ''
+        });
+        this.imageUrl = userData.ruta_imagen;
+      } else {
+        console.error('No se encontraron datos para el usuario.');
+      }
+    } else {
+      console.error('No se encontró una sesión válida.');
+    }
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.imageFile = file;
+    }
+  }
+  
+  // Esta es la función de tu servicio para subir la imagen
+async uploadImage(file: File): Promise<string> {
+  const { data, error } = await this.supabase.supabaseClient
+    .storage
+    .from('avatars') // Nombre del bucket
+    .upload(`path/to/file/${file.name}`, file);
+
+  if (error) {
+    console.error('Error uploading file:', error);
+    return '';
+  }
+
+  // Obtén la URL pública del archivo recién subido
+  const publicUrl = this.supabase.supabaseClient
+    .storage
+    .from('avatars')
+    .getPublicUrl(data.path).data.publicUrl; // 'data.path' contiene la ruta del archivo
+
+  return publicUrl || ''; // Devuelve la URL pública
+}
+
+  async updateUserProfileImage(imageUrl: string) {
+    const session = await this.authService.getSession();
+    const uid = session?.user?.id;
+    if (uid) {
+      const { data, error } = await this.authService.updateUser(uid, {
+        ...this.userForm.value,
+        ruta_imagen: imageUrl
+      });
+      if (data) {
+        alert('Imagen de perfil actualizada');
+      } else {
+        console.error('Error al actualizar imagen:', error);
       }
     }
   }
 
-  menuItems = [
-    { name: 'Descripción General', icon: 'LayoutDashboard' },
-    { name: 'Planificación', icon: 'Calendar' },
-    { name: 'Revisión de datos', icon: 'FileText' },
-    { name: 'Proyección informes', icon: 'PieChart' },
-  ];
+  async onSubmit() {
+    if (this.userForm.valid) {
+      const session = await this.authService.getSession();
+      const uid = session?.user?.id;
 
-  toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
-  }
-
-  handleSearch() {
-    console.log('Searching for:', this.searchQuery);
-    alert(`Searching for: ${this.searchQuery}`);
-  }
-
-  toggleUserMenu() {
-    this.isUserMenuOpen = !this.isUserMenuOpen;
-  }
-
-  handleProfile() {
-    console.log('Viewing profile');
-    this.router.navigate(['/Perfil']);
-  }
-
-  handleLogout() {
-    console.log('Logging out');
-    alert('Logging out');
-  }
-
-  handleMenuItemClick(itemName: string) {
-    this.activeMenuItem = itemName;
-
-    // Redirige a '/Inicio/Descripción_General' si el nombre del elemento es "Descripción General"
-    if (itemName === 'Descripción General') {
-      this.router.navigate(['/Descripción_General']);
+      if (uid) {
+        const userData = this.userForm.getRawValue();
+        const { data, error } = await this.authService.updateUser(uid, userData);
+        if (data) {
+          alert('Datos actualizados correctamente.');
+        } else {
+          console.error('Error al actualizar los datos:', error);
+        }
+      }
     }
-  }
-
-  handleImageUpload(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        this.profileImage = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  handleSubmit() {
-    console.log('User info submitted:', this.userInfo);
-    alert('Perfil actualizado correctamente');
   }
 }

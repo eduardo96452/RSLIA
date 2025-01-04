@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { NavbarComponent } from '../../principal/navbar/navbar.component';
 
 interface Question {
   id: number;
@@ -11,7 +12,7 @@ interface Question {
 @Component({
   selector: 'app-planificacion',
   standalone: true,
-  imports: [RouterLink,CommonModule, FormsModule],
+  imports: [RouterLink,CommonModule, FormsModule, NavbarComponent],
   templateUrl: './planificacion.component.html',
   styleUrl: './planificacion.component.css'
 })

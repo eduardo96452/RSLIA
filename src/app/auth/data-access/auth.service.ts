@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../../conexion/supabase.service';
-import { SignUpWithPasswordCredentials } from '@supabase/supabase-js';
+import { createClient, SignUpWithPasswordCredentials } from '@supabase/supabase-js';
 import { BehaviorSubject, from, Observable } from 'rxjs';
 
 @Injectable({
@@ -8,13 +8,14 @@ import { BehaviorSubject, from, Observable } from 'rxjs';
 })
 export class AuthService {
 
-  private _supabaseClient = inject(SupabaseService).supabaseClient;
+  _supabaseClient = inject(SupabaseService).supabaseClient;
   private authState = new BehaviorSubject<boolean>(false);
 
   constructor() {
     // Actualiza el estado de autenticación según el estado de la sesión de Supabase
     this._supabaseClient.auth.onAuthStateChange((event, session) => {
       this.authState.next(!!session);
+      
     });
   }
 
@@ -71,22 +72,113 @@ export class AuthService {
     return data;
   }
 
-  async addRevisionDetails(uid: string, titulo: string, tipo: string, descripcion: string) {
+  async getCurrentUserData() {
+    const session = await this.getSession();
+    if (session?.user) {
+      return this.getUserDataByUID(session.user.id); // UID del usuario
+    }
+    return null;
+  }
+
+  async updateUser(uid: string, userData: { nombre: string; apellido: string; correo_electronico: string; institucion: string; nombre_usuario: string }) {
     const { data, error } = await this._supabaseClient
-      .from('detalle_revision')
-      .insert([
-        {
-          id_usuarios: uid,
-          titulo_revision: titulo,
-          tipo_revision: tipo,
-          descripcion: descripcion,
-        }
-      ]);
+      .from('usuarios')
+      .update({
+        nombre: userData.nombre,
+        apellido: userData.apellido,
+        correo_electronico: userData.correo_electronico,
+        institucion: userData.institucion,
+        nombre_usuario: userData.nombre_usuario,
+      })
+      .eq('id_usuarios', uid);
   
     if (error) {
-      console.error('Error al insertar los datos de revisión:', error);
+      console.error('Error al actualizar los datos del usuario:', error);
+    }
+    return { data, error };
+  }
+
+  async uploadFile(filePath: string, file: File) {
+    const { data, error } = await this._supabaseClient
+      .storage
+      .from('avatars')  // El bucket de almacenamiento (asegúrate de crear un bucket llamado 'avatars')
+      .upload(filePath, file);
+  
+    if (error) {
+      console.error('Error al subir el archivo:', error);
+      return { error };
+    }
+    return { data };
+  }
+
+  async createReview(data: { id_usuarios: string; titulo_revision: string; tipo_revision: string; descripcion: string; fecha_creacion: string }) {
+    const { data: insertData, error } = await this._supabaseClient
+      .from('detalles_revision') // Asegúrate de que sea el nombre correcto de tu tabla
+      .insert([data]);
+  
+    if (error) {
+      console.error('Error al crear la reseña:', error);
+    }
+  
+    return { insertData, error };
+  }
+
+  async countUserReviews(userId: string) {
+    const { count, error } = await this._supabaseClient
+      .from('detalles_revision') // Nombre de la tabla
+      .select('*', { count: 'exact', head: true })
+      .eq('id_usuarios', userId); // Filtra por el usuario autenticado
+  
+    if (error) {
+      console.error('Error al contar las revisiones del usuario:', error);
+      return 0; // Retorna 0 en caso de error
+    }
+  
+    return count || 0; // Retorna el conteo obtenido
+  }
+
+  async getUserReviews(userId: string) {
+    console.log('Fetching reviews for user:', userId);
+  
+    const { data, error } = await this._supabaseClient
+      .from('detalles_revision')
+      .select('id_detalles_revision, titulo_revision')
+      .eq('id_usuarios', userId);
+  
+    if (error) {
+      console.error('Error en la consulta:', error);
+      return [];
+    }
+  
+    console.log('Data received:', data);
+    return data || [];
+  }
+
+  async getReviewById(reviewId: string) {
+    const { data, error } = await this._supabaseClient
+      .from('detalles_revision')
+      .select('id_detalles_revision, titulo_revision, tipo_revision, descripcion')
+      .eq('id_detalles_revision', reviewId)
+      .single(); // Para obtener un único registro
+  
+    if (error) {
+      console.error('Error al obtener la reseña por ID:', error);
       return null;
     }
     return data;
   }
+
+  async updateReview(reviewId: string, reviewData: { titulo_revision: string; tipo_revision: string; descripcion: string }) {
+    const { data, error } = await this._supabaseClient
+      .from('detalles_revision')
+      .update(reviewData)
+      .eq('id_detalles_revision', reviewId);
+  
+    if (error) {
+      console.error('Error al actualizar la reseña:', error);
+    }
+  
+    return { data, error };
+  }
+  
 }

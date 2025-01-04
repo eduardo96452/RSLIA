@@ -17,12 +17,11 @@ export const routes: Routes = [
     { path: 'inicio', component: InicioComponent },
     { path: 'Descripción_General', component: HomeRevisionComponent },
     { path: 'detalle_revision', component: DetalleRevisionComponent },
+    { path: 'detalle_revision/:id', component: DetalleRevisionComponent },
     { path: 'planificacion', component: PlanificacionComponent },
     { path: 'panel_principal', component: DashboardComponent },
     { path: 'Perfil', component: PerfilComponent },
-
     { path: 'estudios', component: EstudiosComponent },
-
     { path: '', redirectTo: '/inicio', pathMatch: 'full' }, // Ruta por defecto (opcional)
     { path: '**', redirectTo: '/inicio' } // Ruta para páginas no encontradas (opcional)
   ];

@@ -1,32 +1,7 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm ">
-  <div class="container-fluid">
-    <div class="navbar-brand d-flex align-items-center">
-      <img src="Logo.jpg" alt="OWLREVIEW Logo" class="img-fluid w-25 me-2" style="height: 2rem; right: 2rem;" />
-      <span class="ms-2 fs-4 text-dark"><strong>OWLREVIEW</strong></span>
-    </div>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link text-dark" href="/panel_principal"><strong>User</strong></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-dark" href="/Perfil"><strong>Perfil</strong></a>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link text-dark" routerLink="/log-in"><strong>
-              <i class="fa-solid fa-arrow-right"></i> Cerrar Sesion</strong>
-          </button>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
-<div class="d-flex">
+<app-navbar></app-navbar>
 
+
+<div class="d-flex">
   <div class="container mt-5">
     <!-- Card for user information -->
     <div class="card shadow-sm p-4" style="background-color: #b3b5b8;">
@@ -36,15 +11,16 @@
           <div class="card mb-4">
             <ul class="list-group list-group-flush">
               <li>
-                <div class="d-flex justify-content-center align-items-center"
-                  style="height: 200px; width: 200px; background-color: #e9ecef; border-radius: 5px;">
+                <div class="d-flex justify-content-center align-items-center" style="height: 200px; width: 200px; background-color: #e9ecef; border-radius: 5px;">
                   <div class="text-center">
-                    <i class="bi bi-person" style="font-size: 160px; color: #6c757d;"></i>
+                    <i *ngIf="!imageUrl" class="bi bi-person" style="font-size: 160px; color: #6c757d;"></i>
+                    <img *ngIf="imageUrl" [src]="imageUrl" alt="Imagen de perfil" style="height: 160px; width: 160px; border-radius: 50%; object-fit: cover;" />
                     <div class="mt-2">
-                      <button class="btn btn-primary btn-sm rounded-circle"
-                        style="position: absolute; bottom: 0; right: 0;">
+                      <input type="file" (change)="onFileSelected($event)" id="imageUpload" style="display: none;" />
+                      <label for="imageUpload" class="btn btn-primary btn-sm rounded-circle" style="position: absolute; bottom: 0; right: 0;">
                         <i class="bi bi-upload"></i>
-                      </button>
+                      </label>
+                      <button *ngIf="imageFile" class="btn btn-success btn-sm rounded-circle mt-2" (click)="uploadImage(imageFile)">Subir</button>
                     </div>
                   </div>
                 </div>
@@ -57,59 +33,31 @@
         <div class="col-md-9">
 
           <h4 class="mb-4">Información del Usuario</h4>
-          <form class="needs-validation" novalidate>
+          
+
+          <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
             <div class="row g-3 mb-4">
               <div class="col-12">
                 <label for="username" class="form-label">Nombre de usuario</label>
-                <div class="input-group has-validation">
-                  <span class="input-group-text">U</span>
-                  <input type="text" class="form-control" id="username" placeholder="Usuario1" disabled>
-                  <div class="invalid-feedback">
-                    El usuario es requerido.
-                  </div>
-                </div>
+                <input type="text" class="form-control" id="username" formControlName="nombre_usuario" [disabled]="true">
               </div>
-
               <div class="col-sm-6">
                 <label for="first-name" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="first-name" placeholder="Nombre1">
-                <div class="invalid-feedback">
-                  Se requiere un Nombre valido.
-                </div>
+                <input type="text" class="form-control" id="first-name" formControlName="nombre">
               </div>
-
               <div class="col-sm-6">
                 <label for="last-name" class="form-label">Apellido</label>
-                <input type="text" class="form-control" id="last-name" placeholder="Apellido1">
-                <div class="invalid-feedback">
-                  Se requiere un Apellido valido.
-                </div>
+                <input type="text" class="form-control" id="last-name" formControlName="apellido">
               </div>
-
-
               <div class="col-12">
                 <label for="email" class="form-label">Correo electrónico</label>
-                <div class="input-group has-validation">
-                  <span class="input-group-text">C</span>
-                  <input type="email" class="form-control" id="email" placeholder="humano1@gmail.com">
-                  <div class="invalid-feedback">
-                    Se necesita un correo valido.
-                  </div>
-                </div>
+                <input type="email" class="form-control" id="email" formControlName="correo_electronico">
               </div>
-
               <div class="col-12">
                 <label for="institution" class="form-label">Institución</label>
-                <div class="input-group has-validation">
-                  <span class="input-group-text">U</span>
-                  <input type="text" class="form-control" id="institution" placeholder="Universidad X">
-                  <div class="invalid-feedback">
-                    Se necesita una institución.
-                  </div>
-                </div>
+                <input type="text" class="form-control" id="institution" formControlName="institucion">
               </div>
             </div>
-
             <button type="submit" class="btn btn-primary">Guardar cambios</button>
           </form>
         </div>
