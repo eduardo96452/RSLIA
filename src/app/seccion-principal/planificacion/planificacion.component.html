@@ -5,23 +5,52 @@
     <div>
         <div class="container py-4">
             <div class="row align-items-start">
-                <div class="col col-sm col-md-3">
-                    <nav aria-label=" breadcrumb">
+                <div class="col-md-12">
+                    <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="/panel_principal">Usuario</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Tema_reseña</li>
+                            <div class="row">
+                                <div class="col-4">
+                                    <li class="breadcrumb-item"><a href="/panel_principal">{{ userData?.nombre_usuario || 'Usuario' }}</a>
+                                    </li>
+                                  </div>
+                                  <div class="col-1">
+                                    <p><strong>/</strong></p>
+                                  </div>
+                                  <div class="col-7">
+                                    <li class="breadcrumb-item active" aria-current="page">{{reviewData.titulo_revision}}</li>
+                                  </div>
+                            </div>
                         </ol>
                     </nav>
-
-                    <div class="d-flex ">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col col-sm col-md-3">
+                    <div class="d-flex">
                         <div class="floating-menu">
-                            <div class="menu-item " routerLink="/detalle_revision">Descripción General</div>
-                            <div class="menu-item active" routerLink="/planificacion">Planificación</div>
-                            <div class="menu-item " routerLink="/estudios">Revisión de datos</div>
-                            <div class="menu-item ">Proyección de informes</div>
+                            <!-- Descripción General -->
+                            <div class="menu-item " [routerLink]="['/detalle_revision']"
+                                [queryParams]="{ id: reviewId }">
+                                Descripción General
+                            </div>
+
+                            <!-- Planificación -->
+                            <div class="menu-item active" [routerLink]="['/planificacion']" [queryParams]="{ id: reviewId }">
+                                Planificación
+                            </div>
+
+                            <!-- Revisión de datos -->
+                            <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
+                                Revisión de datos
+                            </div>
+
+                            <!-- Proyección de informes -->
+                            <div class="menu-item" [routerLink]="['/proyeccion']" [queryParams]="{ id: reviewId }">
+                                Proyección de informes
+                            </div>
                         </div>
                     </div>
-                    <br/>
+                    <br />
                 </div>
 
                 <div class="col col-sm col-md-9">
@@ -61,7 +90,8 @@
                                                     <div class="row">
                                                         <div class="col">
                                                             <h4 class="card-title mb-0">
-                                                                <i class="fa-solid fa-pencil"></i>&nbsp; Objetivo de la
+                                                                <i class="fa-solid fa-pencil"></i>&nbsp; Objetivo de
+                                                                la
                                                                 reseña
                                                             </h4>
                                                         </div>
@@ -344,7 +374,8 @@
                                             </div>
                                             <div class="card-footer text-end">
                                                 <button class="btn btn-primary" type="submit">
-                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar metodología
+                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar
+                                                    metodología
                                                 </button>
                                             </div>
                                         </div>
@@ -491,7 +522,8 @@
                                                         </div>
                                                         <div class="col text-end">
                                                             <button class="btn btn-primary" type="submit">
-                                                                <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar
+                                                                <i class="fa-solid fa-paper-plane"></i> &nbsp;
+                                                                Guardar
                                                                 palabras claves y sinonimos
                                                             </button>
                                                         </div>
@@ -550,7 +582,8 @@
                                                     <div class="row">
                                                         <div class="col">
                                                             <h4 class="card-title mb-0">
-                                                                <i class="bi bi-stack"></i>&nbsp; Criterios de selección
+                                                                <i class="bi bi-stack"></i>&nbsp; Criterios de
+                                                                selección
                                                             </h4>
                                                         </div>
                                                         <div class="col text-end">
@@ -578,8 +611,8 @@
                                                                                 name="inputValue" required />
                                                                             <button type="submit"
                                                                                 class="btn btn-secondary"><i
-                                                                                class="bi bi-plus"></i>
-                                                                            &nbsp; Agregar</button>
+                                                                                    class="bi bi-plus"></i>
+                                                                                &nbsp; Agregar</button>
                                                                         </div>
                                                                     </form>
 
@@ -616,8 +649,8 @@
                                                                                 name="inclusionValue" required />
                                                                             <button type="submit"
                                                                                 class="btn btn-secondary"><i
-                                                                                class="bi bi-plus"></i>
-                                                                            &nbsp; Agregar</button>
+                                                                                    class="bi bi-plus"></i>
+                                                                                &nbsp; Agregar</button>
                                                                         </div>
                                                                     </form>
 
@@ -651,7 +684,8 @@
                                             <!-- Card Footer -->
                                             <div class="card-footer text-end">
                                                 <button class="btn btn-primary" type="submit">
-                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar criterios de
+                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar criterios
+                                                    de
                                                     selección
                                                 </button>
                                             </div>

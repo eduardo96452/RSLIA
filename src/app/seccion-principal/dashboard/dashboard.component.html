@@ -70,14 +70,16 @@
                                                 <tr *ngFor="let review of userReviews; let i = index">
                                                     <td>{{ i + 1 }}</td>
                                                     <td>
-                                                        <a [routerLink]="['/detalle_revision', review.id_detalles_revision]"
-                                                            class="text-primary text-decoration-underline">
-                                                            {{ review.titulo_revision }}
-                                                        </a>
+                                                      <!-- Usamos queryParams en lugar de /detalle_revision/:id -->
+                                                      <a 
+                                                        [routerLink]="['/detalle_revision']"
+                                                        [queryParams]="{ id: review.id_detalles_revision }"
+                                                        class="text-primary text-decoration-underline"
+                                                      >
+                                                        {{ review.titulo_revision }}
+                                                      </a>
                                                     </td>
-                                                    <td>{{ review.id_detalles_revision }}</td>
-                                                    <!-- Columna invisible -->
-                                                </tr>
+                                                  </tr>
                                             </tbody>
                                         </table>
                                     </div>

@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../../principal/navbar/navbar.component';
+import { AuthService } from '../../auth/data-access/auth.service';
 
 interface Question {
   id: number;
@@ -12,11 +13,11 @@ interface Question {
 @Component({
   selector: 'app-planificacion',
   standalone: true,
-  imports: [RouterLink,CommonModule, FormsModule, NavbarComponent],
+  imports: [RouterLink,CommonModule, FormsModule, NavbarComponent, ReactiveFormsModule],
   templateUrl: './planificacion.component.html',
   styleUrl: './planificacion.component.css'
 })
-export class PlanificacionComponent {
+export class PlanificacionComponent implements OnInit {
   description: string = '';
   charCount: number = 0;
   paginaSeleccionada: string = 'pagina1';
@@ -33,6 +34,46 @@ export class PlanificacionComponent {
   items: string[] = [];
   inclusionValue: string = '';
   inclusions: string[] = [];
+  userData: any = null;
+  reviewData: any = {};
+  reviewId!: string;
+
+  constructor(
+      private route: ActivatedRoute, 
+      private authService: AuthService, 
+      private fb: FormBuilder,
+      private router: Router
+    ) {}
+  
+  ngOnInit(): void {
+    
+    this.reviewId = this.route.snapshot.queryParams['id'];
+
+    this.loadReviewData();
+    
+    this.loadUserData();
+
+  }
+
+  async loadUserData() {
+    try {
+      this.userData = await this.authService.getCurrentUserData();
+    } catch (error) {
+      console.error('Error al cargar los datos del usuario:', error);
+    }
+  }
+
+  async loadReviewData() {
+    this.reviewId = this.route.snapshot.queryParams['id'];
+    try {
+      const review = await this.authService.getReviewById(this.reviewId);
+      if (review) {
+        this.reviewData = review;
+      }
+    } catch (error) {
+      console.error('Error al cargar los datos de la reseña:', error);
+    }
+  }
 
   // Agregar una nueva fila a la tabla
   addRow(): void {

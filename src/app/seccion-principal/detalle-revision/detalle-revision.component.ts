@@ -16,7 +16,7 @@ import Swal from 'sweetalert2';
 export class DetalleRevisionComponent implements OnInit {
   title: string = '';
   description: string = '';
-  charCount: number = 0;
+  charCount1: number = 0;
   reviewId!: string;
   reviewData: any = {};
   originalData: any = {};
@@ -24,8 +24,8 @@ export class DetalleRevisionComponent implements OnInit {
   form: FormGroup;
   userData: any = null;
 
-  updateCharCount() {
-    this.charCount = this.description.length;
+  updateCharCount1() {
+    this.charCount1 = this.description.length;
   }
 
   constructor(
@@ -46,9 +46,15 @@ export class DetalleRevisionComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.reviewId = params['id'];
       if (this.reviewId) {
+        console.log('Recibí el ID:', this.reviewId);
+        // Aquí llamas al método para cargar o procesar los datos de la reseña
         this.loadReviewData1();
+      } else {
+        console.error('No se encontró el ID en queryParams.');
       }
     });
+
+    this.reviewId = this.route.snapshot.queryParams['id'];
 
     this.reviewId = this.route.snapshot.paramMap.get('id')!;
     if (this.reviewId) {
@@ -56,6 +62,7 @@ export class DetalleRevisionComponent implements OnInit {
     }
 
     this.loadUserData();
+
   }
 
   async loadUserData() {
@@ -81,6 +88,7 @@ export class DetalleRevisionComponent implements OnInit {
   }
 
   async loadReviewData() {
+    this.reviewId = this.route.snapshot.queryParams['id'];
     try {
       const review = await this.authService.getReviewById(this.reviewId);
       if (review) {
@@ -94,10 +102,12 @@ export class DetalleRevisionComponent implements OnInit {
 
   // Método para detectar cambios en el formulario
   onFieldChange(): void {
+    this.reviewId = this.route.snapshot.queryParams['id'];
     this.isModified = JSON.stringify(this.reviewData) !== JSON.stringify(this.originalData);
   }
 
   updateReview(): void {
+  this.reviewId = this.route.snapshot.queryParams['id'];
   if (this.form.valid && this.reviewId) {
     const updatedData = {
       titulo_revision: this.form.value.titulo_revision,
@@ -142,6 +152,7 @@ export class DetalleRevisionComponent implements OnInit {
 }
   
   navigateToNext(): void {
+    this.reviewId = this.route.snapshot.queryParams['id'];
     if (this.reviewId) {
       this.router.navigate(['/planificacion'], { queryParams: { id: this.reviewId } });
     } else {

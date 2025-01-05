@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { SignUpWithPasswordCredentials } from '@supabase/supabase-js';
+import { NavbarComponent } from '../../principal/navbar/navbar.component';
 
 export interface logIn {
   email: string;
@@ -13,7 +14,7 @@ export interface logIn {
 @Component({
   selector: 'app-auth-log-in',
   standalone: true,
-  imports: [RouterLink, FormsModule, CommonModule],
+  imports: [RouterLink, FormsModule, CommonModule, NavbarComponent],
   templateUrl: './auth-log-in.component.html',
   styleUrl: './auth-log-in.component.scss'
 })

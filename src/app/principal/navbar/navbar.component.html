@@ -1,27 +1,49 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-    <div class="container-fluid">
-      <div class="navbar-brand d-flex align-items-center">
-        <img src="Logo.jpg" alt="OWLREVIEW Logo" class="me-2" style="height: 2rem;" />
-        <span class="ms-2 fs-4 text-dark"><strong>OWLREVIEW</strong></span>
-      </div>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
+  <div class="container-fluid">
+    <div class="navbar-brand d-flex align-items-center">
+      <img src="Logo.jpg" alt="OWLREVIEW Logo" class="me-2" style="height: 2rem;" />
+      <span class="ms-2 fs-4 text-dark"><strong>OWLREVIEW</strong></span>
+    </div>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <!-- Bloque SI está autenticado -->
+      <ul class="navbar-nav ms-auto" *ngIf="isLoggedIn; else notLoggedTemplate">
+        <li class="nav-item">
+          <a class="nav-link text-dark" [routerLink]="['/panel_principal']">
+            <strong>{{ userData?.nombre_usuario || 'Usuario' }}</strong>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-dark" [routerLink]="['/Perfil']"><strong>Perfil</strong></a>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link text-dark" (click)="logout()">
+            <strong>
+              <i class="fa-solid fa-arrow-right"></i> Cerrar Sesión
+            </strong>
+          </button>
+        </li>
+      </ul>
+
+      <!-- Bloque NO está autenticado -->
+      <ng-template #notLoggedTemplate>
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a class="nav-link text-dark" href="/panel_principal"><strong>{{ userData?.nombre_usuario || 'Usuario' }}</strong></a>
+            <a routerLink="/about" class="nav-link text-dark">Acerca de</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-dark" href="/Perfil"><strong>Perfil</strong></a>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link text-dark" routerLink="/log-in"><strong>
-                    <i class="fa-solid fa-arrow-right"> </i> Cerrar Sesion</strong>
-            </button>
+            <a routerLink="/contact" class="nav-link text-dark">Contacto</a>
           </li>
         </ul>
-      </div>
+        <div class="d-flex ms-3">
+          <a routerLink="/sign-up" class="btn btn-outline-secondary me-2">Registrarse</a>
+          <a routerLink="/log-in" class="btn btn-dark">Acceder</a>
+        </div>
+      </ng-template>
     </div>
-  </nav>
+  </div>
+</nav>

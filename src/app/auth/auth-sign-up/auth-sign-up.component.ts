@@ -5,12 +5,13 @@ import { Router, RouterLink } from '@angular/router';
 import { User } from '../../modelo/usuario.model';
 import { AuthService } from '../data-access/auth.service';
 import { SignUpWithPasswordCredentials } from '@supabase/supabase-js';
+import { NavbarComponent } from '../../principal/navbar/navbar.component';
 
 
 @Component({
   selector: 'app-auth-sign-up',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [RouterLink, CommonModule, FormsModule, ReactiveFormsModule, NavbarComponent],
   templateUrl: './auth-sign-up.component.html',
   styleUrl: './auth-sign-up.component.css'
 })
