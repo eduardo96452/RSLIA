@@ -157,7 +157,7 @@ export class AuthService {
   async getReviewById(reviewId: string) {
     const { data, error } = await this._supabaseClient
       .from('detalles_revision')
-      .select('id_detalles_revision, titulo_revision, tipo_revision, descripcion')
+      .select('id_detalles_revision, titulo_revision, objetivo, tipo_revision, descripcion')
       .eq('id_detalles_revision', reviewId)
       .single(); // Para obtener un único registro
   
@@ -179,6 +179,21 @@ export class AuthService {
     }
   
     return { data, error };
+  }
+
+  async updateReviewObjective(reviewId: string, newObjective: string) {
+    const { data, error } = await this._supabaseClient
+      .from('detalles_revision')
+      .update({ objetivo: newObjective })
+      .eq('id_detalles_revision', reviewId);
+  
+    if (error) {
+      console.error('Error al actualizar el objetivo:', error);
+      return { error };
+    }
+  
+    // Si la actualización fue exitosa, data contendrá la nueva información
+    return { data };
   }
   
 }

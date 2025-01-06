@@ -83,48 +83,61 @@
                                     <div class="tab-pane fade show active" id="pagina1" role="tabpanel"
                                         aria-labelledby="tab1">
                                         <!-- Tarjeta Principal -->
-                                        <div class="card" style="flex-grow: 1;">
-                                            <!-- Card Header -->
-                                            <div class="card-header p-2">
-                                                <div class="container">
-                                                    <div class="row">
-                                                        <div class="col">
-                                                            <h4 class="card-title mb-0">
-                                                                <i class="fa-solid fa-pencil"></i>&nbsp; Objetivo de
-                                                                la
-                                                                reseña
-                                                            </h4>
-                                                        </div>
-                                                        <div class="col text-end">
-                                                            <button class="btn btn-warning" type="submit">
-                                                                <i class="bi bi-bug-fill"></i>
-                                                                &nbsp; Sugerencia IA
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- Card Body -->
-                                            <div class="card-body">
-                                                <form>
-                                                    <div class="mb-3">
-                                                        <textarea class="form-control" id="description" rows="5"
-                                                            placeholder="Ingrese un objetivo para la reseña"
-                                                            maxlength="500"></textarea>
-                                                        <div class="text-end text-muted mt-1">
-                                                            <small>0/500 caracteres</small>
-                                                        </div>
-                                                    </div>
-                                                </form>
-                                            </div>
 
-                                            <!-- Card Footer -->
-                                            <div class="card-footer text-end">
-                                                <button class="btn btn-primary" type="submit">
-                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar objetivo
-                                                </button>
+
+
+                                        <div class="card" style="flex-grow: 1;">
+                                            <div class="card-header p-2">
+                                              <div class="container">
+                                                <div class="row">
+                                                  <div class="col">
+                                                    <h4 class="card-title mb-0">
+                                                      <i class="fa-solid fa-pencil"></i>&nbsp; Objetivo de la reseña
+                                                    </h4>
+                                                  </div>
+                                                  <div class="col text-end">
+                                                    <!-- Botón para solicitar la sugerencia de la IA -->
+                                                    <button class="btn btn-warning" type="button" (click)="getIaSuggestion()">
+                                                      <i class="bi bi-bug-fill"></i>
+                                                      &nbsp; Sugerencia IA
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              </div>
                                             </div>
-                                        </div>
+                                          
+                                            <div class="card-body">
+                                              <form>
+                                                <div class="mb-3">
+                                                  <textarea
+                                                    class="form-control"
+                                                    id="description"
+                                                    rows="5"
+                                                    [(ngModel)]="objetivo"
+                                                    name="objetivo"
+                                                    maxlength="500"
+                                                    placeholder="Ingrese un objetivo para la reseña"
+                                                    (ngModelChange)="onTextChange($event)"
+                                                  ></textarea>
+                                                  <div class="text-end text-muted mt-1">
+                                                    <small>{{ charCount }}/500 caracteres</small>
+                                                  </div>
+                                                </div>
+                                              </form>
+                                            </div>
+                                          
+                                            <div class="card-footer text-end">
+                                              <!-- Botón para guardar el objetivo -->
+                                              <button class="btn btn-primary" type="button" (click)="saveObjective()">
+                                                <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar objetivo
+                                              </button>
+                                            </div>
+                                          </div>
+                                          
+                                          
+
+
+
                                         <br />
                                         <div class="card">
                                             <div class="card-header">
