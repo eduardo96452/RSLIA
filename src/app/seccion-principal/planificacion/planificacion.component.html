@@ -10,15 +10,17 @@
                         <ol class="breadcrumb">
                             <div class="row">
                                 <div class="col-4">
-                                    <li class="breadcrumb-item"><a href="/panel_principal">{{ userData?.nombre_usuario || 'Usuario' }}</a>
+                                    <li class="breadcrumb-item"><a href="/panel_principal">{{ userData?.nombre_usuario
+                                            || 'Usuario' }}</a>
                                     </li>
-                                  </div>
-                                  <div class="col-1">
+                                </div>
+                                <div class="col-1">
                                     <p><strong>/</strong></p>
-                                  </div>
-                                  <div class="col-7">
-                                    <li class="breadcrumb-item active" aria-current="page">{{reviewData.titulo_revision}}</li>
-                                  </div>
+                                </div>
+                                <div class="col-7">
+                                    <li class="breadcrumb-item active" aria-current="page">
+                                        {{reviewData.titulo_revision}}</li>
+                                </div>
                             </div>
                         </ol>
                     </nav>
@@ -35,7 +37,8 @@
                             </div>
 
                             <!-- Planificación -->
-                            <div class="menu-item active" [routerLink]="['/planificacion']" [queryParams]="{ id: reviewId }">
+                            <div class="menu-item active" [routerLink]="['/planificacion']"
+                                [queryParams]="{ id: reviewId }">
                                 Planificación
                             </div>
 
@@ -88,57 +91,55 @@
 
                                         <div class="card" style="flex-grow: 1;">
                                             <div class="card-header p-2">
-                                              <div class="container">
-                                                <div class="row">
-                                                  <div class="col">
-                                                    <h4 class="card-title mb-0">
-                                                      <i class="fa-solid fa-pencil"></i>&nbsp; Objetivo de la reseña
-                                                    </h4>
-                                                  </div>
-                                                  <div class="col text-end">
-                                                    <!-- Botón para solicitar la sugerencia de la IA -->
-                                                    <button class="btn btn-warning" type="button" (click)="getIaSuggestion()">
-                                                      <i class="bi bi-bug-fill"></i>
-                                                      &nbsp; Sugerencia IA
-                                                    </button>
-                                                  </div>
+                                                <div class="container">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <h4 class="card-title mb-0">
+                                                                <i class="fa-solid fa-pencil"></i>&nbsp; Objetivo de la
+                                                                reseña
+                                                            </h4>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <!-- Botón para solicitar la sugerencia de la IA -->
+                                                            <button class="btn btn-warning" type="button"
+                                                                (click)="getIaSuggestion()">
+                                                                <i class="bi bi-bug-fill"></i>
+                                                                &nbsp; Sugerencia IA
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                              </div>
                                             </div>
-                                          
+
                                             <div class="card-body">
-                                              <form>
-                                                <div class="mb-3">
-                                                  <textarea
-                                                    class="form-control"
-                                                    id="description"
-                                                    rows="5"
-                                                    [(ngModel)]="objetivo"
-                                                    name="objetivo"
-                                                    maxlength="500"
-                                                    placeholder="Ingrese un objetivo para la reseña"
-                                                    (ngModelChange)="onTextChange($event)"
-                                                  ></textarea>
-                                                  <div class="text-end text-muted mt-1">
-                                                    <small>{{ charCount }}/500 caracteres</small>
-                                                  </div>
-                                                </div>
-                                              </form>
+                                                <form>
+                                                    <div class="mb-3">
+                                                        <textarea class="form-control" id="description" rows="5"
+                                                            [(ngModel)]="objetivo" name="objetivo" maxlength="1000"
+                                                            placeholder="Ingrese un objetivo para la reseña"
+                                                            (ngModelChange)="onTextChange($event)"></textarea>
+                                                        <div class="text-end text-muted mt-1">
+                                                            <small>{{ charCount }}/800 caracteres</small>
+                                                        </div>
+                                                    </div>
+                                                </form>
                                             </div>
-                                          
+
                                             <div class="card-footer text-end">
-                                              <!-- Botón para guardar el objetivo -->
-                                              <button class="btn btn-primary" type="button" (click)="saveObjective()">
-                                                <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar objetivo
-                                              </button>
+                                                <!-- Botón para guardar el objetivo -->
+                                                <button class="btn btn-primary" type="button" (click)="saveObjective()">
+                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar objetivo
+                                                </button>
                                             </div>
-                                          </div>
-                                          
-                                          
+                                        </div>
+
 
 
 
                                         <br />
+
+                                        <!-- Tarjeta de metodologías -->
+
                                         <div class="card">
                                             <div class="card-header">
                                                 <label for="paginaSelect" class="form-label">
@@ -146,12 +147,11 @@
                                                         <i class="bi bi-book-half"></i>&nbsp; Selecciona una
                                                         metodología:
                                                     </h4>
-                                                    <br />
                                                 </label>
 
                                                 <select class="form-select mb-4" id="paginaSelect"
-                                                    [(ngModel)]="paginaSeleccionada">
-
+                                                    [(ngModel)]="paginaSeleccionada"
+                                                    (ngModelChange)="onMetodoChange($event)">
                                                     <option value="pagina1">PICO</option>
                                                     <option value="pagina2">PICOC</option>
                                                     <option value="pagina3">PICOTT</option>
@@ -160,6 +160,10 @@
                                             </div>
                                             <div class="card-body">
                                                 <div class="container">
+
+
+
+                                                    <!-- PICO -->
                                                     <div class="card p-3" *ngIf="paginaSeleccionada === 'pagina1'">
                                                         <div class="container">
                                                             <div class="row">
@@ -167,9 +171,9 @@
                                                                     <h5>PICO</h5>
                                                                 </div>
                                                                 <div class="col text-end">
-                                                                    <button class="btn btn-warning" type="submit">
-                                                                        <i class="bi bi-bug-fill"></i>
-                                                                        &nbsp; Sugerencia IA
+                                                                    <button class="btn btn-warning" type="button">
+                                                                        <i class="bi bi-bug-fill"></i> &nbsp; Sugerencia
+                                                                        IA
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -177,40 +181,45 @@
                                                                 <div class="col">
                                                                     <form>
                                                                         <div class="mb-3">
-                                                                            <label for="población"
-                                                                                class="form-label">Población</label>
+                                                                            <label class="form-label">Población
+                                                                                (P)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="población">
+                                                                                [(ngModel)]="picoP" name="picoP" />
                                                                         </div>
-                                                                        <br />
                                                                         <div class="mb-3">
-                                                                            <label for="intervención"
-                                                                                class="form-label">Intervención</label>
+                                                                            <label class="form-label">Intervención
+                                                                                (I)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="intervención">
+                                                                                [(ngModel)]="picoI" name="picoI" />
                                                                         </div>
-                                                                        <br />
                                                                         <div class="mb-3">
-                                                                            <label for="comparación"
-                                                                                class="form-label">Comparación</label>
+                                                                            <label class="form-label">Comparación
+                                                                                (C)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="comparación">
+                                                                                [(ngModel)]="picoC" name="picoC" />
                                                                         </div>
-                                                                        <br />
                                                                         <div class="mb-3">
-                                                                            <label for="resultado"
-                                                                                class="form-label">Resultado</label>
+                                                                            <label class="form-label">Resultado
+                                                                                (O)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="resultado">
+                                                                                [(ngModel)]="picoO" name="picoO" />
                                                                         </div>
                                                                     </form>
                                                                 </div>
                                                             </div>
                                                         </div>
 
-
+                                                        <div class="card-footer text-end">
+                                                            <button class="btn btn-primary" type="button"
+                                                                (click)="guardarMetodologiaPICO()">
+                                                                <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar
+                                                                metodología PICO
+                                                            </button>
+                                                        </div>
                                                     </div>
 
+
+                                                    <!-- PICOC -->
                                                     <div class="card p-3" *ngIf="paginaSeleccionada === 'pagina2'">
                                                         <div class="container">
                                                             <div class="row">
@@ -228,44 +237,54 @@
                                                                 <div class="col">
                                                                     <form>
                                                                         <div class="mb-3">
-                                                                            <label for="población1"
-                                                                                class="form-label">Población</label>
+                                                                            <label class="form-label">Población
+                                                                                (P)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="población1">
+                                                                                [(ngModel)]="picocP" name="picocP" />
                                                                         </div>
                                                                         <br />
                                                                         <div class="mb-3">
-                                                                            <label for="intervención1"
-                                                                                class="form-label">Intervención</label>
+                                                                            <label class="form-label">Intervención
+                                                                                (I)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="intervención1">
+                                                                                [(ngModel)]="picocI" name="picocI" />
                                                                         </div>
                                                                         <br />
                                                                         <div class="mb-3">
-                                                                            <label for="comparación1"
-                                                                                class="form-label">Comparación</label>
+                                                                            <label class="form-label">Comparación
+                                                                                (C)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="comparación1">
+                                                                                [(ngModel)]="picocC" name="picocC" />
                                                                         </div>
                                                                         <br />
                                                                         <div class="mb-3">
-                                                                            <label for="resultado1"
-                                                                                class="form-label">Resultado</label>
+                                                                            <label class="form-label">Resultado
+                                                                                (O)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="resultado1">
+                                                                                [(ngModel)]="picocO" name="picocO" />
                                                                         </div>
                                                                         <div class="mb-3">
-                                                                            <label for="contexto1"
-                                                                                class="form-label">Contexto</label>
+                                                                            <label class="form-label">Contexto
+                                                                                (C)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="contexto1">
+                                                                                [(ngModel)]="picocContext"
+                                                                                name="picocContext" />
                                                                         </div>
                                                                     </form>
                                                                 </div>
                                                             </div>
                                                         </div>
+
+                                                        <div class="card-footer text-end">
+                                                            <button class="btn btn-primary" type="button"
+                                                                (click)="guardarMetodologiaPICOC()">
+                                                                <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar
+                                                                metodología PICOC
+                                                            </button>
+                                                        </div>
                                                     </div>
 
+                                                    <!-- PICOTT -->
                                                     <div class="card p-3" *ngIf="paginaSeleccionada === 'pagina3'">
                                                         <div class="container">
                                                             <div class="row">
@@ -283,57 +302,65 @@
                                                                 <div class="col">
                                                                     <form>
                                                                         <div class="mb-3">
-                                                                            <label for="población2"
-                                                                                class="form-label">Población</label>
+                                                                            <label class="form-label">Población
+                                                                                (P)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="población2">
+                                                                                [(ngModel)]="picottP" name="picottP" />
                                                                         </div>
                                                                         <br />
                                                                         <div class="mb-3">
-                                                                            <label for="intervención2"
-                                                                                class="form-label">Intervención</label>
+                                                                            <label class="form-label">Intervención
+                                                                                (I)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="intervención2">
+                                                                                [(ngModel)]="picottI" name="picottI" />
                                                                         </div>
                                                                         <br />
                                                                         <div class="mb-3">
-                                                                            <label for="comparación2"
-                                                                                class="form-label">Comparación</label>
+                                                                            <label class="form-label">Comparación
+                                                                                (C)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="comparación2">
+                                                                                [(ngModel)]="picottC" name="picottC" />
                                                                         </div>
                                                                         <br />
                                                                         <div class="mb-3">
-                                                                            <label for="resultado2"
-                                                                                class="form-label">Resultado</label>
+                                                                            <label class="form-label">Resultado
+                                                                                (O)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="resultado2">
+                                                                                [(ngModel)]="picottO" name="picottO" />
                                                                         </div>
                                                                         <div class="mb-3">
-                                                                            <label for="tipregunta2"
-                                                                                class="form-label">Tipo de
-                                                                                pregunta</label>
+                                                                            <label class="form-label">Tipo de
+                                                                                pregunta (T)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="tipregunta2">
+                                                                                [(ngModel)]="picottT" name="picottT" />
                                                                         </div>
                                                                         <div class="mb-3">
-                                                                            <label for="tiarticulo2"
-                                                                                class="form-label">Tipo de
-                                                                                articulo</label>
+                                                                            <label class="form-label">Tipo de
+                                                                                articulo (T)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="tiarticulo2">
+                                                                                [(ngModel)]="picottT2"
+                                                                                name="picottT2" />
                                                                         </div>
                                                                     </form>
                                                                 </div>
                                                             </div>
                                                         </div>
+
+                                                        <div class="card-footer text-end">
+                                                            <button class="btn btn-primary" type="button"
+                                                                (click)="guardarMetodologiaPICOTT()">
+                                                                <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar
+                                                                metodología PICOTT
+                                                            </button>
+                                                        </div>
                                                     </div>
 
+                                                    <!-- SPICE -->
                                                     <div class="card p-3" *ngIf="paginaSeleccionada === 'pagina4'">
                                                         <div class="container">
                                                             <div class="row">
                                                                 <div class="col">
-                                                                    <h5>PICOTT</h5>
+                                                                    <h5>SPICE</h5>
                                                                 </div>
                                                                 <div class="col text-end">
                                                                     <button class="btn btn-warning" type="submit">
@@ -346,52 +373,59 @@
                                                                 <div class="col">
                                                                     <form>
                                                                         <div class="mb-3">
-                                                                            <label for="escenario3"
-                                                                                class="form-label">Escenario</label>
+                                                                            <label class="form-label">Escenario
+                                                                                (E)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="escenario3">
+                                                                                [(ngModel)]="spiceS" name="spiceS" />
                                                                         </div>
                                                                         <br />
                                                                         <div class="mb-3">
-                                                                            <label for="perspectiva3"
-                                                                                class="form-label">Perspectiva</label>
+                                                                            <label class="form-label">Perspectiva
+                                                                                (P)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="perspectiva3">
+                                                                                [(ngModel)]="spiceP" name="spiceP" />
                                                                         </div>
                                                                         <br />
                                                                         <div class="mb-3">
-                                                                            <label for="intervención3"
-                                                                                class="form-label">Intervención</label>
+                                                                            <label class="form-label">Intervención
+                                                                                (I)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="intervención3">
+                                                                                [(ngModel)]="spiceI" name="spiceI" />
                                                                         </div>
                                                                         <br />
                                                                         <div class="mb-3">
-                                                                            <label for="comparacion3"
-                                                                                class="form-label">Comparación</label>
+                                                                            <label class="form-label">Comparación
+                                                                                (C)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="comparacion3">
+                                                                                [(ngModel)]="spiceC" name="spiceC" />
                                                                         </div>
                                                                         <div class="mb-3">
-                                                                            <label for="evaluación3"
-                                                                                class="form-label">Evaluación</label>
+                                                                            <label class="form-label">Evaluación
+                                                                                (E)</label>
                                                                             <input type="text" class="form-control"
-                                                                                id="evaluación3">
+                                                                                [(ngModel)]="spiceE" name="spiceE" />
                                                                         </div>
                                                                     </form>
                                                                 </div>
                                                             </div>
                                                         </div>
+
+                                                        <div class="card-footer text-end">
+                                                            <button class="btn btn-primary" type="button"
+                                                                (click)="guardarMetodologiaSPICE()">
+                                                                <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar
+                                                                metodología SPICE
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="card-footer text-end">
-                                                <button class="btn btn-primary" type="submit">
-                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar
-                                                    metodología
-                                                </button>
-                                            </div>
                                         </div>
+
+
+
+
+
                                         <br />
                                         <div class="card">
                                             <div class="card-header">

@@ -195,5 +195,57 @@ export class AuthService {
     // Si la actualización fue exitosa, data contendrá la nueva información
     return { data };
   }
+
+  async insertMetodologia(data: {
+    id_detalles_revision: number | string;
+    nombre_metodologia: string;
+    s?: string;
+    p?: string;
+    i?: string;
+    c?: string;
+    e?: string;
+    o?: string;
+    c2?: string;
+    t?: string;
+    t2?: string;
+  }) {
+    const { data: insertData, error } = await this._supabaseClient
+      .from('metodologias')
+      .insert([data]);
+  
+    if (error) {
+      console.error('Error al insertar metodología:', error);
+      throw error;
+    }
+    return insertData;
+  }
+
+  async getMetodologiaByRevisionId(revisionId: number | string) {
+    const { data, error } = await this._supabaseClient
+      .from('metodologias')
+      .select('*')
+      .eq('id_detalles_revision', revisionId)
+      .single(); // asumes que solo guardas una metodología por revisión
+  
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 = Row not found
+      console.error('Error al consultar metodología:', error);
+      throw error;
+    }
+    return data; // data será undefined/null si no existe
+  }
+
+  async deleteMetodologiaByRevisionId(revisionId: number | string) {
+    const { data, error } = await this._supabaseClient
+      .from('metodologias')
+      .delete()
+      .eq('id_detalles_revision', revisionId);
+  
+    if (error) {
+      console.error('Error al eliminar metodología:', error);
+      throw error;
+    }
+    return data;
+  }
   
 }
