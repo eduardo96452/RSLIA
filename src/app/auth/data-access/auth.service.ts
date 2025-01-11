@@ -43,14 +43,13 @@ export class AuthService {
     return this._supabaseClient.auth.signOut();
   }
 
-  // Nueva función para agregar el usuario a la base de datos
   async addUserToDatabase(id_usuario: string, nombre: string, correo_electronico: string, contrasena: string) {
     const { data, error } = await this._supabaseClient
       .from('usuarios') // Nombre de la tabla en Supabase
       .insert([
         {
-          id_usuarios: id_usuario,
-          nombre_usuario: nombre, // Ajusta si es el campo de "nombre" o "nombre_usuario"
+          id_usuarios: id_usuario, // Asegúrate de que coincide con la columna
+          nombre_usuario: nombre,
           correo_electronico,
           contrasena
         }

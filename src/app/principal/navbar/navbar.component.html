@@ -1,49 +1,60 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-  <div class="container-fluid">
-    <div class="navbar-brand d-flex align-items-center">
-      <img src="Logo.jpg" alt="OWLREVIEW Logo" class="me-2" style="height: 2rem;" />
-      <span class="ms-2 fs-4 text-dark"><strong>OWLREVIEW</strong></span>
+<div class="container">
+  <header
+    class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+    <div class="col-md-3 mb-md-0">
+      <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none align-items-center">
+        <img src="Logo.jpg" alt="OWLREVIEW Logo" class="me-2" style="height: 3rem;" />
+        <span class="ms-2 fs-4 text-dark"><strong>OWLREVIEW</strong></span>
+      </a>
     </div>
+    <!-- Bloque SI está autenticado -->
+    <ul class="navbar-nav ms-auto" *ngIf="isLoggedIn; else notLoggedTemplate">
+      <div class="dropdown text-end">
+        <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          <img [src]="userData?.ruta_imagen || 'https://uxcpuzwvwhtqjtiyolfm.supabase.co/storage/v1/object/public/avatars/path/to/file/perfil.png'"
+            alt="{{ userData?.nombre_usuario || 'Usuario' }}" width="32" height="32" class="rounded-circle">
+          {{ userData?.nombre_usuario || 'Usuario' }}
+        </a>
+        <ul class="dropdown-menu text-small">
+          <li><a class="dropdown-item" [routerLink]="['/Descripción_General']">Nueva revision...</a></li>
+          <li><a class="dropdown-item" [routerLink]="['/Perfil']">Perfil</a></li>
+          <li>
+            <hr class="dropdown-divider">
+          </li>
+          <li><button class="dropdown-item" (click)="logout()">Cerrar Sesión</button></li>
+        </ul>
+      </div>
+    </ul>
 
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <!-- Bloque SI está autenticado -->
-      <ul class="navbar-nav ms-auto" *ngIf="isLoggedIn; else notLoggedTemplate">
-        <li class="nav-item">
-          <a class="nav-link text-dark" [routerLink]="['/panel_principal']">
-            <strong>{{ userData?.nombre_usuario || 'Usuario' }}</strong>
+    <!-- Bloque NO está autenticado -->
+    <ng-template #notLoggedTemplate>
+      <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+        <li>
+          <a routerLink="/inicio" class="nav-link px-2" [class.link-secondary]="activeLink === '/inicio'"
+            (click)="setActiveLink('/inicio')">
+            <strong>Inicio</strong>
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link text-dark" [routerLink]="['/Perfil']"><strong>Perfil</strong></a>
+        <li>
+          <a routerLink="/acerca-de" class="nav-link px-2" [class.link-secondary]="activeLink === '/acerca-de'"
+            (click)="setActiveLink('/acerca-de')">
+            <strong>Acerca de</strong>
+          </a>
         </li>
-        <li class="nav-item">
-          <button class="nav-link text-dark" (click)="logout()">
-            <strong>
-              <i class="fa-solid fa-arrow-right"></i> Cerrar Sesión
-            </strong>
-          </button>
+        <li>
+          <a routerLink="/contacto" class="nav-link px-2" [class.link-secondary]="activeLink === '/contacto'"
+            (click)="setActiveLink('/contacto')">
+            <strong>Contacto</strong>
+          </a>
         </li>
       </ul>
 
-      <!-- Bloque NO está autenticado -->
-      <ng-template #notLoggedTemplate>
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a routerLink="/about" class="nav-link text-dark">Acerca de</a>
-          </li>
-          <li class="nav-item">
-            <a routerLink="/contact" class="nav-link text-dark">Contacto</a>
-          </li>
-        </ul>
-        <div class="d-flex ms-3">
-          <a routerLink="/sign-up" class="btn btn-outline-secondary me-2">Registrarse</a>
-          <a routerLink="/log-in" class="btn btn-dark">Acceder</a>
-        </div>
-      </ng-template>
-    </div>
-  </div>
-</nav>
+
+      <div class="d-flex ms-3">
+        <a routerLink="/log-in" class="btn btn-outline-primary me-2">Acceder</a>
+        <a routerLink="/sign-up" class="btn btn-primary">Registrarse</a>
+      </div>
+    </ng-template>
+  </header>
+</div>

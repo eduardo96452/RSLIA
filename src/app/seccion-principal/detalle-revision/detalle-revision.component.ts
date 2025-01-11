@@ -5,11 +5,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../../principal/navbar/navbar.component';
 import { AuthService } from '../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
+import { FooterComponent } from "../../principal/footer/footer.component";
 
 @Component({
   selector: 'app-detalle-revision',
   standalone: true,
-  imports: [RouterLink,CommonModule, FormsModule, NavbarComponent, ReactiveFormsModule],
+  imports: [RouterLink, CommonModule, FormsModule, NavbarComponent, ReactiveFormsModule, FooterComponent],
   templateUrl: './detalle-revision.component.html',
   styleUrl: './detalle-revision.component.css'
 })

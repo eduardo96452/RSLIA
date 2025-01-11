@@ -8,9 +8,10 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [RouterLink, CommonModule],
   templateUrl: './navbar.component.html',
-  styleUrl: './navbar.component.css'
+  styleUrl: './navbar.component.css',
 })
 export class NavbarComponent implements OnInit {
+  activeLink: string = 'inicio';
   userData: any = null;
   isLoggedIn: boolean = false;
 
@@ -52,5 +53,9 @@ export class NavbarComponent implements OnInit {
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
+  }
+
+  setActiveLink(link: string): void {
+    this.activeLink = link; // Cambia el enlace activo
   }
 }

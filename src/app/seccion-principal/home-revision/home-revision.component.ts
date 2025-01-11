@@ -5,11 +5,12 @@ import { Router, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../../principal/navbar/navbar.component';
 import { AuthService } from '../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
+import { FooterComponent } from "../../principal/footer/footer.component";
 
 @Component({
   selector: 'app-home-revision',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent, FooterComponent],
   templateUrl: './home-revision.component.html',
   styleUrl: './home-revision.component.css'
 })

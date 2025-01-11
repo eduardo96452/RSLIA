@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { SignUpWithPasswordCredentials } from '@supabase/supabase-js';
 import { NavbarComponent } from '../../principal/navbar/navbar.component';
+import Swal from 'sweetalert2';
 
 export interface logIn {
   email: string;
@@ -28,28 +29,47 @@ export class AuthLogInComponent {
   async handleEmailLogin() {
     if (this.email && this.password) {
       try {
-        
+        // Paso 1: Intento de inicio de sesión
         const { error, data } = await this._authService.logIn({
           email: this.email,
           password: this.password,
         });
-
+  
         if (error) {
           console.error('Error en el inicio de sesión:', error.message);
-          alert('Error en el inicio de sesión: ' + error.message);
-        } else {
-          console.log('Usuario autenticado:', data);
-          alert('¡Inicio de sesión exitoso!');
-
-          // Redirige a la página de inicio o a la ruta deseada
-          this.router.navigate(['/panel_principal']);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error en el inicio de sesión',
+            text: error.message,
+          });
+          return;
         }
-        
+  
+        // Paso 2: Usuario autenticado
+        console.log('Usuario autenticado:', data);
+        Swal.fire({
+          icon: 'success',
+          title: '¡Inicio de sesión exitoso!',
+          text: 'Bienvenido a tu panel principal.',
+        }).then(() => {
+          // Redirige a la página deseada
+          this.router.navigate(['/panel_principal']);
+        });
+  
       } catch (error) {
         console.error('Error en el inicio de sesión:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error inesperado',
+          text: 'Ocurrió un problema. Por favor, inténtalo nuevamente.',
+        });
       }
     } else {
-      alert('Por favor completa todos los campos.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor completa todos los campos.',
+      });
     }
   }
 

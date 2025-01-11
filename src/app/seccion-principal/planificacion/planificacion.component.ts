@@ -7,6 +7,7 @@ import { AuthService } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
 import Swal from 'sweetalert2';
 import { HttpClientModule } from '@angular/common/http';
+import { FooterComponent } from "../../principal/footer/footer.component";
 
 interface Question {
   id: number;
@@ -16,7 +17,7 @@ interface Question {
 @Component({
   selector: 'app-planificacion',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, NavbarComponent, ReactiveFormsModule, HttpClientModule],
+  imports: [RouterLink, CommonModule, FormsModule, NavbarComponent, ReactiveFormsModule, HttpClientModule, FooterComponent],
   templateUrl: './planificacion.component.html',
   styleUrl: './planificacion.component.css'
 })

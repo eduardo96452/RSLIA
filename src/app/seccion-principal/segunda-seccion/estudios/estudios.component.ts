@@ -3,12 +3,13 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { NavbarComponent } from "../../../principal/navbar/navbar.component";
+import { FooterComponent } from "../../../principal/footer/footer.component";
 declare var bootstrap: any;
 
 @Component({
   selector: 'app-estudios',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, NavbarComponent],
+  imports: [RouterLink, CommonModule, FormsModule, NavbarComponent, FooterComponent],
   templateUrl: './estudios.component.html',
   styleUrl: './estudios.component.css'
 })

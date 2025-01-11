@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NavbarComponent } from "../../principal/navbar/navbar.component";
 import { AuthService } from '../../auth/data-access/auth.service';
+import { FooterComponent } from "../../principal/footer/footer.component";
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, NavbarComponent],
+  imports: [RouterLink, CommonModule, FormsModule, NavbarComponent, FooterComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
