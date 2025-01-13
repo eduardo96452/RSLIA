@@ -20,7 +20,7 @@ export class HomeRevisionComponent {
   tipoRevision: string = '';
   charCount: number = 0;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(private router: Router, private authService: AuthService) { }
 
   updateCharCount() {
     this.charCount = this.description.length;
@@ -48,17 +48,24 @@ export class HomeRevisionComponent {
       return;
     }
   
-    console.log('Reseña creada exitosamente:', insertData);
-
-    // Mostrar alerta con SweetAlert2
-  Swal.fire({
-    title: '¡Éxito!',
-    text: 'Reseña creada exitosamente.',
-    icon: 'success',
-    confirmButtonText: 'OK',
-  }).then(() => {
-    // Redirigir después de cerrar la alerta
-    this.router.navigate(['/detalle_revision']);
-  });
+    // Accede al ID correctamente
+    const newReviewId = insertData?.[0]?.id_detalles_revision;
+    if (!newReviewId) {
+      console.error('No se recibió ID de la nueva reseña');
+      return;
+    }
+  
+    Swal.fire({
+      title: '¡Éxito!',
+      text: 'Reseña creada exitosamente.',
+      icon: 'success',
+      confirmButtonText: 'OK',
+    }).then(() => {
+      this.router.navigate(['/detalle_revision'], {
+        queryParams: { id: newReviewId },
+      });
+    });
   }
+  
+  
 }

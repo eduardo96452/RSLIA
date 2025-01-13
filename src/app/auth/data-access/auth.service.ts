@@ -3,6 +3,38 @@ import { SupabaseService } from '../../conexion/supabase.service';
 import { createClient, SignUpWithPasswordCredentials } from '@supabase/supabase-js';
 import { BehaviorSubject, from, Observable } from 'rxjs';
 
+export interface DetallesRevision {
+  id_detalles_revision: string;
+  id_usuarios: string;
+  titulo_revision: string;
+  tipo_revision: string;
+  descripcion: string;
+  fecha_creacion: string;
+}
+
+export interface Question {
+  id: number;
+  id_estudios?: string | null;
+  id_detalles_revision?: string;
+  value: string;
+  isSaved?: boolean;
+}
+
+export interface KeywordRow {
+  id_palabras_clave?: number;
+  keyword: string;      // palabra_clave
+  related: string;      // seccion_metodologia
+  synonyms: string;     // sinónimos separados por comas
+  isEditing?: boolean;  // control de edición local
+}
+
+export interface Criterio {
+  id_criterios?: number; // ID del criterio (puede ser indefinido al agregar nuevos)
+  descripcion: string;   // Descripción del criterio
+  tipo: 'exclusion' | 'inclusion'; // Tipo del criterio
+  isEditing?: boolean;   // Para controlar el modo de edición en la tabla
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -15,7 +47,7 @@ export class AuthService {
     // Actualiza el estado de autenticación según el estado de la sesión de Supabase
     this._supabaseClient.auth.onAuthStateChange((event, session) => {
       this.authState.next(!!session);
-      
+
     });
   }
 
@@ -28,18 +60,18 @@ export class AuthService {
     return this.authState.asObservable();
   }
 
-  
-  signUp(credentials: SignUpWithPasswordCredentials){
+
+  signUp(credentials: SignUpWithPasswordCredentials) {
     return this._supabaseClient.auth.signUp(credentials);
   }
 
 
-  logIn(credentials:{ email: string; password: string }){
+  logIn(credentials: { email: string; password: string }) {
     return this._supabaseClient.auth.signInWithPassword(credentials);
   }
 
 
-  signOut(){
+  signOut() {
     return this._supabaseClient.auth.signOut();
   }
 
@@ -90,7 +122,7 @@ export class AuthService {
         nombre_usuario: userData.nombre_usuario,
       })
       .eq('id_usuarios', uid);
-  
+
     if (error) {
       console.error('Error al actualizar los datos del usuario:', error);
     }
@@ -102,7 +134,7 @@ export class AuthService {
       .storage
       .from('avatars')  // El bucket de almacenamiento (asegúrate de crear un bucket llamado 'avatars')
       .upload(filePath, file);
-  
+
     if (error) {
       console.error('Error al subir el archivo:', error);
       return { error };
@@ -110,15 +142,23 @@ export class AuthService {
     return { data };
   }
 
-  async createReview(data: { id_usuarios: string; titulo_revision: string; tipo_revision: string; descripcion: string; fecha_creacion: string }) {
+  async createReview(data: {
+    id_usuarios: string;
+    titulo_revision: string;
+    tipo_revision: string;
+    descripcion: string;
+    fecha_creacion: string;
+  }): Promise<{ insertData: DetallesRevision[] | null; error: any }> {
     const { data: insertData, error } = await this._supabaseClient
-      .from('detalles_revision') // Asegúrate de que sea el nombre correcto de tu tabla
-      .insert([data]);
-  
+      .from('detalles_revision')
+      .insert([data])
+      .select(); // Asegúrate de que Supabase retorne los datos insertados
+
     if (error) {
       console.error('Error al crear la reseña:', error);
+      return { insertData: null, error };
     }
-  
+
     return { insertData, error };
   }
 
@@ -127,28 +167,28 @@ export class AuthService {
       .from('detalles_revision') // Nombre de la tabla
       .select('*', { count: 'exact', head: true })
       .eq('id_usuarios', userId); // Filtra por el usuario autenticado
-  
+
     if (error) {
       console.error('Error al contar las revisiones del usuario:', error);
       return 0; // Retorna 0 en caso de error
     }
-  
+
     return count || 0; // Retorna el conteo obtenido
   }
 
   async getUserReviews(userId: string) {
     console.log('Fetching reviews for user:', userId);
-  
+
     const { data, error } = await this._supabaseClient
       .from('detalles_revision')
       .select('id_detalles_revision, titulo_revision')
       .eq('id_usuarios', userId);
-  
+
     if (error) {
       console.error('Error en la consulta:', error);
       return [];
     }
-  
+
     console.log('Data received:', data);
     return data || [];
   }
@@ -159,7 +199,7 @@ export class AuthService {
       .select('id_detalles_revision, titulo_revision, objetivo, tipo_revision, descripcion')
       .eq('id_detalles_revision', reviewId)
       .single(); // Para obtener un único registro
-  
+
     if (error) {
       console.error('Error al obtener la reseña por ID:', error);
       return null;
@@ -172,11 +212,11 @@ export class AuthService {
       .from('detalles_revision')
       .update(reviewData)
       .eq('id_detalles_revision', reviewId);
-  
+
     if (error) {
       console.error('Error al actualizar la reseña:', error);
     }
-  
+
     return { data, error };
   }
 
@@ -185,12 +225,12 @@ export class AuthService {
       .from('detalles_revision')
       .update({ objetivo: newObjective })
       .eq('id_detalles_revision', reviewId);
-  
+
     if (error) {
       console.error('Error al actualizar el objetivo:', error);
       return { error };
     }
-  
+
     // Si la actualización fue exitosa, data contendrá la nueva información
     return { data };
   }
@@ -211,7 +251,7 @@ export class AuthService {
     const { data: insertData, error } = await this._supabaseClient
       .from('metodologias')
       .insert([data]);
-  
+
     if (error) {
       console.error('Error al insertar metodología:', error);
       throw error;
@@ -225,7 +265,7 @@ export class AuthService {
       .select('*')
       .eq('id_detalles_revision', revisionId)
       .single(); // asumes que solo guardas una metodología por revisión
-  
+
     if (error && error.code !== 'PGRST116') {
       // PGRST116 = Row not found
       console.error('Error al consultar metodología:', error);
@@ -239,12 +279,238 @@ export class AuthService {
       .from('metodologias')
       .delete()
       .eq('id_detalles_revision', revisionId);
-  
+
     if (error) {
       console.error('Error al eliminar metodología:', error);
       throw error;
     }
     return data;
+  }
+
+  async saveResearchQuestion(question: Question): Promise<any> {
+    const { data, error } = await this._supabaseClient
+      .from('preguntas_investigacion') // Nombre de la tabla
+      .insert([
+        {
+          id_estudios: question.id_estudios || null, // Opcional: depende si tienes ID del estudio
+          pregunta: question.value,
+          id_detalles_revision: question.id_detalles_revision || null, // Asociado a una revisión
+        }
+      ]);
+
+    if (error) {
+      console.error('Error al guardar la pregunta:', error.message);
+    }
+    return { data, error };
+  }
+
+  async deleteResearchQuestion(id_preguntas_investigacion: number): Promise<any> {
+    const { data, error } = await this._supabaseClient
+      .from('preguntas_investigacion') // Nombre de la tabla
+      .delete()
+      .eq('id_preguntas_investigacion', id_preguntas_investigacion); // Filtra por el ID de la pregunta
+
+    if (error) {
+      console.error('Error al eliminar la pregunta:', error.message);
+    }
+    return { data, error };
+  }
+
+  async getResearchQuestionsByRevision(id_detalles_revision: string): Promise<any> {
+    const { data, error } = await this._supabaseClient
+      .from('preguntas_investigacion') // Nombre de la tabla
+      .select('*') // Selecciona todas las columnas
+      .eq('id_detalles_revision', id_detalles_revision); // Filtra por el ID de la revisión
+
+    if (error) {
+      console.error('Error al obtener preguntas:', error.message);
+    }
+    return { data, error };
+  }
+
+  async saveKeyword(
+    palabraClave: string,
+    seccionMetodologia: string,
+    sinonimos: string[],
+    idDetallesRevision: string
+  ): Promise<{ data: any; error: any }> {
+    // Mapear sinónimos a cada columna
+    const sinonimo1 = sinonimos[0] ?? null;
+    const sinonimo2 = sinonimos[1] ?? null;
+    const sinonimo3 = sinonimos[2] ?? null;
+    const sinonimo4 = sinonimos[3] ?? null;
+    const sinonimo5 = sinonimos[4] ?? null;
+
+    const { data, error } = await this._supabaseClient
+      .from('palabras_clave')
+      .insert([
+        {
+          palabra_clave: palabraClave,
+          seccion_metodologia: seccionMetodologia,
+          id_detalles_revision: idDetallesRevision,
+          sinonimo1,
+          sinonimo2,
+          sinonimo3,
+          sinonimo4,
+          sinonimo5
+          // fecha_ingreso puede tener default en la BD
+        }
+      ]);
+
+    if (error) {
+      console.error('Error al insertar palabra clave:', error.message);
+    }
+    return { data, error };
+  }
+
+  async updateKeyword(
+    idPalabrasClave: number,
+    palabraClave: string,
+    seccionMetodologia: string,
+    sinonimos: string[],
+    idDetallesRevision: string
+  ): Promise<{ data: any; error: any }> {
+    // Similar mapeo de sinónimos
+    const sinonimo1 = sinonimos[0] ?? null;
+    const sinonimo2 = sinonimos[1] ?? null;
+    const sinonimo3 = sinonimos[2] ?? null;
+    const sinonimo4 = sinonimos[3] ?? null;
+    const sinonimo5 = sinonimos[4] ?? null;
+
+    const { data, error } = await this._supabaseClient
+      .from('palabras_clave')
+      .update({
+        palabra_clave: palabraClave,
+        seccion_metodologia: seccionMetodologia,
+        id_detalles_revision: idDetallesRevision,
+        sinonimo1,
+        sinonimo2,
+        sinonimo3,
+        sinonimo4,
+        sinonimo5
+      })
+      .eq('id_palabras_clave', idPalabrasClave);
+
+    if (error) {
+      console.error('Error al actualizar palabra clave:', error.message);
+    }
+    return { data, error };
+  }
+
+  async getKeywordsByRevision(idRevision: string) {
+    const { data, error } = await this._supabaseClient
+      .from('palabras_clave')
+      .select('*')
+      .eq('id_detalles_revision', idRevision);
+  
+    if (error) {
+      console.error('Error al obtener palabras clave:', error.message);
+    }
+    return { data, error };
+  }
+  
+  async deleteKeyword(idPalabrasClave: number): Promise<{ data: any; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('palabras_clave')
+      .delete()
+      .eq('id_palabras_clave', idPalabrasClave);
+  
+    if (error) {
+      console.error('Error al eliminar la palabra clave:', error.message);
+    }
+    return { data, error };
+  }
+
+  async insertarCadenaBusqueda(cadenaBusqueda: string, idDetallesRevision: string) {
+    // La columna "fecha_creacion" puede ser un default en la BD
+    const { data, error } = await this._supabaseClient
+      .from('cadenas_busqueda')
+      .insert([
+        {
+          cadena_busqueda: cadenaBusqueda,
+          id_detalles_revision: idDetallesRevision
+          // fecha_creacion: se asigna automáticamente si la BD tiene DEFAULT CURRENT_TIMESTAMP
+        }
+      ]);
+  
+    if (error) {
+      console.error('Error al insertar cadena de búsqueda:', error.message);
+    }
+    return { data, error };
+  }
+  
+  async getCadenaBusqueda(idDetallesRevision: string) {
+    const { data, error } = await this._supabaseClient
+      .from('cadenas_busqueda')
+      .select('id_cadenas_busqueda, cadena_busqueda')
+      .eq('id_detalles_revision', idDetallesRevision)
+      // .maybeSingle() // si sabes que sólo hay una cadena por revisión, puedes usar .single() o .maybeSingle()
+  
+    if (error) {
+      console.error('Error al obtener cadena de búsqueda:', error.message);
+    }
+    return { data, error };
+  }
+  
+  async getCriterios(idDetallesRevision: string) {
+    const { data, error } = await this._supabaseClient
+      .from('criterios')
+      .select('*')
+      .eq('id_detalles_revision', idDetallesRevision);
+
+    if (error) {
+      console.error('Error al obtener criterios:', error.message);
+    }
+    return { data, error };
+  }
+  
+  async insertCriterio(
+    descripcion: string,
+    tipo: string,
+    idDetallesRevision: string
+  ): Promise<{ data: { id_criterios: number; descripcion: string; tipo: string }[] | null; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('criterios')
+      .insert([
+        {
+          descripcion,
+          tipo,
+          id_detalles_revision: idDetallesRevision
+        }
+      ])
+      .select(); // Asegúrate de incluir .select() para devolver los datos insertados
+  
+    if (error) {
+      console.error('Error al insertar criterio:', error.message);
+    }
+    return { data, error };
+  }
+
+  async deleteCriterio(idCriterios: number) {
+    const { data, error } = await this._supabaseClient
+      .from('criterios')
+      .delete()
+      .eq('id_criterios', idCriterios);
+
+    if (error) {
+      console.error('Error al eliminar criterio:', error.message);
+    }
+    return { data, error };
+  }
+
+  async updateCriterio(
+    idCriterios: number,
+    descripcion: string
+  ) {
+    const { data, error } = await this._supabaseClient
+      .from('criterios')
+      .update({ descripcion })
+      .eq('id_criterios', idCriterios);
+
+    if (error) {
+      console.error('Error al actualizar criterio:', error.message);
+    }
+    return { data, error };
   }
   
 }

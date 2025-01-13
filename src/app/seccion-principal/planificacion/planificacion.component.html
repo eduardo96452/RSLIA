@@ -1,4 +1,3 @@
-
 <main>
     <div>
         <div class="container py-4">
@@ -86,11 +85,11 @@
                                         <!-- Tarjeta Principal -->
 
 
-
+                                        <!-- Tarjeta de Objetivo-->
                                         <div class="card" style="flex-grow: 1;">
-                                            <div class="card-header p-2">
+                                            <div class="card-header p-3">
                                                 <div class="container">
-                                                    <div class="row">
+                                                    <div class="row align-items-start">
                                                         <div class="col">
                                                             <h4 class="card-title mb-0">
                                                                 <i class="fa-solid fa-pencil"></i>&nbsp; Objetivo de la
@@ -123,23 +122,37 @@
                                                 </form>
                                             </div>
 
-                                            <div class="card-footer text-end">
-                                                <!-- Botón para guardar el objetivo -->
-                                                <button class="btn btn-primary" type="button" (click)="saveObjective()">
-                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar objetivo
-                                                </button>
+                                            <!-- Card Footer -->
+                                            <div class="card-footer">
+                                                <div class="container">
+                                                    <div class="row ">
+                                                        <div class="col justify-content-start">
+                                                            <!-- Botón para limpiar -->
+                                                            <button class="btn btn-secondary" type="button"
+                                                                (click)="clearObjetivo()">
+                                                                <i class="fa-solid fa-eraser"></i>&nbsp; Limpiar
+                                                            </button>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <!-- Botón para guardar el objetivo -->
+                                                            <button class="btn btn-primary" type="button"
+                                                                (click)="saveObjective()">
+                                                                <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar
+                                                                objetivo
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
+
                                         </div>
 
 
 
-
                                         <br />
-
                                         <!-- Tarjeta de metodologías -->
-
                                         <div class="card">
-                                            <div class="card-header">
+                                            <div class="card-header p-3">
                                                 <label for="paginaSelect" class="form-label">
                                                     <h4 class="card-title mb-0">
                                                         <i class="bi bi-book-half"></i>&nbsp; Selecciona una
@@ -164,7 +177,7 @@
                                                     <!-- PICO -->
                                                     <div class="card p-3" *ngIf="paginaSeleccionada === 'pagina1'">
                                                         <div class="container">
-                                                            <div class="row">
+                                                            <div class="row align-items-start">
                                                                 <div class="col">
                                                                     <h5>PICO</h5>
                                                                 </div>
@@ -175,6 +188,7 @@
                                                                     </button>
                                                                 </div>
                                                             </div>
+                                                            <br />
                                                             <div class="row">
                                                                 <div class="col">
                                                                     <form>
@@ -220,7 +234,7 @@
                                                     <!-- PICOC -->
                                                     <div class="card p-3" *ngIf="paginaSeleccionada === 'pagina2'">
                                                         <div class="container">
-                                                            <div class="row">
+                                                            <div class="row align-items-start">
                                                                 <div class="col">
                                                                     <h5>PICOC</h5>
                                                                 </div>
@@ -231,6 +245,7 @@
                                                                     </button>
                                                                 </div>
                                                             </div>
+                                                            <br />
                                                             <div class="row">
                                                                 <div class="col">
                                                                     <form>
@@ -285,7 +300,7 @@
                                                     <!-- PICOTT -->
                                                     <div class="card p-3" *ngIf="paginaSeleccionada === 'pagina3'">
                                                         <div class="container">
-                                                            <div class="row">
+                                                            <div class="row align-items-start">
                                                                 <div class="col">
                                                                     <h5>PICOTT</h5>
                                                                 </div>
@@ -296,6 +311,7 @@
                                                                     </button>
                                                                 </div>
                                                             </div>
+                                                            <br />
                                                             <div class="row">
                                                                 <div class="col">
                                                                     <form>
@@ -356,7 +372,7 @@
                                                     <!-- SPICE -->
                                                     <div class="card p-3" *ngIf="paginaSeleccionada === 'pagina4'">
                                                         <div class="container">
-                                                            <div class="row">
+                                                            <div class="row align-items-start">
                                                                 <div class="col">
                                                                     <h5>SPICE</h5>
                                                                 </div>
@@ -367,6 +383,7 @@
                                                                     </button>
                                                                 </div>
                                                             </div>
+                                                            <br />
                                                             <div class="row">
                                                                 <div class="col">
                                                                     <form>
@@ -422,16 +439,15 @@
 
 
 
-
-
+                                        <!-- Tarjeta de preguntas de investigacíon -->
                                         <br />
-                                        <div class="card">
-                                            <div class="card-header">
+                                        <div class="card ">
+                                            <div class="card-header p-3">
                                                 <div class="container">
-                                                    <div class="row">
+                                                    <div class="row align-items-start">
                                                         <div class="col col-md-6">
                                                             <h4 class="card-title ">
-                                                                <i class="bi bi-question-octagon-fill"></i>&nbsp;
+                                                                <i class="bi bi-key-fill"></i>&nbsp;
                                                                 Preguntas de investigación
                                                             </h4>
                                                         </div>
@@ -442,6 +458,7 @@
                                                             </button>
                                                         </div>
                                                     </div>
+                                                    <br />
                                                     <button class="btn btn-secondary btn-sm" (click)="addQuestion()">
                                                         <i class="bi bi-plus"></i> Agregar pregunta
                                                     </button>
@@ -453,38 +470,42 @@
                                                         <div class="input-group mb-2">
                                                             <input type="text" class="form-control"
                                                                 [(ngModel)]="question.value"
-                                                                placeholder="Escriba su pregunta de investigación">
-                                                            <button class="btn btn-outline-secondary" type="button"
+                                                                placeholder="Escriba su pregunta de investigación" />
+                                                            <button *ngIf="!question.isSaved"
+                                                                class="btn btn-outline-secondary" type="button"
                                                                 (click)="cancelQuestion(question.id)">
                                                                 <i class="bi bi-x"></i>
                                                             </button>
                                                         </div>
                                                         <div class="d-flex justify-content-end gap-2">
-                                                            <button class="btn btn-primary"
-                                                                (click)="saveQuestion(question)"><i
-                                                                    class="fa-solid fa-paper-plane"></i> &nbsp;
-                                                                Guardar
+                                                            <button *ngIf="!question.isSaved"
+                                                                class="btn btn-outline-primary"
+                                                                (click)="saveQuestion(question)">
+                                                                <i class="bi bi-floppy"> Guardar</i>
+                                                            </button>
+                                                            <button *ngIf="question.isSaved"
+                                                                class="btn btn-outline-danger"
+                                                                (click)="deleteQuestion(question.id)">
+                                                                <i class="bi bi-trash"> Eliminar </i>
                                                             </button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="card-footer text-end">
-                                                <button class="btn btn-primary" type="submit">
-                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar la(s)
-                                                    pregunta(s)
-                                                </button>
-                                            </div>
                                         </div>
                                         <br />
+
+
+
+                                        <!-- Tarjeta de Palabras claves y sinonimos -->
                                         <div class="card">
-                                            <div class="card-header">
+                                            <div class="card-header p-3">
                                                 <div class="container">
-                                                    <div class="row">
+                                                    <div class="row align-items-start">
                                                         <div class="col col-md-6">
                                                             <h4 class="card-title ">
                                                                 <i class="bi bi-key-fill"></i>&nbsp;
-                                                                Palabras claves y sinonimos
+                                                                Palabras claves y sinónimos
                                                             </h4>
                                                         </div>
                                                         <div class="col text-end">
@@ -494,94 +515,109 @@
                                                             </button>
                                                         </div>
                                                     </div>
+                                                    <br />
+                                                    <button class="btn btn-secondary" data-bs-toggle="modal"
+                                                        (click)="addRow()" data-bs-target="#staticBackdrop"><i
+                                                            class="bi bi-plus"></i>
+                                                        &nbsp;
+                                                        Añadir palabra clave
+                                                    </button>
                                                 </div>
                                             </div>
                                             <div class="card-body">
-
                                                 <div class="container mt-4">
-                                                    <table class="table table-bordered">
-                                                        <thead class="thead-dark">
-                                                            <tr>
-                                                                <th>Palabras Claves</th>
-                                                                <th>Relacionado</th>
-                                                                <th>Sinónimo</th>
-                                                                <th>Acción</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr *ngFor="let row of tableData; let i = index">
-                                                                <!-- Palabras Claves -->
-                                                                <td>
-                                                                    <input type="text" class="form-control"
-                                                                        [(ngModel)]="row.keyword"
-                                                                        [readonly]="!row.isEditing" />
-                                                                </td>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-bordered">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="display:none;">ID</th>
+                                                                    <th>Palabra Clave</th>
+                                                                    <th>Relacionado</th>
+                                                                    <th>Sinónimos</th>
+                                                                    <th>Acciones</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr *ngFor="let row of tableData; let i = index">
+                                                                    <!-- Columna oculta para ID -->
+                                                                    <td style="display:none;">
+                                                                        {{ row.id_palabras_clave }}
+                                                                    </td>
 
-                                                                <!-- Relacionado -->
-                                                                <td>
-                                                                    <select class="form-select"
-                                                                        [(ngModel)]="row.related"
-                                                                        [disabled]="!row.isEditing">
-                                                                        <option *ngFor="let option of methodologies"
-                                                                            [value]="option">
-                                                                            {{ option }}
-                                                                        </option>
-                                                                    </select>
-                                                                </td>
+                                                                    <!-- Palabra Clave -->
+                                                                    <td>
+                                                                        <input class="form-control" type="text"
+                                                                            [(ngModel)]="row.keyword"
+                                                                            [readonly]="!row.isEditing" />
+                                                                    </td>
 
-                                                                <!-- Sinónimo -->
-                                                                <td>
-                                                                    <input type="text" class="form-control"
-                                                                        [(ngModel)]="row.synonyms"
-                                                                        [readonly]="!row.isEditing"
-                                                                        (ngModelChange)="formatSynonyms(i)" />
-                                                                </td>
+                                                                    <!-- Relacionado -->
+                                                                    <td>
+                                                                        <select class="form-select"
+                                                                            [(ngModel)]="row.related"
+                                                                            [disabled]="!row.isEditing">
+                                                                            <option *ngFor="let option of methodologies"
+                                                                                [value]="option">
+                                                                                {{ option }}
+                                                                            </option>
+                                                                        </select>
+                                                                    </td>
 
-                                                                <!-- Acción -->
-                                                                <td>
-                                                                    <button class="btn btn-primary btn-sm me-2"
-                                                                        (click)="toggleEdit(i)">
-                                                                        {{ row.isEditing ? 'Guardar' : 'Editar' }}
-                                                                    </button>
-                                                                    <button class="btn btn-danger btn-sm"
-                                                                        (click)="deleteRow(i)">
-                                                                        Eliminar
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                                    <!-- Sinónimos -->
+                                                                    <td>
+                                                                        <input class="form-control" type="text"
+                                                                            [(ngModel)]="row.synonyms"
+                                                                            [readonly]="!row.isEditing" />
+                                                                    </td>
 
-                                            </div>
-                                            <div class="card-footer">
-                                                <div class="container">
-                                                    <div class="row">
-                                                        <div class="col col-sm-5 col-md-5">
-                                                            <button class="btn btn-secondary" data-bs-toggle="modal"
-                                                                (click)="addRow()" data-bs-target="#staticBackdrop"><i
-                                                                    class="bi bi-plus"></i>
-                                                                &nbsp;
-                                                                Añadir palabra clave
-                                                            </button>
-                                                        </div>
-                                                        <div class="col text-end">
-                                                            <button class="btn btn-primary" type="submit">
-                                                                <i class="fa-solid fa-paper-plane"></i> &nbsp;
-                                                                Guardar
-                                                                palabras claves y sinonimos
-                                                            </button>
-                                                        </div>
+                                                                    <!-- Acciones -->
+                                                                    <td>
+                                                                        <!-- CASO 1: REGISTRO NUEVO => mostrar Guardar -->
+                                                                        <button *ngIf="!row.id_palabras_clave"
+                                                                            class="btn btn-primary btn-sm me-1"
+                                                                            [disabled]="!row.isEditing"
+                                                                            (click)="saveRow(row)">
+                                                                            Guardar
+                                                                        </button>
+
+                                                                        <!-- CASO 2: REGISTRO EXISTENTE => mostrar Editar / Actualizar -->
+                                                                        <ng-container *ngIf="row.id_palabras_clave">
+                                                                            <button *ngIf="!row.isEditing"
+                                                                                class="btn btn-secondary btn-sm me-1"
+                                                                                (click)="editRow(i)">
+                                                                                Editar
+                                                                            </button>
+
+                                                                            <button *ngIf="row.isEditing"
+                                                                                class="btn btn-warning btn-sm me-1"
+                                                                                (click)="updateRow(row)">
+                                                                                Actualizar
+                                                                            </button>
+                                                                        </ng-container>
+
+                                                                        <!-- Botón para eliminar, siempre accesible -->
+                                                                        <button class="btn btn-danger btn-sm"
+                                                                            (click)="deleteRow(i)">
+                                                                            Eliminar
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <br />
+
+
+
+                                        <!-- Tarjeta de la cadena de búsqueda -->
                                         <div class="card" style="flex-grow: 1;">
                                             <!-- Card Header -->
-                                            <div class="card-header p-2">
+                                            <div class="card-header p-3">
                                                 <div class="container">
-                                                    <div class="row">
+                                                    <div class="row align-items-start">
                                                         <div class="col">
                                                             <h4 class="card-title mb-0">
                                                                 <i class="bi bi-stack-overflow"></i>&nbsp; Cadena de
@@ -589,23 +625,27 @@
                                                             </h4>
                                                         </div>
                                                         <div class="col text-end">
-                                                            <button class="btn btn-warning" type="submit">
-                                                                <i class="bi bi-bug-fill"></i>
-                                                                &nbsp; Sugerencia IA
+                                                            <button class="btn btn-warning" type="button">
+                                                                <i class="bi bi-bug-fill"></i>&nbsp; Sugerencia IA
                                                             </button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+
                                             <!-- Card Body -->
                                             <div class="card-body">
                                                 <form>
                                                     <div class="mb-3">
+                                                        <!-- Enlazamos con [(ngModel)]="cadenaBusqueda" -->
                                                         <textarea class="form-control" id="cadena" rows="5"
-                                                            placeholder="Ingrese su cadena de busqueda, Utilice mayúsculas para los operadores booleanos ( AND , OR ), comillas dobles para palabras compuestas y paréntesis para separar lógicamente las palabras clave y los sinónimos."
+                                                            [(ngModel)]="cadenaBusqueda" name="cadenaBusqueda"
+                                                            placeholder="Ingrese su cadena de búsqueda (use mayúsculas para AND, OR, comillas dobles, etc.)"
                                                             maxlength="100"></textarea>
+
                                                         <div class="text-end text-muted mt-1">
-                                                            <small>0/100 caracteres</small>
+                                                            <small>{{ cadenaBusqueda?.length || 0 }}/100
+                                                                caracteres</small>
                                                         </div>
                                                     </div>
                                                 </form>
@@ -613,135 +653,195 @@
 
                                             <!-- Card Footer -->
                                             <div class="card-footer text-end">
-                                                <button class="btn btn-primary" type="submit">
-                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar cadena de
-                                                    búsqueda
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <br />
-                                        <div class="card" style="flex-grow: 1;">
-                                            <!-- Card Header -->
-                                            <div class="card-header p-2">
                                                 <div class="container">
-                                                    <div class="row">
-                                                        <div class="col">
-                                                            <h4 class="card-title mb-0">
-                                                                <i class="bi bi-stack"></i>&nbsp; Criterios de
-                                                                selección
-                                                            </h4>
+                                                    <div class="row ">
+                                                        <div class="col justify-content-start">
+                                                            <!-- Botón para limpiar -->
+                                                            <button class="btn btn-secondary me-2" type="button"
+                                                                (click)="clearCadena()">
+                                                                <i class="fa-solid fa-eraser"></i>&nbsp; Limpiar
+                                                            </button>
                                                         </div>
                                                         <div class="col text-end">
-                                                            <button class="btn btn-warning" type="submit">
-                                                                <i class="bi bi-bug-fill"></i>
-                                                                &nbsp; Sugerencia IA
+                                                            <!-- Botón para guardar la cadena de búsqueda -->
+                                                            <button class="btn btn-primary" type="button"
+                                                                (click)="saveCadena()">
+                                                                <i class="fa-solid fa-paper-plane"></i>&nbsp; Guardar
+                                                                cadena de
+                                                                búsqueda
                                                             </button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <br />
+
+
+
+                                        <!-- Tarjeta de criterios de selección -->
+                                        <div class="card" style="flex-grow: 1;">
+                                            <!-- Card Header -->
+                                            <div class="card-header p-3">
+                                                <div class="container">
+                                                    <div class="row align-items-start">
+                                                        <div class="col">
+                                                            <h4 class="card-title mb-0">
+                                                                <i class="bi bi-stack"></i>&nbsp; Criterios de selección
+                                                            </h4>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <button class="btn btn-warning" type="button">
+                                                                <i class="bi bi-bug-fill"></i>&nbsp; Sugerencia IA
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <!-- Card Body -->
                                             <div class="card-body">
-                                                <form>
-                                                    <div class="container">
-                                                        <div class="row">
-                                                            <div class="col">
-                                                                <div class="container mt-4">
-                                                                    <h2>Criterios de exclusión</h2>
-                                                                    <form (submit)="addItem()">
-                                                                        <div class="input-group mb-3">
-                                                                            <input type="text" class="form-control"
-                                                                                placeholder="Ingrese un elemento para excluir"
-                                                                                [(ngModel)]="inputValue"
-                                                                                name="inputValue" required />
-                                                                            <button type="submit"
-                                                                                class="btn btn-secondary"><i
-                                                                                    class="bi bi-plus"></i>
-                                                                                &nbsp; Agregar</button>
-                                                                        </div>
-                                                                    </form>
-
-                                                                    <table class="table table-bordered">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th>Excluidos</th>
-                                                                                <th>Acción</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            <tr
-                                                                                *ngFor="let item of items; let i = index">
-                                                                                <td>{{ item }}</td>
-                                                                                <td>
-                                                                                    <button class="btn btn-danger"
-                                                                                        (click)="removeItem(i)">
-                                                                                        X
-                                                                                    </button>
-                                                                                </td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
+                                                <div class="container">
+                                                    <div class="row">
+                                                        <!-- Exclusiones -->
+                                                        <div class="col">
+                                                            <div class="container mt-4">
+                                                                <h2>Criterios de exclusión</h2>
+                                                                <div class="input-group mb-3">
+                                                                    <input type="text" class="form-control"
+                                                                        placeholder="Ingrese un elemento para excluir"
+                                                                        [(ngModel)]="exclusionValue"
+                                                                        name="exclusionValue" />
+                                                                    <button type="button" class="btn btn-secondary"
+                                                                        (click)="addExclusion()">
+                                                                        <i class="bi bi-plus"></i>&nbsp; Agregar
+                                                                    </button>
                                                                 </div>
+
+                                                                <table class="table table-bordered">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Excluidos</th>
+                                                                            <th>Acción</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr
+                                                                            *ngFor="let crit of exclusions; let i = index">
+                                                                            <td>
+                                                                                <div
+                                                                                    *ngIf="!crit.isEditing; else editExcl">
+                                                                                    {{ crit.descripcion }}
+                                                                                </div>
+                                                                                <!-- Template para edición -->
+                                                                                <ng-template #editExcl>
+                                                                                    <input class="form-control"
+                                                                                        [(ngModel)]="crit.descripcion" />
+                                                                                </ng-template>
+                                                                            </td>
+                                                                            <td>
+                                                                                <!-- Botón Editar / Actualizar -->
+                                                                                <button *ngIf="!crit.isEditing"
+                                                                                    class="btn btn-sm btn-warning me-1"
+                                                                                    (click)="editExclusion(i)">
+                                                                                    <i class="bi bi-pencil-fill"></i>
+                                                                                </button>
+                                                                                <button *ngIf="crit.isEditing"
+                                                                                    class="btn btn-sm btn-success me-1"
+                                                                                    (click)="updateExclusion(i)">
+                                                                                    <i class="bi bi-save"></i>
+                                                                                </button>
+
+                                                                                <!-- Botón Eliminar -->
+                                                                                <button class="btn btn-danger btn-sm"
+                                                                                    (click)="removeExclusion(i)">
+                                                                                    <i class="bi bi-x"></i>
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
                                                             </div>
-                                                            <div class="col">
-                                                                <div class="container mt-4">
-                                                                    <h2>Criterios de inclusión</h2>
-                                                                    <form (submit)="addInclusion()">
-                                                                        <div class="input-group mb-3">
-                                                                            <input type="text" class="form-control"
-                                                                                placeholder="Ingrese un elemento para incluir"
-                                                                                [(ngModel)]="inclusionValue"
-                                                                                name="inclusionValue" required />
-                                                                            <button type="submit"
-                                                                                class="btn btn-secondary"><i
-                                                                                    class="bi bi-plus"></i>
-                                                                                &nbsp; Agregar</button>
-                                                                        </div>
-                                                                    </form>
+                                                        </div>
 
-                                                                    <table class="table table-bordered">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th>Incluidos</th>
-                                                                                <th>Acción</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            <tr
-                                                                                *ngFor="let inclusion of inclusions; let i = index">
-                                                                                <td>{{ inclusion }}</td>
-                                                                                <td>
-                                                                                    <button class="btn btn-danger"
-                                                                                        (click)="removeInclusion(i)">
-                                                                                        X
-                                                                                    </button>
-                                                                                </td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
+                                                        <!-- Inclusiones -->
+                                                        <div class="col">
+                                                            <div class="container mt-4">
+                                                                <h2>Criterios de inclusión</h2>
+                                                                <div class="input-group mb-3">
+                                                                    <input type="text" class="form-control"
+                                                                        placeholder="Ingrese un elemento para incluir"
+                                                                        [(ngModel)]="inclusionValue"
+                                                                        name="inclusionValue" />
+                                                                    <button type="button" class="btn btn-secondary"
+                                                                        (click)="addInclusion()">
+                                                                        <i class="bi bi-plus"></i>&nbsp; Agregar
+                                                                    </button>
                                                                 </div>
+
+                                                                <table class="table table-bordered">
+                                                                    <thead>
+                                                                        <tr>
+                                                                            <th>Incluidos</th>
+                                                                            <th>Acción</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr
+                                                                            *ngFor="let crit of inclusions; let i = index">
+                                                                            <td>
+                                                                                <div
+                                                                                    *ngIf="!crit.isEditing; else editIncl">
+                                                                                    {{ crit.descripcion }}
+                                                                                </div>
+                                                                                <ng-template #editIncl>
+                                                                                    <input class="form-control"
+                                                                                        [(ngModel)]="crit.descripcion" />
+                                                                                </ng-template>
+                                                                            </td>
+                                                                            <td>
+                                                                                <!-- Botón Editar / Actualizar -->
+                                                                                <button *ngIf="!crit.isEditing"
+                                                                                    class="btn btn-sm btn-warning me-1"
+                                                                                    (click)="editInclusion(i)">
+                                                                                    <i class="bi bi-pencil-fill"></i>
+                                                                                </button>
+                                                                                <button *ngIf="crit.isEditing"
+                                                                                    class="btn btn-sm btn-success me-1"
+                                                                                    (click)="updateInclusion(i)">
+                                                                                    Actualizar
+                                                                                </button>
+
+                                                                                <!-- Botón Eliminar -->
+                                                                                <button class="btn btn-danger btn-sm"
+                                                                                    (click)="removeInclusion(i)">
+                                                                                    X
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </form>
-                                            </div>
-
-                                            <!-- Card Footer -->
-                                            <div class="card-footer text-end">
-                                                <button class="btn btn-primary" type="submit">
-                                                    <i class="fa-solid fa-paper-plane"></i> &nbsp; Guardar criterios
-                                                    de
-                                                    selección
-                                                </button>
+                                                </div>
                                             </div>
                                         </div>
+
+
 
                                     </div>
                                     <!-- Contenido Página 2 -->
                                     <div class="tab-pane fade p-3" id="pagina2" role="tabpanel" aria-labelledby="tab2">
-                                        <h5>Contenido de la Página 2</h5>
-                                        <p>Este es el contenido de la segunda página.</p>
+
+
+                                        <br />
                                     </div>
+
+
+
+
+
                                 </div>
                             </div>
                         </div>
@@ -752,4 +852,3 @@
 
     </div>
 </main>
-
