@@ -51,6 +51,7 @@ export interface Respuesta {
 }
 
 export interface Study {
+  database: string;
   author: string;
   booktitle: string;
   title: string;

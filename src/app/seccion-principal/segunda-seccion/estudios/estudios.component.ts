@@ -30,6 +30,9 @@ export class EstudiosComponent implements OnInit {
   tipo_revision = '';
   descripcion = '';
   importedStudies: Study[] = [];
+  sortColumn: string = '';
+  sortOrder: 'asc' | 'desc' = 'asc';
+  selectedStudy: Study | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -39,14 +42,13 @@ export class EstudiosComponent implements OnInit {
     private openAiService: OpenAiService
   ) { }
 
-
-
   async ngOnInit() {
     this.reviewId = this.route.snapshot.queryParams['id'];
     this.loadReviewData();
-
     this.loadUserData();
   }
+
+  
 
   // Cargar datos de la base de datos
   async loadReviewData() {
@@ -236,33 +238,23 @@ export class EstudiosComponent implements OnInit {
   }
 
   /**
-   * Lógica para parsear el archivo .bib o .ris y extraer los estudios
-   * En la práctica, usarías librerías o tu lógica específica para parsear
+   * Paso 4: Parsear el archivo y agregar los estudios a la tabla
    */
   parseFile(file: File, fileType: string, dbName: string) {
-    // 1) Leer el archivo
     const reader = new FileReader();
     reader.onload = (e: any) => {
       const fileContent = e.target.result as string;
 
-      // 2) Parsear según el tipo
       let newStudies: Study[] = [];
       if (fileType === 'bib') {
-        newStudies = this.parseBib(fileContent);
+        newStudies = this.parseBib(fileContent, dbName);
       } else {
-        newStudies = this.parseRis(fileContent);
+        newStudies = this.parseRis(fileContent, dbName);
       }
 
-      // 3) Agregar base de datos y estado inicial
-      newStudies = newStudies.map(study => ({
-        ...study,
-        status: 'Sin clasificar'
-      }));
-
-      // 4) Agregar a la lista principal
+      // Agregar a la lista principal
       this.importedStudies.push(...newStudies);
 
-      // 5) Mostrar un mensaje de éxito
       Swal.fire({
         icon: 'success',
         title: 'Importación exitosa',
@@ -283,53 +275,278 @@ export class EstudiosComponent implements OnInit {
   }
 
   /**
-   * Ejemplo de parseo .bib (muy simplificado)
+   * Ejemplo simple de parseo para .bib
+   * 
+   * Supón que .bib está compuesto por entradas del estilo:
+   * 
+   * @article{example,
+   *  author = {John Doe},
+   *  title = {Sample Title},
+   *  booktitle = {Sample Book},
+   *  year = {2021},
+   *  volume = {10},
+   *  number = {2},
+   *  pages = {100-110},
+   *  keywords = {Bibtex, Example},
+   *  doi = {10.1234/abc}
+   * }
    */
-  parseBib(content: string): Study[] {
-    // Aquí iría la lógica real o librería para parsear
-    // Ejemplo ficticio: tomamos lineas y simulamos
-    const lines = content.split('\n');
-    // Lógica de parse...
-    // Retornamos un array simulado
-    return [
-      {
-        author: 'Autor Bib',
-        booktitle: 'Book Title Bib',
-        title: 'Título Bib',
-        year: '2022',
-        volume: '1',
-        number: '1',
-        pages: '1-10',
-        keywords: 'bib, sample',
-        doi: '10.1234/bib.sample',
+  parseBib(content: string, dbName: string): Study[] {
+    const entries: Study[] = [];
+    // Dividir por cada entrada @article, @book, etc.
+    const bibItems = content.split('@').slice(1); // elimina lo anterior al primer @
+
+    for (const item of bibItems) {
+      // Buscar campos por regex o line-by-line
+      const lines = item.split('\n');
+
+      // Crea un objeto Study (inicializado)
+      const study: Study = {
+        database: dbName,
+        author: '',
+        booktitle: '',
+        title: '',
+        year: '',
+        volume: '',
+        number: '',
+        pages: '',
+        keywords: '',
+        doi: '',
         status: 'Sin clasificar'
+      };
+
+      for (let line of lines) {
+        line = line.trim();
+        if (line.startsWith('author')) {
+          study.author = this.extractBibValue(line);
+        } else if (line.startsWith('booktitle')) {
+          study.booktitle = this.extractBibValue(line);
+        } else if (line.startsWith('title')) {
+          study.title = this.extractBibValue(line);
+        } else if (line.startsWith('year')) {
+          study.year = this.extractBibValue(line);
+        } else if (line.startsWith('volume')) {
+          study.volume = this.extractBibValue(line);
+        } else if (line.startsWith('number')) {
+          study.number = this.extractBibValue(line);
+        } else if (line.startsWith('pages')) {
+          study.pages = this.extractBibValue(line);
+        } else if (line.startsWith('keywords')) {
+          study.keywords = this.extractBibValue(line);
+        } else if (line.startsWith('doi')) {
+          study.doi = this.extractBibValue(line);
+        }
       }
-    ];
+      entries.push(study);
+    }
+    return entries;
   }
+
+  // Función auxiliar para extraer valores en .bib
+  extractBibValue(line: string): string {
+    // Por ejemplo: author = {John Doe},
+    // Eliminamos "author" y "=", tomamos lo que está entre llaves
+    // Este método es muy básico y no cubre todos los casos reales de .bib
+    // Se puede refinar o usar librerías especializadas
+    const regex = /=(.*)/;
+    const match = line.match(regex);
+    if (match && match[1]) {
+      let val = match[1].trim();
+      // Remover llaves y comas
+      val = val.replace(/[{},]/g, '').trim();
+      return val;
+    }
+    return '';
+  }
+
+
+
+
 
   /**
-   * Ejemplo de parseo .ris (muy simplificado)
+   * Ejemplo simple de parseo para .ris
+   *
+   * Un .ris suele contener líneas de formato:
+   * TY  - JOUR
+   * AU  - Doe, John
+   * TI  - Title
+   * PY  - 2022
+   * KW  - Example
+   * ...
+   * ER  - 
+   *
    */
-  parseRis(content: string): Study[] {
-    // Lógica real o librería para parsear .ris
-    // Ejemplo simulado
-    return [
-      {
-        author: 'Autor RIS',
-        booktitle: 'Book Title RIS',
-        title: 'Título RIS',
-        year: '2023',
-        volume: '2',
-        number: '2',
-        pages: '20-30',
-        keywords: 'ris, sample',
-        doi: '10.1234/ris.sample',
-        status: 'Sin clasificar'
+  parseRis(content: string, dbName: string): Study[] {
+    const entries: Study[] = [];
+    const lines = content.split('\n');
+
+    // Objeto temporal para acumular datos
+    let currentStudy: Study = this.emptyStudy(dbName);
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (line.startsWith('ER  -')) {
+        // Fin de un registro
+        entries.push({ ...currentStudy }); // push clon
+        // Reiniciar
+        currentStudy = this.emptyStudy(dbName);
+      } else if (line.startsWith('AU  -')) {
+        currentStudy.author += (currentStudy.author ? '; ' : '') + this.extractRisValue(line);
+      } else if (line.startsWith('T1  -') || line.startsWith('TI  -')) {
+        currentStudy.title = this.extractRisValue(line);
+      } else if (line.startsWith('PY  -')) {
+        currentStudy.year = this.extractRisValue(line);
+      } else if (line.startsWith('KW  -')) {
+        // keywords van creciendo (separadas por ;)
+        currentStudy.keywords += (currentStudy.keywords ? '; ' : '') + this.extractRisValue(line);
+      } else if (line.startsWith('JF  -') || line.startsWith('BT  -')) {
+        // Se asume JF o BT como booktitle
+        currentStudy.booktitle = this.extractRisValue(line);
+      } else if (line.startsWith('VL  -')) {
+        currentStudy.volume = this.extractRisValue(line);
+      } else if (line.startsWith('IS  -')) {
+        currentStudy.number = this.extractRisValue(line);
+      } else if (line.startsWith('SP  -')) {
+        // Páginas: asume que SP es Start Page
+        currentStudy.pages = this.extractRisValue(line);
+      } else if (line.startsWith('EP  -')) {
+        // EP es End Page => concatenar
+        const endPage = this.extractRisValue(line);
+        if (currentStudy.pages) {
+          currentStudy.pages += '-' + endPage;
+        }
+      } else if (line.startsWith('DO  -')) {
+        currentStudy.doi = this.extractRisValue(line);
       }
-    ];
+    }
+
+    // Por si el archivo no termina con "ER  -", no es estándar, pero se maneja
+    if (this.hasData(currentStudy)) {
+      entries.push({ ...currentStudy });
+    }
+
+    return entries;
+  }
+
+  // Crea un Study vacío con la base dada
+  emptyStudy(dbName: string): Study {
+    return {
+      database: dbName,
+      author: '',
+      booktitle: '',
+      title: '',
+      year: '',
+      volume: '',
+      number: '',
+      pages: '',
+      keywords: '',
+      doi: '',
+      status: 'Sin clasificar'
+    };
+  }
+
+  // Extraer el valor de una línea .ris del tipo "AU  - Doe, John"
+  extractRisValue(line: string): string {
+    // Split en '-' y tomar la parte derecha
+    const parts = line.split('-');
+    if (parts.length > 1) {
+      return parts[1].trim();
+    }
+    return '';
+  }
+
+  // Chequea si un Study está vacío
+  hasData(study: Study): boolean {
+    return (
+      study.author ||
+      study.booktitle ||
+      study.title ||
+      study.year ||
+      study.volume ||
+      study.number ||
+      study.pages ||
+      study.keywords ||
+      study.doi
+    ) !== '';
+  }
+
+  sortStudies(column: string) {
+    // 1. Si la columna que el usuario clicó es diferente a la actual, se setea esa columna y orden "asc".
+    if (this.sortColumn !== column) {
+      this.sortColumn = column;
+      this.sortOrder = 'asc';
+    } else {
+      // 2. Si es la misma columna, alternamos el orden
+      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+    }
+  
+    // 3. Aplicar el orden en this.importedStudies
+    this.importedStudies.sort((a, b) => this.compareValues(a, b, this.sortColumn, this.sortOrder));
+  }
+  
+  /**
+   * compareValues: Método auxiliar para comparar dos estudios según la columna y el orden.
+   */
+  compareValues(a: any, b: any, column: string, order: 'asc' | 'desc'): number {
+    const valueA = a[column] ?? '';
+    const valueB = b[column] ?? '';
+  
+    // Asumimos que todos son strings, excepto 'year', 'volume', 'number', etc., 
+    // si son numéricos, haz la conversión
+    // Ejemplo: si la columna es 'year', parseamos a int:
+    if (['year', 'volume', 'number'].includes(column)) {
+      // Conviértelo a número
+      const numA = parseFloat(valueA) || 0;
+      const numB = parseFloat(valueB) || 0;
+      if (numA < numB) return order === 'asc' ? -1 : 1;
+      if (numA > numB) return order === 'asc' ? 1 : -1;
+      return 0;
+    } else {
+      // Comparación como strings
+      const strA = valueA.toLowerCase();
+      const strB = valueB.toLowerCase();
+  
+      if (strA < strB) return order === 'asc' ? -1 : 1;
+      if (strA > strB) return order === 'asc' ? 1 : -1;
+      return 0;
+    }
   }
 
 
+  // Cuando el usuario hace clic en una fila de la tabla
+  selectStudy(study: Study) {
+    // Crea una copia para evitar mutar la fila directamente si prefieres
+    this.selectedStudy = { ...study };
+  }
+
+  // Cancela la edición
+  cancelEdit() {
+    this.selectedStudy = null;
+  }
+
+  // Guardar los cambios en la fila
+  saveStudyEdits() {
+    if (!this.selectedStudy) return;
+
+    // Buscar el índice de la fila original en importedStudies
+    const index = this.importedStudies.findIndex(
+      (s) => s.author === this.selectedStudy?.author 
+        && s.title === this.selectedStudy?.title
+        && s.doi === this.selectedStudy?.doi
+    );
+    // (Arriba usamos un criterio simple, en la práctica podrías usar un ID único si existe.)
+
+    if (index !== -1) {
+      // Reemplaza la fila original con la versión editada
+      this.importedStudies[index] = this.selectedStudy;
+      // Opcional: Llamar a un servicio para guardar en BD si hace falta
+      // this.service.updateStudy(this.selectedStudy).subscribe(...);
+
+      // Quitar el formulario
+      this.selectedStudy = null;
+    }
+  }
+  
 
 
 }
