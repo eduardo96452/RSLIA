@@ -1,15 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../../principal/navbar/navbar.component';
-import { AuthService, KeywordRow } from '../../auth/data-access/auth.service';
+import { AuthService, KeywordRow, Respuesta } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
 import Swal from 'sweetalert2';
 import { HttpClientModule } from '@angular/common/http';
 import { FooterComponent } from "../../principal/footer/footer.component";
 import { Question } from '../../auth/data-access/auth.service';
 import { Criterio } from '../../auth/data-access/auth.service';
+import { Pregunta } from '../../auth/data-access/auth.service';
 
 
 @Component({
@@ -107,6 +108,12 @@ export class PlanificacionComponent implements OnInit {
   // Lista local de criterios de inclusión
   inclusions: Criterio[] = [];
 
+  showScrollButton: boolean = true; // Controla la visibilidad del botón
+
+  questions1: Pregunta[] = []; // Lista de preguntas
+  answers1: Respuesta[] = []; // Lista de respuestas
+  limitScore1: number = 0; // Puntuación límite
+
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
@@ -141,6 +148,20 @@ export class PlanificacionComponent implements OnInit {
 
     await this.loadCriterios();
 
+    this.loadQuestions1();
+    this.loadAnswers1();
+    this.loadPuntuacion();
+  }
+
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    // Cambia la visibilidad del botón al desplazarse más de 300px
+    this.showScrollButton = window.scrollY > 300;
+  }
+
+  scrollToTop() {
+    // Desplazamiento suave hacia la parte superior
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async loadUserData() {
@@ -1034,15 +1055,6 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-
-
-
-
-
-
-
-  
-
   /**
    * Carga los criterios desde la BD y los separa en exclusiones/inclusiones.
    */
@@ -1084,14 +1096,14 @@ export class PlanificacionComponent implements OnInit {
    */
   async addExclusion() {
     if (!this.exclusionValue.trim()) return;
-  
+
     // Insertar el criterio en la base de datos
     const { data, error } = await this.authService.insertCriterio(
       this.exclusionValue.trim(),
       'exclusion', // Tipo de criterio
       this.reviewId // ID de la revisión asociada
     );
-  
+
     if (error) {
       console.error('Error al insertar exclusión:', error);
       Swal.fire({
@@ -1101,7 +1113,7 @@ export class PlanificacionComponent implements OnInit {
       });
       return;
     }
-  
+
     // Si la inserción fue exitosa, agregamos al arreglo local
     if (data && data.length > 0) {
       const newCriterio: Criterio = {
@@ -1112,11 +1124,10 @@ export class PlanificacionComponent implements OnInit {
       };
       this.exclusions.push(newCriterio);
     }
-  
+
     // Limpiar el campo de entrada
     this.exclusionValue = '';
   }
-  
 
   /**
    * Agrega un criterio de inclusión en la BD (tipo='inclusion').
@@ -1304,13 +1315,368 @@ export class PlanificacionComponent implements OnInit {
     });
   }
 
+  //segunda pagina
 
+  // Cargar preguntas desde la BD
+  async loadQuestions1() {
+    const { data, error } = await this.authService.getPreguntasByRevision(this.reviewId);
+    if (error) {
+      console.error('Error al cargar preguntas:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron cargar las preguntas.'
+      });
+    } else {
+      this.questions1 = data || [];
+    }
+  }
 
+  // Añadir una nueva pregunta
+  async addQuestion1() {
+    try {
+      const result = await Swal.fire({
+        title: 'Nueva pregunta',
+        text: 'Ingrese la descripción de la nueva pregunta:',
+        icon: 'question',
+        input: 'text',
+        inputPlaceholder: 'Escribe aquí la pregunta...',
+        showCancelButton: true,
+        confirmButtonText: 'Agregar',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+          if (!value || !value.trim()) {
+            return '¡La pregunta no puede estar vacía!';
+          }
+          return null;
+        }
+      });
 
+      // Si el usuario hace clic en "Agregar" y se valida el input...
+      if (result.isConfirmed && result.value) {
+        const nuevaDescripcion = result.value.trim();
 
+        const { data, error } = await this.authService.insertPregunta(nuevaDescripcion, this.reviewId);
+        if (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo insertar la pregunta.'
+          });
+        } else {
+          Swal.fire({
+            icon: 'success',
+            title: 'Pregunta agregada',
+            text: 'La pregunta se agregó correctamente.'
+          });
+          // data[0] => registro insertado
+          if (data && data.length > 0) {
+            this.questions1.push(data[0]);
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error inesperado',
+        text: 'Ocurrió un problema al agregar la pregunta.'
+      });
+    }
+  }
 
+  // Editar una pregunta existente
+  async editQuestion1(index: number) {
+    const current = this.questions1[index];
 
+    try {
+      // Usa SweetAlert2 para mostrar un input donde el usuario edite la pregunta
+      const result = await Swal.fire({
+        title: 'Editar pregunta',
+        text: 'Modifica la descripción de la pregunta:',
+        icon: 'question',
+        input: 'text',
+        inputValue: current.descripcion, // Muestra la descripción actual en el input
+        showCancelButton: true,
+        confirmButtonText: 'Actualizar',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+          if (!value || !value.trim()) {
+            return '¡La pregunta no puede estar vacía!';
+          }
+          return null;
+        }
+      });
 
+      // Verifica si el usuario confirmó la actualización
+      if (result.isConfirmed && result.value) {
+        const nuevaDescripcion = result.value.trim();
 
+        // Llama al servicio para actualizar la pregunta
+        const { error } = await this.authService.updatePregunta(current.id_pregunta, nuevaDescripcion);
+
+        if (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo actualizar la pregunta.'
+          });
+        } else {
+          // Actualiza localmente la descripción
+          this.questions1[index].descripcion = nuevaDescripcion;
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Pregunta actualizada',
+            text: 'La pregunta se actualizó correctamente.'
+          });
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error inesperado',
+        text: 'Ocurrió un problema al editar la pregunta.'
+      });
+    }
+  }
+
+  // Eliminar una pregunta
+  async deleteQuestion1(index: number) {
+    const current = this.questions1[index];
+    const result = await Swal.fire({
+      title: '¿Eliminar pregunta?',
+      text: current.descripcion,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed) return;
+
+    const { error } = await this.authService.deletePregunta(current.id_pregunta);
+    if (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo eliminar la pregunta.'
+      });
+    } else {
+      this.questions1.splice(index, 1);
+      Swal.fire({
+        icon: 'success',
+        title: 'Pregunta eliminada',
+        text: 'La pregunta se eliminó correctamente.'
+      });
+    }
+  }
+
+  // Cargar respuestas desde la BD
+  async loadAnswers1() {
+    const { data, error } = await this.authService.getRespuestasByRevision(this.reviewId);
+    if (error) {
+      console.error('Error al cargar respuestas:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudieron cargar las respuestas.'
+      });
+    } else {
+      this.answers1 = data || [];
+    }
+  }
+
+  /**
+   * Añadir una fila nueva en modo edición (sin id_respuesta).
+   */
+  addLocalAnswer() {
+    this.answers1.push({
+      descripcion: '',
+      peso: 0,
+      isEditing: true,
+      id_respuesta: 0//queda undefined => indica que aún no está guardado en la BD
+    });
+  }
+
+  /**
+   * Guardar en la BD la respuesta nueva (la que no tiene id_respuesta)
+   */
+  async saveNewAnswer(index: number) {
+    const current = this.answers1[index];
+    if (!current.descripcion.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Descripción vacía',
+        text: 'Por favor, ingresa una descripción antes de guardar.'
+      });
+      return;
+    }
+
+    // Llamamos al AuthService para insertar
+    const { data, error } = await this.authService.insertRespuesta(
+      current.descripcion,
+      current.peso,
+      this.reviewId
+    );
+    if (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo insertar la respuesta.'
+      });
+      console.error('Error al insertar respuesta:', error);
+    } else {
+      Swal.fire({
+        icon: 'success',
+        title: 'Respuesta guardada',
+        text: 'La respuesta se insertó correctamente.'
+      });
+      // data[0] => registro recién insertado (Supabase)
+      if (data && data.length > 0) {
+        this.answers1[index] = {
+          ...data[0],
+          isEditing: false
+        };
+      } else {
+        // Si no se devolvieron datos, al menos quita modo edición
+        this.answers1[index].isEditing = false;
+      }
+    }
+  }
+
+  editAnswer1(index: number) {
+    this.answers1[index].isEditing = true;
+  }
+
+  /**
+   * Guardar cambios en la BD para una respuesta existente.
+   */
+  async updateAnswer1(index: number) {
+    const current = this.answers1[index];
+    if (!current.id_respuesta) {
+      console.error('No existe id_respuesta => no se puede actualizar en la BD.');
+      return;
+    }
+    if (!current.descripcion.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Descripción vacía',
+        text: 'Por favor, ingresa una descripción antes de actualizar.'
+      });
+      return;
+    }
+
+    const { error } = await this.authService.updateRespuesta(
+      current.id_respuesta,
+      current.descripcion,
+      current.peso
+    );
+    if (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo actualizar la respuesta.'
+      });
+      console.error('Error al actualizar respuesta:', error);
+    } else {
+      this.answers1[index].isEditing = false;
+      Swal.fire({
+        icon: 'success',
+        title: 'Respuesta actualizada',
+        text: 'La respuesta se actualizó correctamente.'
+      });
+    }
+  }
+
+  // Eliminar una respuesta
+  async deleteAnswer1(index: number) {
+    const current = this.answers1[index];
+
+    // Si la respuesta no tiene ID, significa que nunca se guardó => se quita local
+    if (!current.id_respuesta) {
+      this.answers1.splice(index, 1);
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: '¿Eliminar respuesta?',
+      text: current.descripcion,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!result.isConfirmed) return;
+
+    const { error } = await this.authService.deleteRespuesta(current.id_respuesta);
+    if (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo eliminar la respuesta.'
+      });
+      console.error('Error al eliminar respuesta:', error);
+    } else {
+      this.answers1.splice(index, 1);
+      Swal.fire({
+        icon: 'success',
+        title: 'Respuesta eliminada',
+        text: 'La respuesta se eliminó correctamente.'
+      });
+    }
+  }
+
+  // ---------------- PUNTUACIONES ----------------
+
+  async loadPuntuacion() {
+    try {
+      const data = await this.authService.getScoreByRevision(this.reviewId);
+      if (data && data.length > 0) {
+        // Toma la primera fila
+        this.limitScore1 = data[0].puntuacion_limite;
+      } else {
+        console.log('No se encontró puntuación para esta revisión. Se creará una nueva si se guarda.');
+      }
+    } catch (error) {
+      console.error('Error al cargar puntuación:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un error al cargar la puntuación.',
+      });
+    }
+  }
+
+  /**
+   * Guarda la puntuación límite (crear o actualizar).
+   */
+  async saveLimitScore() {
+    try {
+      const { data, error } = await this.authService.saveLimitScore(this.reviewId, this.limitScore1);
+      if (error) {
+        console.error('Error al guardar puntuación:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar la puntuación.',
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: '¡Guardado!',
+          text: 'Puntuación límite guardada correctamente.',
+          timer: 2000,
+        });
+      }
+    } catch (err) {
+      console.error('Error inesperado al guardar la puntuación:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error inesperado',
+        text: 'Ocurrió un problema al guardar la puntuación.',
+      });
+    }
+  }
 
 }

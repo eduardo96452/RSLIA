@@ -18,3 +18,16 @@
   .menu-item:hover {
     background-color: #f1f1f1;
   }
+
+  #scrollToTopButton {
+    position: fixed; /* Posición fija en la pantalla */
+    bottom: 20px;    /* Distancia desde el borde inferior */
+    right: 20px;     /* Distancia desde el borde derecho */
+    display: none;   /* Oculto por defecto */
+    z-index: 1000;   /* Asegúrate de que esté sobre otros elementos */
+    opacity: 0.8;    /* Transparencia inicial */
+  }
+  
+  #scrollToTopButton:hover {
+    opacity: 1;      /* Totalmente visible al pasar el mouse */
+  }

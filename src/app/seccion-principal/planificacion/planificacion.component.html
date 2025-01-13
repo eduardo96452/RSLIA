@@ -1,6 +1,6 @@
 <main>
     <div>
-        <div class="container py-4">
+        <div class="container">
             <div class="row align-items-start">
                 <div class="col-md-12">
                     <nav aria-label="breadcrumb">
@@ -82,9 +82,6 @@
                                     <!-- Contenido Página 1 -->
                                     <div class="tab-pane fade show active" id="pagina1" role="tabpanel"
                                         aria-labelledby="tab1">
-                                        <!-- Tarjeta Principal -->
-
-
                                         <!-- Tarjeta de Objetivo-->
                                         <div class="card" style="flex-grow: 1;">
                                             <div class="card-header p-3">
@@ -144,7 +141,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-
                                         </div>
 
 
@@ -827,21 +823,160 @@
                                                 </div>
                                             </div>
                                         </div>
-
-
-
                                     </div>
+
+
+
+
                                     <!-- Contenido Página 2 -->
-                                    <div class="tab-pane fade p-3" id="pagina2" role="tabpanel" aria-labelledby="tab2">
+                                    <div class="tab-pane fade" id="pagina2" role="tabpanel" aria-labelledby="tab2">
+                                        <!-- Tarjeta de Preguntas -->
+                                        <div class="card mb-4">
+                                            <div class="card-header p-3">
+                                                <h4 class="card-title mb-0">
+                                                    <i class="bi bi-question-circle"></i> Preguntas de Evaluación de
+                                                    Calidad
+                                                </h4>
+                                            </div>
+                                            <div class="card-body">
+                                                <button class="btn btn-primary mb-3" (click)="addQuestion1()">
+                                                    <i class="bi bi-plus-circle"></i> Añadir Pregunta
+                                                </button>
+                                                <ul class="list-group">
+                                                    <li *ngFor="let question1 of questions1; let i = index"
+                                                        class="list-group-item d-flex justify-content-between align-items-center">
+                                                        <span>{{ question1.descripcion }}</span>
+                                                        <div>
+                                                            <button class="btn btn-warning btn-sm me-2"
+                                                                (click)="editQuestion1(i)">
+                                                                <i class="bi bi-pencil-square"></i> Editar
+                                                            </button>
+                                                            <button class="btn btn-danger btn-sm"
+                                                                (click)="deleteQuestion1(i)">
+                                                                <i class="bi bi-trash"></i> Eliminar
+                                                            </button>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <!-- Tarjeta de Respuestas -->
+                                        <div class="card mb-4">
+                                            <div class="card-header p-3">
+                                                <h4 class="card-title mb-0">
+                                                    <i class="bi bi-check-circle"></i> Respuestas de Evaluación
+                                                </h4>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Botón para crear una fila nueva en modo edición -->
+                                                <button class="btn btn-primary mb-3" (click)="addLocalAnswer()">
+                                                    <i class="bi bi-plus-circle"></i> Añadir Respuesta
+                                                </button>
+
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Descripción</th>
+                                                            <th>Peso</th>
+                                                            <th>Acción</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr *ngFor="let answer1 of answers1; let i = index">
+                                                            <!-- Columna Descripción -->
+                                                            <td>
+                                                                <!-- Si está en edición, muestra un input; si no, muestra el texto -->
+                                                                <ng-container *ngIf="answer1.isEditing; else showDesc">
+                                                                    <input type="text"
+                                                                        class="form-control form-control-sm"
+                                                                        [(ngModel)]="answer1.descripcion" />
+                                                                </ng-container>
+                                                                <ng-template #showDesc>
+                                                                    {{ answer1.descripcion }}
+                                                                </ng-template>
+                                                            </td>
+
+                                                            <!-- Columna Peso -->
+                                                            <td>
+                                                                <!-- Si está en edición => input editable, de lo contrario input readOnly -->
+                                                                <input type="number"
+                                                                    class="form-control form-control-sm"
+                                                                    [(ngModel)]="answer1.peso"
+                                                                    [readonly]="!answer1.isEditing" />
+                                                            </td>
+
+                                                            <!-- Columna Acción -->
+                                                            <td>
+                                                                <!-- CASO 1: Fila en modo edición, y no tiene ID => Botón verde "Guardar" para nueva respuesta -->
+                                                                <button
+                                                                    *ngIf="answer1.isEditing && !answer1.id_respuesta"
+                                                                    class="btn btn-success btn-sm me-2"
+                                                                    (click)="saveNewAnswer(i)">
+                                                                    <i class="bi bi-check-square"></i> Guardar
+                                                                </button>
+
+                                                                <!-- CASO 2: Fila en modo edición, pero ya existe (id_respuesta) => Botón verde "Guardar" para update -->
+                                                                <button
+                                                                    *ngIf="answer1.isEditing && answer1.id_respuesta"
+                                                                    class="btn btn-success btn-sm me-2"
+                                                                    (click)="updateAnswer1(i)">
+                                                                    <i class="bi bi-check-square"></i> Guardar
+                                                                </button>
+
+                                                                <!-- CASO 3: Fila sin edición => Botón amarillo "Editar" -->
+                                                                <button *ngIf="!answer1.isEditing"
+                                                                    class="btn btn-warning btn-sm me-2"
+                                                                    (click)="editAnswer1(i)">
+                                                                    <i class="bi bi-pencil-square"></i> Editar
+                                                                </button>
+
+                                                                <!-- Botón Eliminar en todos los casos -->
+                                                                <button class="btn btn-danger btn-sm"
+                                                                    (click)="deleteAnswer1(i)">
+                                                                    <i class="bi bi-trash"></i> Eliminar
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
 
 
-                                        <br />
+                                        <!-- Tarjeta de Puntuaciones -->
+                                        <div class="card mb-4">
+                                            <div class="card-header p-3">
+                                                <h4 class="card-title mb-0">
+                                                    <i class="bi bi-bar-chart"></i> Puntuaciones de Evaluación de
+                                                    Calidad
+                                                </h4>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row mb-3">
+                                                    <!-- Puntuación Máxima -->
+                                                    <div class="col-md-6">
+                                                        <label for="maxScore" class="form-label">Puntuación
+                                                            Máxima</label>
+                                                        <input type="number" id="maxScore" class="form-control"
+                                                            value="3.0" readonly />
+                                                    </div>
+                                                    <!-- Puntuación Límite -->
+                                                    <div class="col-md-6">
+                                                        <label for="limitScore" class="form-label">Puntuación
+                                                            Límite</label>
+                                                        <div class="input-group">
+                                                            <input type="number" id="limitScore" class="form-control"
+                                                                [(ngModel)]="limitScore1" />
+                                                            <button class="btn btn-primary" (click)="saveLimitScore()">
+                                                                Guardar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-
-
-
-
-
                                 </div>
                             </div>
                         </div>
@@ -849,6 +984,15 @@
                 </div>
             </div>
         </div>
-
     </div>
 </main>
+<br />
+<div class="container text-center">
+    <div class="row">
+        <div class="col align-self-center">
+            <!-- Botón para volver al inicio -->
+            <button class="btn btn-primary text-center" (click)="scrollToTop()">
+                <i class="bi bi-arrow-up-circle"></i>&nbsp; Subir </button>
+        </div>
+    </div>
+</div>

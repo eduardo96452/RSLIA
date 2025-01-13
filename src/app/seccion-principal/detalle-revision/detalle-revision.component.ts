@@ -19,27 +19,32 @@ export class DetalleRevisionComponent implements OnInit {
   description: string = '';
   charCount1: number = 0;
   reviewId!: string;
-  reviewData: any = {};
+  reviewData = {
+    titulo_revision: '',
+    tipo_revision: '',
+    descripcion: ''
+  };
   originalData: any = {};
   isModified: boolean = false;
   form: FormGroup;
   userData: any = null;
+
 
   updateCharCount1() {
     this.charCount1 = this.description.length;
   }
 
   constructor(
-    private route: ActivatedRoute, 
-    private authService: AuthService, 
+    private route: ActivatedRoute,
+    private authService: AuthService,
     private fb: FormBuilder,
     private router: Router
   ) {
     // Inicializa el formulario reactivo
     this.form = this.fb.group({
-      titulo_revision: ['', Validators.required],
-      tipo_revision: ['', Validators.required],
-      descripcion: ['', Validators.required],
+      titulo_revision: [''],
+      tipo_revision: [''],
+      descripcion: [''],
     });
   }
 
@@ -63,6 +68,11 @@ export class DetalleRevisionComponent implements OnInit {
     }
 
     this.loadUserData();
+
+    // Detectar cambios en el formulario
+    this.form.valueChanges.subscribe(() => {
+      this.isModified = this.form.dirty || this.form.touched; // Detecta cambios
+    });
 
   }
 
@@ -102,56 +112,45 @@ export class DetalleRevisionComponent implements OnInit {
   }
 
   // Método para detectar cambios en el formulario
-  onFieldChange(): void {
+  onFieldChange(value: string): void {
     this.reviewId = this.route.snapshot.queryParams['id'];
     this.isModified = JSON.stringify(this.reviewData) !== JSON.stringify(this.originalData);
+    this.charCount1 = value.length;
   }
 
   updateReview(): void {
-  this.reviewId = this.route.snapshot.queryParams['id'];
-  if (this.form.valid && this.reviewId) {
-    const updatedData = {
-      titulo_revision: this.form.value.titulo_revision,
-      tipo_revision: this.form.value.tipo_revision,
-      descripcion: this.form.value.descripcion
-    };
+    if (this.form.valid && this.reviewId) {
+      const updatedData = this.form.value;
 
-    this.authService.updateReview(this.reviewId, updatedData).then(({ data, error }) => {
-      if (error) {
-        // Mostrar alerta de error
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Hubo un problema al actualizar la revisión. Por favor, inténtalo de nuevo.',
-        });
-        console.error('Error al actualizar la revisión:', error);
-      } else {
-        // Mostrar alerta de éxito
-        Swal.fire({
-          icon: 'success',
-          title: 'Actualización exitosa',
-          text: 'La revisión se actualizó correctamente.',
-          showConfirmButton: true,
-          timer: 2000, // Tiempo de duración de la alerta
-        }).then(() => {
-          // Navegar a otra página después de cerrar la alerta
-          this.router.navigate(['/planificacion'], { queryParams: { id: this.reviewId } });
-        });
-        console.log('Revisión actualizada con éxito:', data);
-      }
-    });
-  } else {
-    // Mostrar alerta si el formulario es inválido
-    Swal.fire({
-      icon: 'warning',
-      title: 'Formulario incompleto',
-      text: 'Por favor, completa todos los campos obligatorios antes de continuar.',
-    });
-    console.error('Formulario inválido o ID no encontrado.');
+      this.authService.updateReview(this.reviewId, updatedData).then(({ data, error }) => {
+        if (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un problema al actualizar la revisión. Por favor, inténtalo de nuevo.',
+          });
+          console.error('Error al actualizar la revisión:', error);
+        } else {
+          Swal.fire({
+            icon: 'success',
+            title: 'Actualización exitosa',
+            text: 'La revisión se actualizó correctamente.',
+            showConfirmButton: true,
+            timer: 2000,
+          }).then(() => {
+            this.router.navigate(['/planificacion'], { queryParams: { id: this.reviewId } });
+          });
+        }
+      });
+    } else {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Formulario incompleto',
+        text: 'Por favor, completa todos los campos obligatorios antes de continuar.',
+      });
+    }
   }
-  
-}
-  
+
   navigateToNext(): void {
     this.reviewId = this.route.snapshot.queryParams['id'];
     if (this.reviewId) {

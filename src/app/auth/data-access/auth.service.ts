@@ -35,6 +35,35 @@ export interface Criterio {
   isEditing?: boolean;   // Para controlar el modo de edición en la tabla
 }
 
+export interface Pregunta {
+  id_pregunta: number;         // ID que viene de la BD
+  descripcion: string;         // Texto de la pregunta
+  id_detalles_revision?: number; // Si lo requieres para la relación
+  // ... cualquier otro campo que retorne tu base de datos
+}
+
+export interface Respuesta {
+  id_respuesta: number;
+  descripcion: string;
+  peso: number;
+  id_detalles_revision?: number;
+  isEditing?: boolean;    // true si la fila está en edición
+}
+
+export interface Study {
+  author: string;
+  booktitle: string;
+  title: string;
+  year: string;
+  volume: string;
+  number: string;
+  pages: string;
+  keywords: string;
+  doi: string;
+  status: string; // Para la acción: Sin clasificar, Aceptado, etc.
+}
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -402,19 +431,19 @@ export class AuthService {
       .from('palabras_clave')
       .select('*')
       .eq('id_detalles_revision', idRevision);
-  
+
     if (error) {
       console.error('Error al obtener palabras clave:', error.message);
     }
     return { data, error };
   }
-  
+
   async deleteKeyword(idPalabrasClave: number): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
       .from('palabras_clave')
       .delete()
       .eq('id_palabras_clave', idPalabrasClave);
-  
+
     if (error) {
       console.error('Error al eliminar la palabra clave:', error.message);
     }
@@ -432,26 +461,26 @@ export class AuthService {
           // fecha_creacion: se asigna automáticamente si la BD tiene DEFAULT CURRENT_TIMESTAMP
         }
       ]);
-  
+
     if (error) {
       console.error('Error al insertar cadena de búsqueda:', error.message);
     }
     return { data, error };
   }
-  
+
   async getCadenaBusqueda(idDetallesRevision: string) {
     const { data, error } = await this._supabaseClient
       .from('cadenas_busqueda')
       .select('id_cadenas_busqueda, cadena_busqueda')
       .eq('id_detalles_revision', idDetallesRevision)
-      // .maybeSingle() // si sabes que sólo hay una cadena por revisión, puedes usar .single() o .maybeSingle()
-  
+    // .maybeSingle() // si sabes que sólo hay una cadena por revisión, puedes usar .single() o .maybeSingle()
+
     if (error) {
       console.error('Error al obtener cadena de búsqueda:', error.message);
     }
     return { data, error };
   }
-  
+
   async getCriterios(idDetallesRevision: string) {
     const { data, error } = await this._supabaseClient
       .from('criterios')
@@ -463,7 +492,7 @@ export class AuthService {
     }
     return { data, error };
   }
-  
+
   async insertCriterio(
     descripcion: string,
     tipo: string,
@@ -479,7 +508,7 @@ export class AuthService {
         }
       ])
       .select(); // Asegúrate de incluir .select() para devolver los datos insertados
-  
+
     if (error) {
       console.error('Error al insertar criterio:', error.message);
     }
@@ -512,5 +541,160 @@ export class AuthService {
     }
     return { data, error };
   }
-  
+
+
+  //pagina 2 de planeacion
+
+  // Obtiene todas las preguntas para una revisión
+  async getPreguntasByRevision(idRevision: string) {
+    const { data, error } = await this._supabaseClient
+      .from('evaluacion_calidad_preguntas')
+      .select('*')
+      .eq('id_detalles_revision', idRevision);
+
+    return { data, error };
+  }
+
+  // Inserta una nueva pregunta
+  async insertPregunta(descripcion: string, idRevision: string) {
+    const { data, error } = await this._supabaseClient
+      .from('evaluacion_calidad_preguntas')
+      .insert([
+        {
+          descripcion,
+          id_detalles_revision: idRevision
+        }
+      ])
+      .select();
+
+    return { data, error };
+  }
+
+  // Actualiza la descripción de una pregunta
+  async updatePregunta(idPregunta: number, nuevaDescripcion: string) {
+    const { data, error } = await this._supabaseClient
+      .from('evaluacion_calidad_preguntas')
+      .update({ descripcion: nuevaDescripcion })
+      .eq('id_pregunta', idPregunta)
+      .select();
+
+    return { data, error };
+  }
+
+  // Elimina una pregunta
+  async deletePregunta(idPregunta: number) {
+    const { data, error } = await this._supabaseClient
+      .from('evaluacion_calidad_preguntas')
+      .delete()
+      .eq('id_pregunta', idPregunta)
+      .select();
+
+    return { data, error };
+  }
+
+  // Obtiene todas las respuestas para una revisión
+  async getRespuestasByRevision(idRevision: string) {
+    const { data, error } = await this._supabaseClient
+      .from('evaluacion_calidad_respuestas')
+      .select('*')
+      .eq('id_detalles_revision', idRevision);
+
+    return { data, error };
+  }
+
+  // Inserta una nueva respuesta
+  async insertRespuesta(descripcion: string, peso: number, idRevision: string) {
+    const { data, error } = await this._supabaseClient
+      .from('evaluacion_calidad_respuestas')
+      .insert([
+        {
+          descripcion,
+          peso,
+          id_detalles_revision: idRevision
+        }
+      ])
+      .select();
+
+    return { data, error };
+  }
+
+  // Actualiza la descripción y/o peso de una respuesta
+  async updateRespuesta(idRespuesta: number, nuevaDescripcion: string, nuevoPeso: number) {
+    const { data, error } = await this._supabaseClient
+      .from('evaluacion_calidad_respuestas')
+      .update({
+        descripcion: nuevaDescripcion,
+        peso: nuevoPeso
+      })
+      .eq('id_respuesta', idRespuesta)
+      .select();
+
+    return { data, error };
+  }
+
+  // Elimina una respuesta
+  async deleteRespuesta(idRespuesta: number) {
+    const { data, error } = await this._supabaseClient
+      .from('evaluacion_calidad_respuestas')
+      .delete()
+      .eq('id_respuesta', idRespuesta)
+      .select();
+
+    return { data, error };
+  }
+
+  async getScoreByRevision(idRevision: string) {
+    const { data, error } = await this._supabaseClient
+      .from('puntuaciones_evaluacion')
+      .select('*')
+      .eq('id_detalles_revision', idRevision)
+      .select();
+
+    if (error && error.details !== 'Results contain 0 rows') {
+      // Manejo de error si no es el caso de "no hay filas"
+      console.error('Error al obtener la puntuación:', error.message);
+      throw error;
+    }
+
+    return data; // Retorna la fila o null si no hay
+  }
+
+  async saveLimitScore(
+    idRevision: string,
+    newLimit: number
+  ): Promise<{ data: any; error: any }> {
+    // Verificar si ya existe
+    const { data: existingData, error: existingError } = await this._supabaseClient
+      .from('puntuaciones_evaluacion')
+      .select('*')
+      .eq('id_detalles_revision', idRevision);
+
+    // existingData es un array
+    if (existingData && existingData.length > 0) {
+      const row = existingData[0]; // Toma la primera (o la que necesites)
+      // Ahora row.id_puntuacion existe
+      const { data, error } = await this._supabaseClient
+        .from('puntuaciones_evaluacion')
+        .update({ puntuacion_limite: newLimit })
+        .eq('id_puntuacion', row.id_puntuacion)
+        .select();
+
+      return { data, error };
+    } else {
+      // Crea una nueva fila con puntuacion_maxima = 3.0 por default
+      const { data, error } = await this._supabaseClient
+        .from('puntuaciones_evaluacion')
+        .insert([
+          {
+            puntuacion_limite: newLimit,
+            // puntuacion_maxima: 3.0 se asigna por DEFAULT en la BD
+            id_detalles_revision: idRevision
+          }
+        ])
+        .select();
+
+      return { data, error };
+    }
+  }
+
 }

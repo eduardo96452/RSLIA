@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -14,16 +14,24 @@ import { FooterComponent } from "../../principal/footer/footer.component";
   templateUrl: './home-revision.component.html',
   styleUrl: './home-revision.component.css'
 })
-export class HomeRevisionComponent {
+export class HomeRevisionComponent implements OnInit  {
   title: string = '';
   description: string = '';
   tipoRevision: string = '';
-  charCount: number = 0;
+  charCount: number = 0; // Contador de caracteres (opcional)
 
   constructor(private router: Router, private authService: AuthService) { }
 
   updateCharCount() {
     this.charCount = this.description.length;
+  }
+
+  async ngOnInit() {
+    this.charCount = this.description.length;
+  }
+
+  onTextChange(value: string) {
+    this.charCount = value.length;
   }
 
   async createReview() {
