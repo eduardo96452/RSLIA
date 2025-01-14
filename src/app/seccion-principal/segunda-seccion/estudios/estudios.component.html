@@ -94,10 +94,10 @@
                                                 <table class="table table-bordered table-hover"
                                                     *ngIf="importedStudies.length > 0">
                                                     <thead>
-                                                        <tr>
+                                                        <tr class="text-center">
                                                             <th (click)="sortStudies('database')"
                                                                 style="cursor: pointer;">
-                                                                Base de Datos
+                                                                Base de datos
                                                                 <!-- Muestra la flecha si la columna de orden es 'database' -->
                                                                 <i *ngIf="sortColumn === 'database'" class="bi"
                                                                     [ngClass]="{ 'bi-arrow-up': sortOrder === 'asc', 'bi-arrow-down': sortOrder === 'desc' }">
@@ -105,53 +105,53 @@
                                                             </th>
                                                             <th (click)="sortStudies('author')"
                                                                 style="cursor: pointer;">
-                                                                Author
+                                                                Autor
                                                                 <i *ngIf="sortColumn === 'author'" class="bi"
                                                                     [ngClass]="{ 'bi-arrow-up': sortOrder === 'asc', 'bi-arrow-down': sortOrder === 'desc' }">
                                                                 </i>
                                                             </th>
                                                             <th (click)="sortStudies('booktitle')"
                                                                 style="cursor: pointer;">
-                                                                Booktitle
+                                                                Título del libro
                                                                 <i *ngIf="sortColumn === 'booktitle'" class="bi"
                                                                     [ngClass]="{ 'bi-arrow-up': sortOrder === 'asc', 'bi-arrow-down': sortOrder === 'desc' }">
                                                                 </i>
                                                             </th>
                                                             <th (click)="sortStudies('title')" style="cursor: pointer;">
-                                                                Title
+                                                                Título
                                                                 <i *ngIf="sortColumn === 'title'" class="bi"
                                                                     [ngClass]="{ 'bi-arrow-up': sortOrder === 'asc', 'bi-arrow-down': sortOrder === 'desc' }">
                                                                 </i>
                                                             </th>
                                                             <th (click)="sortStudies('year')" style="cursor: pointer;">
-                                                                Year
+                                                                Año
                                                                 <i *ngIf="sortColumn === 'year'" class="bi"
                                                                     [ngClass]="{ 'bi-arrow-up': sortOrder === 'asc', 'bi-arrow-down': sortOrder === 'desc' }">
                                                                 </i>
                                                             </th>
                                                             <th (click)="sortStudies('volume')"
-                                                                style="cursor: pointer;">
-                                                                Volume
+                                                                style="cursor: pointer; display:none;" >
+                                                                Volumen
                                                                 <i *ngIf="sortColumn === 'volume'" class="bi"
                                                                     [ngClass]="{ 'bi-arrow-up': sortOrder === 'asc', 'bi-arrow-down': sortOrder === 'desc' }">
                                                                 </i>
                                                             </th>
                                                             <th (click)="sortStudies('number')"
-                                                                style="cursor: pointer;">
-                                                                Number
+                                                                style="cursor: pointer; display:none;">
+                                                                Número
                                                                 <i *ngIf="sortColumn === 'number'" class="bi"
                                                                     [ngClass]="{ 'bi-arrow-up': sortOrder === 'asc', 'bi-arrow-down': sortOrder === 'desc' }">
                                                                 </i>
                                                             </th>
-                                                            <th (click)="sortStudies('pages')" style="cursor: pointer;">
-                                                                Pages
+                                                            <th (click)="sortStudies('pages')" style="cursor: pointer; display:none;">
+                                                                Páginas
                                                                 <i *ngIf="sortColumn === 'pages'" class="bi"
                                                                     [ngClass]="{ 'bi-arrow-up': sortOrder === 'asc', 'bi-arrow-down': sortOrder === 'desc' }">
                                                                 </i>
                                                             </th>
                                                             <th (click)="sortStudies('keywords')"
                                                                 style="cursor: pointer;">
-                                                                Keywords
+                                                                Palabras clave
                                                                 <i *ngIf="sortColumn === 'keywords'" class="bi"
                                                                     [ngClass]="{ 'bi-arrow-up': sortOrder === 'asc', 'bi-arrow-down': sortOrder === 'desc' }">
                                                                 </i>
@@ -162,7 +162,7 @@
                                                                     [ngClass]="{ 'bi-arrow-up': sortOrder === 'asc', 'bi-arrow-down': sortOrder === 'desc' }">
                                                                 </i>
                                                             </th>
-                                                            <th>Acción</th>
+                                                            <th>&nbsp;&nbsp;&nbsp;&nbsp;Acción&nbsp;&nbsp;&nbsp;&nbsp;</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -173,9 +173,9 @@
                                                             <td>{{ study.booktitle }}</td>
                                                             <td>{{ study.title }}</td>
                                                             <td>{{ study.year }}</td>
-                                                            <td>{{ study.volume }}</td>
-                                                            <td>{{ study.number }}</td>
-                                                            <td>{{ study.pages }}</td>
+                                                            <td style="display:none;">{{ study.volume }}</td>
+                                                            <td style="display:none;">{{ study.number }}</td>
+                                                            <td style="display:none;">{{ study.pages }}</td>
                                                             <td>{{ study.keywords }}</td>
                                                             <td>{{ study.doi }}</td>
                                                             <td>
@@ -292,3 +292,13 @@
         </div>
     </div>
 </main>
+<br />
+<div class="container text-center">
+    <div class="row">
+        <div class="col align-self-center">
+            <!-- Botón para volver al inicio -->
+            <button class="btn btn-primary text-center" (click)="scrollToTop()">
+                <i class="bi bi-arrow-up-circle"></i>&nbsp; Subir </button>
+        </div>
+    </div>
+</div>
