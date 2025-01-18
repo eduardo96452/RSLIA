@@ -61,7 +61,8 @@ export interface Study {
   pages: string;
   keywords: string;
   doi: string;
-  status: string; // Para la acción: Sin clasificar, Aceptado, etc.
+  status: string;
+  isSelected?: boolean; // Para la acción: Sin clasificar, Aceptado, etc.
 }
 
 

@@ -9,7 +9,6 @@ import { OpenAiService } from '../../../conexion/openAi.service';
 import { Study } from '../../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
 
-declare var bootstrap: any;
 
 @Component({
   selector: 'app-estudios',
@@ -33,6 +32,10 @@ export class EstudiosComponent implements OnInit {
   sortColumn: string = '';
   sortOrder: 'asc' | 'desc' = 'asc';
   selectedStudy: Study | null = null;
+  showEditModal = false;
+  selectedStudiesCount = 0;
+  allSelected = false;
+  
 
   constructor(
     private route: ActivatedRoute,
@@ -41,6 +44,7 @@ export class EstudiosComponent implements OnInit {
     private router: Router,
     private openAiService: OpenAiService
   ) { }
+  
 
   async ngOnInit() {
     this.reviewId = this.route.snapshot.queryParams['id'];
@@ -453,40 +457,80 @@ export class EstudiosComponent implements OnInit {
   }
 
 
-  // Cuando el usuario hace clic en una fila de la tabla
-  selectStudy(study: Study) {
-    // Crea una copia para evitar mutar la fila directamente si prefieres
-    this.selectedStudy = { ...study };
+  // (1) Abrir el modal (solo si no es la col. acción ni check)
+  openEditModal(study: Study, event: MouseEvent) {
+    // Chequear si target es un button o input => no abrir
+    const targetElement = event.target as HTMLElement;
+    // Podrías identificar la col. de acción por clase "btn" o "form-check-input"
+    if (
+      targetElement.tagName === 'BUTTON' ||
+      targetElement.tagName === 'INPUT' ||
+      targetElement.classList.contains('form-select') // si quisieras excluir el select
+    ) {
+      return; // no abrir modal
+    }
+
+    // Abrimos modal
+    this.selectedStudy = { ...study }; 
+    this.showEditModal = true;
   }
 
-  // Cancela la edición
-  cancelEdit() {
+  // (2) Cerrar modal
+  closeEditModal() {
+    this.showEditModal = false;
     this.selectedStudy = null;
   }
 
-  // Guardar los cambios en la fila
+  // (3) Guardar cambios => actualiza la fila en importedStudies
   saveStudyEdits() {
     if (!this.selectedStudy) return;
 
-    // Buscar el índice de la fila original en importedStudies
+    // Busca la fila en importedStudies
     const index = this.importedStudies.findIndex(
-      (s) => s.author === this.selectedStudy?.author 
-        && s.title === this.selectedStudy?.title
-        && s.doi === this.selectedStudy?.doi
+      (s) => s.author === this.selectedStudy?.author && s.title === this.selectedStudy?.title
     );
-    // (Arriba usamos un criterio simple, en la práctica podrías usar un ID único si existe.)
 
     if (index !== -1) {
-      // Reemplaza la fila original con la versión editada
       this.importedStudies[index] = this.selectedStudy;
-      // Opcional: Llamar a un servicio para guardar en BD si hace falta
-      // this.service.updateStudy(this.selectedStudy).subscribe(...);
+    }
 
-      // Quitar el formulario
-      this.selectedStudy = null;
+    // Cerrar el modal
+    this.showEditModal = false;
+    this.selectedStudy = null;
+  }
+
+  // (4) Cerrar el modal si hace clic en el backdrop
+  onBackdropClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      // clic en el backdrop, cierra
+      this.closeEditModal();
     }
   }
-  
 
+  // (5) Seleccionar/deseleccionar un estudio
+  toggleSelection(study: Study, event: MouseEvent) {
+    // No propaga click a la fila
+    event.stopPropagation();
 
+    // Cambia isSelected
+    study.isSelected = !study.isSelected;
+
+    // Actualiza el contador
+    this.updateSelectedCount();
+  }
+
+  // (6) Seleccionar/deseleccionar todos
+  toggleSelectAll(event: MouseEvent) {
+    this.allSelected = !this.allSelected;
+
+    this.importedStudies.forEach(s => s.isSelected = this.allSelected);
+    this.updateSelectedCount();
+
+    event.stopPropagation(); // Evita abrir modal
+  }
+
+  // Actualiza el conteo
+  updateSelectedCount() {
+    this.selectedStudiesCount = this.importedStudies.filter(s => s.isSelected).length;
+  }
 }

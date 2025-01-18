@@ -18,3 +18,32 @@
 .menu-item:hover {
   background-color: #f1f1f1;
 }
+
+.table thead th {
+  white-space: nowrap;  /* Evita que el texto baje de línea */
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.table thead th,
+.table tbody td {
+  vertical-align: middle;
+  /* Ajusta la altura de las filas si deseas */
+  /* line-height: 1.2; */
+}
+
+.cell-gray {
+  background-color: #e0e0e0 !important; /* Gris */
+}
+
+.cell-green {
+  background-color: #adebad !important; /* Verde claro */
+}
+
+.cell-yellow {
+  background-color: #fff8b3 !important; /* Amarillo claro */
+}
+
+.cell-red {
+  background-color: #ffcccc !important; /* Rojo claro */
+}

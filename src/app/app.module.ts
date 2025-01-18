@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule } from '@angular/material/button';
 import { ReactiveFormsModule } from '@angular/forms';
+import { GojsAngularModule } from 'gojs-angular';
 
 @NgModule({
   declarations: [
@@ -28,9 +29,9 @@ import { ReactiveFormsModule } from '@angular/forms';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule,
-    ReactiveFormsModule
-    
+    MatButtonModule,    
+    ReactiveFormsModule,
+    GojsAngularModule
   ],
   exports: [RouterModule]
 })

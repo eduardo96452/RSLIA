@@ -6,15 +6,15 @@
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <div class="row">
-                                <div class="col-4">
+                                <!--<div class="col-4">
                                     <li class="breadcrumb-item"><a href="/panel_principal">{{ userData?.nombre_usuario
                                             || 'Usuario' }}</a>
                                     </li>
                                 </div>
                                 <div class="col-1">
                                     <p><strong>/</strong></p>
-                                </div>
-                                <div class="col-7">
+                                </div>-->
+                                <div >
                                     <li class="breadcrumb-item active" aria-current="page">
                                         {{reviewData.titulo_revision}}</li>
                                 </div>
@@ -23,6 +23,7 @@
                     </nav>
                 </div>
             </div>
+            <br>
             <div class="row">
                 <div class="col col-sm col-md-3">
                     <div class="d-flex">
@@ -45,7 +46,7 @@
                             </div>
 
                             <!-- Proyección de informes -->
-                            <div class="menu-item" [routerLink]="['/proyeccion']" [queryParams]="{ id: reviewId }">
+                            <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
                                 Proyección de informes
                             </div>
                         </div>
