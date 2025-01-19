@@ -35,8 +35,7 @@ export class DashboardComponent implements OnInit {
   }
 
   async loadUserReviews() {
-    const session = await this.authService.getSession();
-    const userId = session?.user?.id;
+    const userId = localStorage.getItem('user_id');
   
     if (!userId) {
       console.error('No se encontró un usuario autenticado');
@@ -58,8 +57,7 @@ export class DashboardComponent implements OnInit {
   }
 
   async loadUserReviewCount() {
-    const session = await this.authService.getSession(); // Obtiene la sesión del usuario
-    const userId = session?.user?.id;
+    const userId = localStorage.getItem('user_id');
 
     if (userId) {
       this.userReviewCount = await this.authService.countUserReviews(userId);

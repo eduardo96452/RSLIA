@@ -2,6 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../../conexion/supabase.service';
 import { createClient, SignUpWithPasswordCredentials } from '@supabase/supabase-js';
 import { BehaviorSubject, from, Observable } from 'rxjs';
+import { Router } from '@angular/router';
+import Swal from 'sweetalert2';
 
 export interface DetallesRevision {
   id_detalles_revision: string;
@@ -73,12 +75,84 @@ export class AuthService {
 
   _supabaseClient = inject(SupabaseService).supabaseClient;
   private authState = new BehaviorSubject<boolean>(false);
+  private router = inject(Router);  // Inyección de Router
+  private inactivityTimeoutId: any;  // ID del temporizador de inactividad
+  private readonly inactivityLimit = 15 * 60 * 60 * 1000; // 15 horas en milisegundos
 
   constructor() {
-    // Actualiza el estado de autenticación según el estado de la sesión de Supabase
+    // Manejar cambios en el estado de autenticación de Supabase
     this._supabaseClient.auth.onAuthStateChange((event, session) => {
-      this.authState.next(!!session);
+      if (session) {
+        this.authState.next(true);
+        this.startInactivityTracking();
 
+        // Almacenar solo el ID del usuario en localStorage
+        if (session.user) {
+          localStorage.setItem('user_id', session.user.id);
+        }
+      } else {
+        this.authState.next(false);
+        this.stopInactivityTracking();
+
+        // Remover el ID del usuario del localStorage cuando no hay sesión
+        localStorage.removeItem('user_id');
+      }
+    });
+
+    // Inicia el seguimiento de inactividad desde el principio
+    this.startInactivityTracking();
+  }
+
+  // Inicia el seguimiento de actividad del usuario
+  private startInactivityTracking() {
+    this.resetInactivityTimer();
+
+    // Añadir detectores de eventos para actividad del usuario
+    window.addEventListener('mousemove', this.resetInactivityTimerBound);
+    window.addEventListener('keypress', this.resetInactivityTimerBound);
+    window.addEventListener('scroll', this.resetInactivityTimerBound);
+    window.addEventListener('touchstart', this.resetInactivityTimerBound);
+  }
+
+  // Detiene el seguimiento de inactividad y elimina detectores de eventos
+  private stopInactivityTracking() {
+    if (this.inactivityTimeoutId) {
+      clearTimeout(this.inactivityTimeoutId);
+    }
+    window.removeEventListener('mousemove', this.resetInactivityTimerBound);
+    window.removeEventListener('keypress', this.resetInactivityTimerBound);
+    window.removeEventListener('scroll', this.resetInactivityTimerBound);
+    window.removeEventListener('touchstart', this.resetInactivityTimerBound);
+  }
+
+  // Usamos una referencia vinculada para mantener el contexto de 'this'
+  private resetInactivityTimerBound = this.resetInactivityTimer.bind(this);
+
+  // Reinicia el temporizador de inactividad
+  private resetInactivityTimer() {
+    if (this.inactivityTimeoutId) {
+      clearTimeout(this.inactivityTimeoutId);
+    }
+    this.inactivityTimeoutId = setTimeout(() => {
+      this.handleInactivityTimeout();
+    }, this.inactivityLimit);
+  }
+
+  // Maneja el cierre de sesión por inactividad
+  private async handleInactivityTimeout() {
+    // Cerrar sesión en Supabase
+    await this._supabaseClient.auth.signOut();
+    this.stopInactivityTracking();
+  
+    // Mostrar alerta con SweetAlert2
+    Swal.fire({
+      title: 'Sesión Cerrada',
+      text: 'Su sesión ha sido cerrada por inactividad.',
+      icon: 'warning',
+      confirmButtonText: 'Aceptar'
+    }).then(() => {
+      // Redirigir a la ruta /inicio después de que el usuario cierre la alerta
+      this.router.navigate(['/inicio']);
     });
   }
 

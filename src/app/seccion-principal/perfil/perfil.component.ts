@@ -86,8 +86,8 @@ async uploadImage(file: File): Promise<string> {
 }
 
   async updateUserProfileImage(imageUrl: string) {
-    const session = await this.authService.getSession();
-    const uid = session?.user?.id;
+    const uid = localStorage.getItem('user_id');
+    
     if (uid) {
       const { data, error } = await this.authService.updateUser(uid, {
         ...this.userForm.value,
@@ -103,8 +103,7 @@ async uploadImage(file: File): Promise<string> {
 
   async onSubmit() {
     if (this.userForm.valid) {
-      const session = await this.authService.getSession();
-      const uid = session?.user?.id;
+      const uid = localStorage.getItem('user_id');
 
       if (uid) {
         const userData = this.userForm.getRawValue();

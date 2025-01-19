@@ -2,8 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { NavbarComponent } from "../../../principal/navbar/navbar.component";
-import { FooterComponent } from "../../../principal/footer/footer.component";
 import { AuthService } from '../../../auth/data-access/auth.service';
 import { OpenAiService } from '../../../conexion/openAi.service';
 import { Study } from '../../../auth/data-access/auth.service';
@@ -13,7 +11,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-estudios',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, NavbarComponent, FooterComponent],
+  imports: [RouterLink, CommonModule, FormsModule],
   templateUrl: './estudios.component.html',
   styleUrl: './estudios.component.css'
 })

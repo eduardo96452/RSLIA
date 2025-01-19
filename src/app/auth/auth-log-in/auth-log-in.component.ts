@@ -24,38 +24,34 @@ export class AuthLogInComponent {
   password: string = '';
   showPassword: boolean = false;
 
-  constructor(private _authService: AuthService, private router: Router) {}
-  
+  constructor(private _authService: AuthService, private router: Router) { }
+
   async handleEmailLogin() {
     if (this.email && this.password) {
       try {
-        // Paso 1: Intento de inicio de sesión
-        const { error, data } = await this._authService.logIn({
-          email: this.email,
-          password: this.password,
-        });
-  
-        if (error) {
-          console.error('Error en el inicio de sesión:', error.message);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error en el inicio de sesión',
-            text: error.message,
+        this._authService.logIn({ email: this.email, password: this.password })
+          .then(response => {
+            // Manejar respuesta sin mostrar datos
+            // Por ejemplo, redirigir al usuario sin mostrar el contenido del response
+            Swal.fire({
+              icon: 'success',
+              title: '¡Inicio de sesión exitoso!',
+              text: 'Bienvenido a tu panel principal.',
+            }).then(() => {
+              // Redirige a la página deseada
+              this.router.navigate(['/panel_principal']);
+            });
+          })
+          .catch(error => {
+            // Manejar errores sin mostrar datos sensibles
+            console.error('Error en el inicio de sesión:', error.message);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error en el inicio de sesión',
+              text: error.message,
+            });
+            return; // O muestra un mensaje amigable
           });
-          return;
-        }
-  
-        // Paso 2: Usuario autenticado
-        console.log('Usuario autenticado:', data);
-        Swal.fire({
-          icon: 'success',
-          title: '¡Inicio de sesión exitoso!',
-          text: 'Bienvenido a tu panel principal.',
-        }).then(() => {
-          // Redirige a la página deseada
-          this.router.navigate(['/panel_principal']);
-        });
-  
       } catch (error) {
         console.error('Error en el inicio de sesión:', error);
         Swal.fire({
@@ -84,5 +80,5 @@ export class AuthLogInComponent {
     this.showPassword = !this.showPassword;
   }
 
-  
+
 }
