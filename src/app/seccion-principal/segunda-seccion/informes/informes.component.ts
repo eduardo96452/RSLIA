@@ -85,13 +85,13 @@ export class InformesComponent implements OnInit, AfterViewInit {
         },
         {
           data: { id: 'node5', label: 'Incluidos' },
-          position: { x: 50, y: 455 }
+          position: { x: 50, y: 440 }
         },
 
         // Columna 2:
         {
           data: { id: 'node6', label: 'Identificación de nuevos estudios a través de bases de datos y registros' },
-          position: { x: 300, y: 25 }
+          position: { x: 307, y: 25 }
         },
         {
           data: { id: 'node8', label: 'Registros identificados de:* \n Bases de datos (n = 0) \n Registros (n = 0)' },
@@ -99,7 +99,7 @@ export class InformesComponent implements OnInit, AfterViewInit {
         },
         {
           data: { id: 'node9', label: 'Registros eliminados antes del cribado: \n Registros duplicados eliminados (n = 0) \n Registros marcados como no elegibles por \n herramientas de automatización (n = 0) \n Registros eliminados por otras razones (n = 0)' },
-          position: { x: 400, y: 100 }
+          position: { x: 402, y: 100 }
         },
         {
           data: { id: 'node10', label: 'Registros cribados (n = 0)' },
@@ -115,33 +115,45 @@ export class InformesComponent implements OnInit, AfterViewInit {
         },
         {
           data: { id: 'node13', label: 'Registros excluidos (n = 0)' },
-          position: { x: 358, y: 200 }
+          position: { x: 379, y: 200 }
         },
         {
           data: { id: 'node14', label: 'Informes no recuperados (n = 0)' },
-          position: { x: 371, y: 265 }
+          position: { x: 379, y: 265 }
         },
         {
-          data: { id: 'node15', label: 'Informes excluidos: \n Razón 1 (n = ) \n Razón 2 (n = ) \n Razón 3 (n = ) \n etc.' },
-          position: { x: 346, y: 340 }
+          data: { id: 'node15', label: 'Informes excluidos: \n Razón 1 (n = 0) \n Razón 2 (n = 0) \n Razón 3 (n = 0) \n etc.' },
+          position: { x: 379, y: 340 }
         },
         {
-          data: { id: 'node16', label: 'Nuevos estudios incluidos \n en la revisión (n = ) \n Informes de nuevos \n estudios incluidos (n = )' },
+          data: { id: 'node16', label: 'Nuevos estudios incluidos \n en la revisión (n = 0) \n Informes de nuevos \n estudios incluidos (n = 0)' },
           position: { x: 170, y: 440 }
         },
 
         // Columna 3: node7, node2
         {
           data: { id: 'node7', label: 'Identificación de nuevos estudios a través de otros métodos' },
-          position: { x: 700, y: 25 }
+          position: { x: 755, y: 25 }
         },
         {
-          data: { id: 'node1', label: 'Nodo Horizontal\nParte no editable' },
-          position: { x: 550, y: 220 }
+          data: { id: 'node1', label: 'Registros identificados de: \n Sitios web (n = 0) \n Organizaciones (n = 0) \n Búsqueda de citas (n = ) \n etc.' },
+          position: { x: 650, y: 100 }
         },
         {
-          data: { id: 'node2', label: 'Nodo Vertical\nParte no editable' },
-          position: { x: 550, y: 250 }
+          data: { id: 'node2', label: 'Informes buscados para \n recuperación (n = 0)' },
+          position: { x: 650, y: 265 }
+        },
+        {
+          data: { id: 'node17', label: 'Informes no recuperados (n = 0)' },
+          position: { x: 850, y: 265 }
+        },
+        {
+          data: { id: 'node18', label: 'Informes evaluados para \n elegibilidad (n = 0)' },
+          position: { x: 650, y: 350 }
+        },
+        {
+          data: { id: 'node19', label: 'Informes excluidos: \n Motivo 1 (n = 0) \n Motivo 2 (n = 0) \n Motivo 3 (n = 0) \n etc.' },
+          position: { x: 850, y: 350 }
         },
 
         // Mantener la conexión entre node1 y node2
@@ -171,6 +183,18 @@ export class InformesComponent implements OnInit, AfterViewInit {
         },
         {
           data: { id: 'edge9', source: 'node12', target: 'node16' }
+        },
+        {
+          data: { id: 'edge10', source: 'node2', target: 'node17' }
+        },
+        {
+          data: { id: 'edge11', source: 'node2', target: 'node18' }
+        },
+        {
+          data: { id: 'edge12', source: 'node18', target: 'node19' }
+        },
+        {
+          data: { id: 'edge13', source: 'node18', target: 'node16' }
         }
       ],
 
@@ -192,34 +216,199 @@ export class InformesComponent implements OnInit, AfterViewInit {
           } as any  // Aserción de tipo para ignorar validación en este objeto
         },
         {
-          selector: '#node2',
+          selector: '#node4',
           style: {
-            'background-color': '#28a745',  // Color diferente para distinguirlo
-            // Otros estilos específicos para node3 si se desean
-          }
-        },
-        {
-          selector: '#node3,#node4, #node5',
-          style: {
-            'background-color': '#ff6347',
-            // Forzar forma vertical: ancho fijo, altura basada en contenido
+            'background-color': '#BCD2EE',
             'width': '10px',            // ancho más reducido
-            'height': '85px',           // altura automática según el texto
+            'height': '210px',           // altura automática según el texto
             'text-wrap': 'wrap',
             'text-max-width': '200px',   // limitar el ancho del texto para forzar múltiples líneas
             'text-valign': 'center',       // alinear el texto en la parte superior
             'text-halign': 'center',
-            'color': '#fff',
+            'color': 'black',
+            'text-rotation': 11,
+            'shape': 'roundrectangle'   // forma rectangular redondeada vertical
+          }
+        },
+        {
+          selector: '#node3, #node5',
+          style: {
+            'background-color': '#BCD2EE',
+            'width': '10px',            // ancho más reducido
+            'height': '80px',           // altura automática según el texto
+            'text-wrap': 'wrap',
+            'text-max-width': '200px',   // limitar el ancho del texto para forzar múltiples líneas
+            'text-valign': 'center',       // alinear el texto en la parte superior
+            'text-halign': 'center',
+            'color': 'black',
             'text-rotation': 11,
             'shape': 'roundrectangle'   // forma rectangular redondeada vertical
           }
         } as any,
         {
+          selector: '#node6',
+          style: {
+            'background-color': '#FFC125',
+            'label': 'data(label)',
+            'shape': 'roundrectangle',
+            'padding': '10px',
+            'text-wrap': 'wrap',
+            'width': '392px',
+            'height': 'label',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': 'black',
+            'font-size': '10px'
+          }
+        },
+        {
+          selector: '#node7',
+          style: {
+            'background-color': '#DCDCDC',
+            'label': 'data(label)',
+            'shape': 'roundrectangle',
+            'padding': '10px',
+            'text-wrap': 'wrap',
+            'width': '340px',
+            'height': 'label',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': 'black',
+            'font-size': '10px'
+          }
+        },
+        {
+          selector: '#node8, #node16',
+          style: {
+            'background-color': '#FFFFFF',
+            'label': 'data(label)',
+            'shape': 'roundrectangle',
+            'padding': '10px',
+            'text-wrap': 'wrap',
+            'width': '110px',
+            'height': '40px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': 'black',
+            'font-size': '10px',
+            'border-width': '2px',
+            'border-color': '#000000'
+          }
+        },
+        {
+          selector: '#node10, #node11, #node12',
+          style: {
+            'background-color': '#FFFFFF',
+            'label': 'data(label)',
+            'shape': 'roundrectangle',
+            'padding': '10px',
+            'text-wrap': 'wrap',
+            'width': '110px',
+            'height': '20px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': 'black',
+            'font-size': '10px',
+            'border-width': '2px',
+            'border-color': '#000000'
+          }
+        },
+        {
+          selector: '#node9',
+          style: {
+            'background-color': '#FFFFFF',
+            'label': 'data(label)',
+            'shape': 'roundrectangle',
+            'padding': '10px',
+            'text-wrap': 'wrap',
+            'width': '203px',
+            'height': '40px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': 'black',
+            'font-size': '10px',
+            'border-width': '2px',
+            'border-color': '#000000'
+          }
+        },
+        {
+          selector: '#node13, #node14, #node15',
+          style: {
+            'background-color': '#FFFFFF',
+            'label': 'data(label)',
+            'shape': 'roundrectangle',
+            'padding': '10px',
+            'text-wrap': 'wrap',
+            'width': '150px',
+            'height': '35px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': 'black',
+            'font-size': '10px',
+            'border-width': '2px',
+            'border-color': '#000000'
+          }
+        },
+        {
+          selector: '#node1',
+          style: {
+            'background-color': '#DCDCDC',
+            'label': 'data(label)',
+            'shape': 'roundrectangle',
+            'padding': '10px',
+            'text-wrap': 'wrap',
+            'width': '150px',
+            'height': '40px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': 'black',
+            'font-size': '10px',
+            'border-width': '2px',
+            'border-color': '#000000'
+          }
+        },
+        {
+          selector: '#node2, #node18',
+          style: {
+            'background-color': '#DCDCDC',
+            'label': 'data(label)',
+            'shape': 'roundrectangle',
+            'padding': '10px',
+            'text-wrap': 'wrap',
+            'width': '110px',
+            'height': '20px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': 'black',
+            'font-size': '10px',
+            'border-width': '2px',
+            'border-color': '#000000'
+          }
+        },
+        {
+          selector: '#node17, #node19',
+          style: {
+            'background-color': '#DCDCDC',
+            'label': 'data(label)',
+            'shape': 'roundrectangle',
+            'padding': '10px',
+            'text-wrap': 'wrap',
+            'width': '150px',
+            'height': '40px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'color': 'black',
+            'font-size': '10px',
+            'border-width': '2px',
+            'border-color': '#000000'
+          }
+        },
+        {
           selector: 'edge',
           style: {
-            'width': 2,
-            'line-color': '#9dbaea',
-            'target-arrow-color': '#9dbaea',
+            'width': 3,
+            'line-color': '#333a',
+            'target-arrow-color': '#333',
             'target-arrow-shape': 'triangle',
             'curve-style': 'taxi',           // Estilo taxi para aristas con esquinas
             'taxi-turn': 90,                 // Ángulo de la vuelta (90° para esquinas rectas)
@@ -228,7 +417,8 @@ export class InformesComponent implements OnInit, AfterViewInit {
         }
       ],
       layout: {
-        name: 'preset'  // Usar posiciones definidas manualmente en cada nodo
+        name: 'preset',  // Usar posiciones definidas manualmente en cada nodo
+        fit: true,       // Ajusta el grafo para encajar en el contenedor
       }
     });
 
@@ -239,7 +429,7 @@ export class InformesComponent implements OnInit, AfterViewInit {
     // Ajuste inicial para encajar nodos
     this.cy.resize();
     this.cy.fit();
-    this.cy.zoom(0.8 * this.cy.zoom());
+
 
     // Bloquear permanentemente la interacción del panel y nodos
     this.lockPanel();
@@ -255,12 +445,12 @@ export class InformesComponent implements OnInit, AfterViewInit {
 
   zoomIn() {
     const currentZoom = this.cy.zoom();
-    this.cy.zoom({ level: currentZoom + 0.2, renderedPosition: { x: 0, y: 0 } });
+    this.cy.zoom({ level: currentZoom + 0.1, renderedPosition: { x: 10, y: 10 } });
   }
 
   zoomOut() {
     const currentZoom = this.cy.zoom();
-    this.cy.zoom({ level: currentZoom - 0.2, renderedPosition: { x: 0, y: 0 } });
+    this.cy.zoom({ level: currentZoom - 0.1, renderedPosition: { x: 10, y: 10 } });
   }
 
   private lockPanel() {
@@ -272,9 +462,9 @@ export class InformesComponent implements OnInit, AfterViewInit {
     this.cy.userZoomingEnabled(false);
 
     // Deshabilitar el arrastre de todos los nodos
-    this.cy.nodes().forEach((node: cytoscape.NodeSingular) => {
+    /*this.cy.nodes().forEach((node: cytoscape.NodeSingular) => {
       node.ungrabify();
-    });
+    });*/
   }
 
   private downloadFile(dataUrl: string, filename: string) {
@@ -316,10 +506,10 @@ export class InformesComponent implements OnInit, AfterViewInit {
       // Centrar la vista y ajustar el grafo para mostrar todos los nodos
       this.cy.resize();
       this.cy.fit();
-  
+
       // Habilitar panning y zoom para permitir mover el panel
       this.cy.userPanningEnabled(true);
-  
+
       // (Opcional) Actualizar estado de bloqueo si se gestiona una variable
       this.locked = false;
     }
