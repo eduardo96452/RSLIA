@@ -346,42 +346,43 @@
             </div>
 
             <!-- Input de subir PDF (aparece sólo si el status es "Aceptado") -->
-            <!-- Mostrar solo si el estado es "Aceptado" -->
-            <tr *ngFor="let study of importedStudies">
-              <!-- celdas con datos generales del estudio -->
-              <td>
-                <div *ngIf="study.status === 'Aceptado'">
-                  <!-- Caso 1: Si NO existe url_pdf_articulo, mostrar input para subir -->
-                  <ng-container *ngIf="!study.url_pdf_articulo; else pdfActions">
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      (change)="onFileSelected($event, study)"
-                      class="form-control"
-                    />
-                  </ng-container>
-            
-                  <!-- Caso 2: Existe url_pdf_articulo => mostrar ícono PDF y bote de basura -->
-                  <ng-template #pdfActions>
-                    <a
-                      [href]="study.url_pdf_articulo"
-                      target="_blank"
-                      title="Ver PDF"
-                      style="text-decoration: none; margin-right: 8px;"
-                    >
-                      <i class="bi bi-file-earmark-pdf text-danger" style="font-size: 1.5rem;"></i>
-                    </a>
-            
-                    <i
-                      class="bi bi-trash text-danger"
-                      style="font-size: 1.5rem; cursor: pointer;"
-                      title="Eliminar PDF"
-                      (click)="deletePDF(study)"
-                    ></i>
-                  </ng-template>
-                </div>
-              </td>
-            </tr>
+            <!-- SECCIÓN PDF: Solo se muestra si el estado es "Aceptado" -->
+      <div class="mb-3" *ngIf="selectedStudy.status === 'Aceptado'">
+        <!-- Si NO existe un PDF, mostramos input para subir -->
+        <ng-container *ngIf="!selectedStudy.url_pdf_articulo; else pdfActions">
+          <label class="form-label fw-bold">Subir PDF</label>
+          <input
+            type="file"
+            accept=".pdf"
+            class="form-control"
+            (change)="onFileSelected($event, selectedStudy)"
+          />
+        </ng-container>
+
+        <!-- Si YA existe un PDF, mostramos el ícono para abrir y el ícono para eliminar -->
+        <ng-template #pdfActions>
+          <label class="form-label fw-bold">PDF del Artículo</label>
+          <div>
+            <!-- Ícono para abrir el PDF en pestaña nueva -->
+            <a
+              [href]="selectedStudy.url_pdf_articulo"
+              target="_blank"
+              class="text-danger me-2"
+              title="Ver PDF"
+              style="text-decoration: none;"
+            >
+              <i class="bi bi-file-earmark-pdf" style="font-size: 1.5rem;"></i>
+            </a>
+            <!-- Ícono para eliminar PDF -->
+            <i
+              class="bi bi-trash text-danger"
+              style="font-size: 1.5rem; cursor: pointer;"
+              title="Eliminar PDF"
+              (click)="deletePDF(selectedStudy)"
+            ></i>
+          </div>
+        </ng-template>
+      </div>
             
 
             <!-- Fuente Bibliográfica (fuente_bibliografica) -->
