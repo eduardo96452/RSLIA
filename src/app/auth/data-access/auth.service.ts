@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../../conexion/supabase.service';
 import { createClient, SignUpWithPasswordCredentials } from '@supabase/supabase-js';
-import { BehaviorSubject, from, Observable } from 'rxjs';
+import { BehaviorSubject, from, map, Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 
@@ -65,7 +65,50 @@ export interface Study {
   doi: string;
   status: string;
   isSelected?: boolean; // Para la acción: Sin clasificar, Aceptado, etc.
+  id_estudios?: number;
+  revista: string;
+  author_keywords?: string;
+  bibtex_key?: string;
+  document_type?: string;
+  url?: string;
+  afiliacion?: string;
+  publisher?: string;
+  issn?: string;
+  language?: string;
+  comentario?: string;
+  resumen: string;
+  url_pdf_articulo?: string;
 }
+
+export interface Estudio {
+  id_estudios?: number;
+  titulo: string;
+  resumen: string;
+  autores: string;
+  anio: number;
+  revista: string;
+  doi: string;
+  fecha_ingreso?: string;
+  id_detalles_revision: string;
+  estado: string;
+  id_criterio?: number;
+  keywords?: string;
+  author_keywords?: string;
+  bibtex_key?: string;
+  document_type?: string;
+  paginas?: string;
+  volumen?: string;
+  url?: string;
+  afiliacion?: string;
+  publisher?: string;
+  issn?: string;
+  language?: string;
+  comentario?: string;
+  fuente_bibliografica?: string;
+  url_pdf_articulo?: string | null | undefined;
+}
+
+
 
 
 @Injectable({
@@ -77,7 +120,7 @@ export class AuthService {
   private authState = new BehaviorSubject<boolean>(false);
   private router = inject(Router);  // Inyección de Router
   private inactivityTimeoutId: any;  // ID del temporizador de inactividad
-  private readonly inactivityLimit = 15 * 60 * 60 * 1000; // 15 horas en milisegundos
+  private readonly inactivityLimit = 10 * 60 * 60 * 1000; // 15 horas en milisegundos
 
   constructor() {
     // Manejar cambios en el estado de autenticación de Supabase
@@ -143,7 +186,7 @@ export class AuthService {
     // Cerrar sesión en Supabase
     await this._supabaseClient.auth.signOut();
     this.stopInactivityTracking();
-  
+
     // Mostrar alerta con SweetAlert2
     Swal.fire({
       title: 'Sesión Cerrada',
@@ -772,5 +815,206 @@ export class AuthService {
       return { data, error };
     }
   }
+
+  /**
+   * CREATE: Insertar un nuevo registro en la tabla "estudios".
+   */
+  async createEstudio(estudio: Estudio): Promise<{ data: any; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('estudios')
+      .insert([estudio])
+      .select();
+    return { data, error };
+  }
+
+  /**
+   * READ (1): Obtener todos los estudios de la tabla "estudios".
+   */
+  async getEstudiosByRevision(
+    idDetallesRevision: number
+  ): Promise<{ data: Estudio[] | null; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('estudios')
+      .select('*')
+      .eq('id_detalles_revision', idDetallesRevision);
+
+    return { data, error };
+  }
+
+
+  /**
+   * READ (2): Obtener un estudio por su ID (id_estudios).
+   */
+  async getEstudioById(id: number): Promise<{ data: Estudio | null; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('estudios')
+      .select('*')
+      .eq('id_estudios', id)
+      .single(); // Solo uno
+
+    return { data, error };
+  }
+
+  /**
+   * UPDATE: Actualizar los campos de un estudio existente.
+   */
+  async updateEstudio(
+    idEstudios: number,
+    changes: Partial<Estudio>
+  ): Promise<{ data: any; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('estudios')
+      .update(changes)
+      .eq('id_estudios', idEstudios)
+      .select();
+
+    return { data, error };
+  }
+
+  /**
+   * DELETE: Eliminar un estudio por su ID.
+   */
+  async deleteEstudio(id: number): Promise<{ data: any; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('estudios')
+      .delete()
+      .eq('id_estudios', id)
+      .select();
+
+    return { data, error };
+  }
+
+  async findStudyByTitleInRevision(
+    titulo: string,
+    idDetallesRevision: string
+  ): Promise<{ data: Estudio[] | null; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('estudios')
+      .select('*')
+      .eq('titulo', titulo)
+      .eq('id_detalles_revision', idDetallesRevision);
+
+    return { data, error };
+  }
+
+
+
+  // ------------------------------------------------------------------
+  // 1. Subida de PDF al bucket "documentos"
+  // ------------------------------------------------------------------
+  /**
+   * Sube el archivo PDF al bucket "documentos" en Supabase.
+   * @param file Archivo PDF a subir
+   * @param estudioId ID del estudio para construir la ruta dentro del bucket
+   * @returns string con la URL pública del archivo subido
+   */
+  async uploadPDF(file: File, estudioId: number): Promise<string> {
+    try {
+      // Construye una ruta (path) única para el archivo en el bucket
+      const filePath = `estudios/${estudioId}/${file.name}`;
+
+      // Subir al bucket "documentos"
+      const { data, error } = await this._supabaseClient.storage
+        .from('documentos')
+        .upload(filePath, file, {
+          upsert: true
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      // Obtener URL pública (asegúrate de que el bucket tenga política pública o uses signedUrl)
+      const { data: publicData } = this._supabaseClient.storage
+        .from('documentos')
+        .getPublicUrl(filePath);
+
+      // publicData.publicUrl contiene la URL pública
+      const publicUrl = publicData.publicUrl;
+      return publicUrl;
+    } catch (error: any) {
+      console.error('Error subiendo PDF:', error.message);
+      throw error;
+    }
+  }
+
+
+  // ------------------------------------------------------------------
+  // 2. Actualización de la tabla "estudios"
+  // ------------------------------------------------------------------
+  /**
+   * Actualiza la información de un estudio en la tabla "estudios".
+   */
+  async updateStudy(estudioData: Partial<Estudio>): Promise<any> {
+    try {
+      if (!estudioData.id_estudios) {
+        throw new Error('No se proporcionó id_estudios para la actualización.');
+      }
+
+      // Realiza la actualización según tu modelo. Ajusta si necesitas mapear campos.
+      const { data, error } = await this._supabaseClient
+        .from('estudios')
+        .update({
+          // Asegúrate de mapear correctamente los campos que deseas actualizar
+          titulo: estudioData.titulo,
+          resumen: estudioData.resumen,
+          autores: estudioData.autores,
+          anio: estudioData.anio,
+          revista: estudioData.revista,
+          doi: estudioData.doi,
+          estado: estudioData.estado,
+          keywords: estudioData.keywords,
+          author_keywords: estudioData.author_keywords,
+          bibtex_key: estudioData.bibtex_key,
+          document_type: estudioData.document_type,
+          paginas: estudioData.paginas,
+          volumen: estudioData.volumen,
+          url: estudioData.url,
+          afiliacion: estudioData.afiliacion,
+          publisher: estudioData.publisher,
+          issn: estudioData.issn,
+          language: estudioData.language,
+          comentario: estudioData.comentario,
+          fuente_bibliografica: estudioData.fuente_bibliografica,
+          url_pdf_articulo: estudioData.url_pdf_articulo
+        })
+        .eq('id_estudios', estudioData.id_estudios);
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    } catch (error: any) {
+      console.error('Error actualizando estudio:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+ * Elimina un archivo PDF del bucket "documentos" en Supabase, dado su filePath.
+ */
+  async removePDF(filePath: string): Promise<void> {
+    // filePath sería algo como "estudios/10/mi_archivo.pdf"
+    const { data, error } = await this._supabaseClient.storage
+      .from('documentos')
+      .remove([filePath]);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  /**
+ * Extrae el path usado en el bucket a partir de la URL pública devuelta por Supabase.
+ * @example
+ *  "https://xxxx.supabase.co/storage/v1/object/public/documentos/estudios/10/archivo.pdf"
+ *  =>  "estudios/10/archivo.pdf"
+ */
+  getFilePathFromPublicURL(publicUrl: string): string {
+    // Dividimos en la primera ocurrencia de 'documentos/'
+    const parts = publicUrl.split('documentos/');
+    return parts[1] ?? '';
+  }
+
 
 }

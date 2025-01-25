@@ -47,3 +47,19 @@
 .cell-red {
   background-color: #ffcccc !important; /* Rojo claro */
 }
+
+.modal-header {
+  background-color: #f8f9fa; /* Color claro para el fondo */
+  border-bottom: 1px solid #dee2e6; /* Línea de separación */
+}
+
+.modal-title {
+  font-size: 1.25rem; /* Tamaño del título */
+  letter-spacing: 0.5px; /* Espaciado entre letras */
+}
+
+.btn-close {
+  background-color: transparent; /* Sin fondo adicional */
+  outline: none; /* Elimina el contorno */
+}
+

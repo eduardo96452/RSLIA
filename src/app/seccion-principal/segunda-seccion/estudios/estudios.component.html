@@ -1,12 +1,12 @@
 <main>
-    <div>
-        <div class="container">
-            <div class="row align-items-start">
-                <div class="col-md-12">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <div class="row">
-                                <!--<div class="col-4">
+  <div>
+    <div class="container">
+      <div class="row align-items-start">
+        <div class="col-md-12">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <div class="row">
+                <!--<div class="col-4">
                                     <li class="breadcrumb-item"><a href="/panel_principal">{{ userData?.nombre_usuario
                                             || 'Usuario' }}</a>
                                     </li>
@@ -14,350 +14,500 @@
                                 <div class="col-1">
                                     <p><strong>/</strong></p>
                                 </div>-->
-                                <div >
-                                    <li class="breadcrumb-item active" aria-current="page">
-                                        {{reviewData.titulo_revision}}</li>
-                                </div>
-                            </div>
-                        </ol>
-                    </nav>
+                <div>
+                  <li class="breadcrumb-item active" aria-current="page">
+                    {{reviewData.titulo_revision}}</li>
                 </div>
-            </div>
-            <br>
-            <div class="row">
-                <div class="col col-sm col-md-3">
-                    <div class="d-flex">
-                        <div class="floating-menu">
-                            <!-- Descripción General -->
-                            <div class="menu-item " [routerLink]="['/detalle_revision']"
-                                [queryParams]="{ id: reviewId }">
-                                Descripción General
-                            </div>
-
-                            <!-- Planificación -->
-                            <div class="menu-item " [routerLink]="['/planificacion']" [queryParams]="{ id: reviewId }">
-                                Planificación
-                            </div>
-
-                            <!-- Revisión de datos -->
-                            <div class="menu-item active" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
-                                Revisión de datos
-                            </div>
-
-                            <!-- Proyección de informes -->
-                            <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
-                                Proyección de informes
-                            </div>
-                        </div>
-                    </div>
-                    <br />
-                </div>
-
-                <div class="col col-sm col-md-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                                <!-- Página 1 -->
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="tab1" data-bs-toggle="tab"
-                                        data-bs-target="#pagina1" type="button" role="tab" aria-controls="pagina1"
-                                        aria-selected="true">
-                                        Selección de estudios
-                                    </button>
-                                </li>
-
-                                <!-- Página 2 -->
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="tab2" data-bs-toggle="tab" data-bs-target="#pagina2"
-                                        type="button" role="tab" aria-controls="pagina2" aria-selected="false">
-                                        Evaluación de calidad
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="card-body">
-                            <div class="container">
-                                <!-- Contenido de las páginas -->
-                                <div class="tab-content" id="myTabContent">
-                                    <!-- Contenido Página 1 -->
-                                    <div class="tab-pane fade show active p-2" id="pagina1" role="tabpanel"
-                                        aria-labelledby="tab1">
-                                        <div class="container mt-4">
-                                            <h6>En esta sección podra ingresar los articulos que ha encontrado con la
-                                                cadena de busqueda.</h6>
-                                            <br>
-                                            <!-- Botón para iniciar el proceso de importación -->
-                                            <button class="btn btn-primary mb-3" (click)="selectFileType()">
-                                                Importar archivo
-                                            </button>
-                                            <p>Estudios seleccionados: {{ selectedStudiesCount }}</p>
-                                            <!-- Tabla donde se mostrarán los estudios importados -->
-                                            <!-- contenedor de tabla más grande -->
-                                            <div class="table-responsive" style="max-height: 500vh; overflow-y: auto;">
-                                                <table class="table table-bordered table-hover"
-                                                    style="table-layout: fixed; width: 100%;">
-                                                    <!-- Definimos el colgroup para anchos de columnas -->
-                                                    <colgroup>
-                                                        <col style="width: 50px;" /> <!-- Selección -->
-                                                        <col style="width: 150px;" /> <!-- Acción -->
-                                                        <col style="width: 120px;" /> <!-- Base de datos -->
-                                                        <col style="width: 150px;" /> <!-- Autor -->
-                                                        <col style="width: 150px;" /> <!-- Título del libro -->
-                                                        <col style="width: 200px;" /> <!-- Título -->
-                                                        <col style="width: 80px;" /> <!-- Año -->
-                                                        <col style="width: 80px; display:none;" />
-                                                        <!-- Volumen (oculto) -->
-                                                        <col style="width: 80px; display:none;" />
-                                                        <!-- Número (oculto) -->
-                                                        <col style="width: 80px; display:none;" />
-                                                        <!-- Páginas (oculto) -->
-                                                        <col style="width: 150px;" /> <!-- Palabras clave -->
-                                                        <col style="width: 130px;" /> <!-- DOI -->
-                                                    </colgroup>
-
-                                                    <!-- THEAD sticky -->
-                                                    <thead class="text-center"
-                                                        style="position: sticky; top: 0; background-color: #fff; z-index: 1;">
-                                                        <tr>
-                                                            <!-- Columna Seleccionar -->
-                                                            <th>
-                                                                <input type="checkbox" (click)="toggleSelectAll($event)"
-                                                                    [checked]="allSelected" />
-                                                            </th>
-
-                                                            <th>
-                                                                Acción
-                                                            </th>
-
-                                                            <th (click)="sortStudies('database')"
-                                                                style="cursor: pointer;">
-                                                                Base de datos
-                                                                <i *ngIf="sortColumn === 'database'" class="bi"
-                                                                    [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
-                                                            </th>
-
-                                                            <th (click)="sortStudies('author')"
-                                                                style="cursor: pointer;">
-                                                                Autor
-                                                                <i *ngIf="sortColumn === 'author'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
-                                                            </th>
-
-                                                            <th (click)="sortStudies('booktitle')"
-                                                                style="cursor: pointer;">
-                                                                Título del libro
-                                                                <i *ngIf="sortColumn === 'booktitle'" class="bi"
-                                                                    [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
-                                                            </th>
-
-                                                            <th (click)="sortStudies('title')" style="cursor: pointer;">
-                                                                Título
-                                                                <i *ngIf="sortColumn === 'title'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
-                                                            </th>
-
-                                                            <th (click)="sortStudies('year')" style="cursor: pointer;">
-                                                                Año
-                                                                <i *ngIf="sortColumn === 'year'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
-                                                            </th>
-
-                                                            <!-- Volumen (oculto) -->
-                                                            <th (click)="sortStudies('volume')"
-                                                                style="cursor: pointer; display:none;">
-                                                                Volumen
-                                                                <i *ngIf="sortColumn === 'volume'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
-                                                            </th>
-
-                                                            <!-- Número (oculto) -->
-                                                            <th (click)="sortStudies('number')"
-                                                                style="cursor: pointer; display:none;">
-                                                                Número
-                                                                <i *ngIf="sortColumn === 'number'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
-                                                            </th>
-
-                                                            <!-- Páginas (oculto) -->
-                                                            <th (click)="sortStudies('pages')"
-                                                                style="cursor: pointer; display:none;">
-                                                                Páginas
-                                                                <i *ngIf="sortColumn === 'pages'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
-                                                            </th>
-
-                                                            <th (click)="sortStudies('keywords')"
-                                                                style="cursor: pointer;">
-                                                                Palabras clave
-                                                                <i *ngIf="sortColumn === 'keywords'" class="bi"
-                                                                    [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
-                                                            </th>
-
-                                                            <th (click)="sortStudies('doi')" style="cursor: pointer;">
-                                                                DOI
-                                                                <i *ngIf="sortColumn === 'doi'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <!-- Tbody solo se muestra si hay datos -->
-                                                    <tbody *ngIf="importedStudies.length > 0">
-                                                        <tr *ngFor="let study of importedStudies; let i = index"
-                                                            (click)="openEditModal(study, $event)">
-
-                                                            <!-- Checkbox de selección (columna 1) -->
-                                                            <td (click)="$event.stopPropagation()">
-                                                                <input type="checkbox" [checked]="study.isSelected"
-                                                                    (click)="toggleSelection(study, $event)" />
-                                                            </td>
-
-                                                            <td [ngClass]="{
-    'cell-gray': study.status === 'Sin clasificar',
-    'cell-green': study.status === 'Aceptado',
-    'cell-yellow': study.status === 'Duplicado',
-    'cell-red': study.status === 'Rechazado'       
-  }">
-                                                                <select class="form-select form-select-sm"
-                                                                    [(ngModel)]="study.status"
-                                                                    (click)="$event.stopPropagation()">
-                                                                    <option value="Sin clasificar">Sin clasificar
-                                                                    </option>
-                                                                    <option value="Aceptado">Preseleccionado</option>
-                                                                    <option value="Duplicado">Duplicado</option>
-                                                                    <option value="Rechazado">Descartado</option>
-                                                                </select>
-                                                            </td>
-
-
-                                                            <td>{{ study.database }}</td>
-                                                            <td>{{ study.author }}</td>
-                                                            <td>{{ study.booktitle }}</td>
-                                                            <td>{{ study.title }}</td>
-                                                            <td>{{ study.year }}</td>
-
-                                                            <!-- Volumen (oculto) -->
-                                                            <td style="display:none;">{{ study.volume }}</td>
-                                                            <!-- Número (oculto) -->
-                                                            <td style="display:none;">{{ study.number }}</td>
-                                                            <!-- Páginas (oculto) -->
-                                                            <td style="display:none;">{{ study.pages }}</td>
-
-                                                            <td>{{ study.keywords }}</td>
-                                                            <td>{{ study.doi }}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Contenido Página 2 -->
-                                    <div class="tab-pane fade p-3" id="pagina2" role="tabpanel" aria-labelledby="tab2">
-                                        <h5>Contenido de la Página 2</h5>
-                                        <p>Este es el contenido de la segunda página.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+              </div>
+            </ol>
+          </nav>
         </div>
+      </div>
+      <br>
+      <div class="row">
+        <div class="col col-sm col-md-3">
+          <div class="d-flex">
+            <div class="floating-menu">
+              <!-- Descripción General -->
+              <div class="menu-item " [routerLink]="['/detalle_revision']" [queryParams]="{ id: reviewId }">
+                Descripción General
+              </div>
+
+              <!-- Planificación -->
+              <div class="menu-item " [routerLink]="['/planificacion']" [queryParams]="{ id: reviewId }">
+                Planificación
+              </div>
+
+              <!-- Revisión de datos -->
+              <div class="menu-item active" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
+                Revisión de datos
+              </div>
+
+              <!-- Proyección de informes -->
+              <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
+                Proyección de informes
+              </div>
+            </div>
+          </div>
+          <br />
+        </div>
+
+        <div class="col col-sm col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <!-- Página 1 -->
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="tab1" data-bs-toggle="tab" data-bs-target="#pagina1" type="button"
+                    role="tab" aria-controls="pagina1" aria-selected="true">
+                    Selección de estudios
+                  </button>
+                </li>
+
+                <!-- Página 2 -->
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="tab2" data-bs-toggle="tab" data-bs-target="#pagina2" type="button"
+                    role="tab" aria-controls="pagina2" aria-selected="false">
+                    Evaluación de calidad
+                  </button>
+                </li>
+              </ul>
+            </div>
+            <div class="card-body">
+              <div class="container">
+                <!-- Contenido de las páginas -->
+                <div class="tab-content" id="myTabContent">
+                  <!-- Contenido Página 1 -->
+                  <div class="tab-pane fade show active p-2" id="pagina1" role="tabpanel" aria-labelledby="tab1">
+                    <div class="container mt-4">
+                      <h6>En esta sección podra ingresar los articulos que ha encontrado con la
+                        cadena de busqueda.</h6>
+                      <br>
+                      <!-- Botón para iniciar el proceso de importación -->
+                      <button class="btn btn-primary mb-3" (click)="selectFileType()">
+                        <i class="bi bi-box-arrow-in-up"></i>&nbsp;Importar archivo
+                      </button>
+
+                      <p>Estudios seleccionados: {{ selectedStudiesCount }}</p>
+
+                      <!-- Select para filtrar los estados -->
+                      <div class="mb-3 d-flex align-items-center">
+                        <label class="me-2 fw-bold">Filtrar por estado:</label>
+                        <select class="form-select w-auto" [(ngModel)]="filterStatus" (change)="applyFilter()">
+                          <option value="all">Todos</option>
+                          <option value="Sin clasificar">Sin clasificar</option>
+                          <option value="Aceptado">Preseleccionado</option>
+                          <option value="Duplicado">Duplicado</option>
+                          <option value="Rechazado">Descartado</option>
+                        </select>
+                      </div>
+
+                      <!-- Tabla donde se mostrarán los estudios importados -->
+                      <!-- contenedor de tabla más grande -->
+                      <div class="table-responsive" style="max-height: 500vh; overflow-y: auto;">
+                        <table class="table table-bordered table-hover" style="table-layout: fixed; width: 100%;">
+                          <!-- Definimos el colgroup para anchos de columnas -->
+                          <colgroup>
+                            <col style="width: 50px;" /> <!-- Selección -->
+                            <col style="width: 150px;" /> <!-- Acción -->
+                            <col style="width: 120px;" /> <!-- Base de datos -->
+                            <col style="width: 150px;" /> <!-- Autor -->
+                            <col style="width: 150px;" /> <!-- Título del libro -->
+                            <col style="width: 200px;" /> <!-- Título -->
+                            <col style="width: 80px;" /> <!-- Año -->
+                            <col style="width: 80px; display:none;" />
+                            <!-- Volumen (oculto) -->
+                            <col style="width: 80px; display:none;" />
+                            <!-- Número (oculto) -->
+                            <col style="width: 80px; display:none;" />
+                            <!-- Páginas (oculto) -->
+                            <col style="width: 150px;" /> <!-- Palabras clave -->
+                            <col style="width: 130px;" /> <!-- DOI -->
+                          </colgroup>
+
+                          <!-- THEAD sticky -->
+                          <thead class="text-center"
+                            style="position: sticky; top: 0; background-color: #fff; z-index: 1;">
+                            <tr>
+                              <!-- Columna Seleccionar -->
+                              <th>
+                                <input type="checkbox" (click)="toggleSelectAll($event)" [checked]="allSelected" />
+                              </th>
+
+                              <th>
+                                Acción
+                              </th>
+
+                              <th (click)="sortStudies('database')" style="cursor: pointer;">
+                                Base de datos
+                                <i *ngIf="sortColumn === 'database'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+
+                              <!-- Volumen (oculto) -->
+                              <th (click)="sortStudies('id_estudios')" style="cursor: pointer; display:none;">
+                                ID Estudios
+                                <i *ngIf="sortColumn === 'volume'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+
+                              <th (click)="sortStudies('author')" style="cursor: pointer;">
+                                Autor
+                                <i *ngIf="sortColumn === 'author'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+
+                              <th (click)="sortStudies('booktitle')" style="cursor: pointer;">
+                                Título del libro
+                                <i *ngIf="sortColumn === 'booktitle'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+
+                              <th (click)="sortStudies('title')" style="cursor: pointer;">
+                                Título
+                                <i *ngIf="sortColumn === 'title'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+
+                              <th (click)="sortStudies('year')" style="cursor: pointer;">
+                                Año
+                                <i *ngIf="sortColumn === 'year'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+
+                              <!-- Volumen (oculto) -->
+                              <th (click)="sortStudies('volume')" style="cursor: pointer; display:none;">
+                                Volumen
+                                <i *ngIf="sortColumn === 'volume'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+
+                              <!-- Número (oculto) -->
+                              <th (click)="sortStudies('number')" style="cursor: pointer; display:none;">
+                                Número
+                                <i *ngIf="sortColumn === 'number'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+
+                              <!-- Páginas (oculto) -->
+                              <th (click)="sortStudies('pages')" style="cursor: pointer; display:none;">
+                                Páginas
+                                <i *ngIf="sortColumn === 'pages'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+
+                              <th (click)="sortStudies('keywords')" style="cursor: pointer;">
+                                Palabras clave
+                                <i *ngIf="sortColumn === 'keywords'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+
+                              <th (click)="sortStudies('doi')" style="cursor: pointer;">
+                                DOI
+                                <i *ngIf="sortColumn === 'doi'" class="bi" [ngClass]="{
+              'bi-arrow-up': sortOrder === 'asc',
+              'bi-arrow-down': sortOrder === 'desc'
+            }"></i>
+                              </th>
+                            </tr>
+                          </thead>
+                          <!-- Tbody solo se muestra si hay datos -->
+                          <tbody *ngIf="displayedStudies.length > 0">
+                            <tr *ngFor="let study of displayedStudies; let i = index"
+                              (click)="openEditModal(study, $event)">
+                              <!-- Checkbox de selección -->
+                              <td (click)="$event.stopPropagation()">
+                                <input type="checkbox" [checked]="study.isSelected"
+                                  (click)="toggleSelection(study, $event)" />
+                              </td>
+
+                              <td [ngClass]="{
+          'cell-gray': study.status === 'Sin clasificar',
+          'cell-green': study.status === 'Aceptado',
+          'cell-yellow': study.status === 'Duplicado',
+          'cell-red': study.status === 'Rechazado'
+        }">
+                                <select class="form-select form-select-sm" [(ngModel)]="study.status"
+                                  (click)="$event.stopPropagation()" (change)="updateStudyStatus(study)">
+                                  <option value="Sin clasificar">Sin clasificar
+                                  </option>
+                                  <option value="Aceptado">Preseleccionado</option>
+                                  <option value="Duplicado">Duplicado</option>
+                                  <option value="Rechazado">Descartado</option>
+                                </select>
+                              </td>
+
+                              <td>{{ study.database }}</td>
+                              <td style="display:none;">{{ study.id_estudios }}</td>
+                              <td>{{ study.author }}</td>
+                              <td>{{ study.booktitle }}</td>
+                              <td>{{ study.title }}</td>
+                              <td>{{ study.year }}</td>
+                              <td style="display:none;">{{ study.volume }}</td>
+                              <td style="display:none;">{{ study.number }}</td>
+                              <td style="display:none;">{{ study.pages }}</td>
+                              <td>{{ study.keywords }}</td>
+                              <td>{{ study.doi }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Contenido Página 2 -->
+                  <div class="tab-pane fade p-3" id="pagina2" role="tabpanel" aria-labelledby="tab2">
+                    <h5>Contenido de la Página 2</h5>
+                    <p>Este es el contenido de la segunda página.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </main>
 <br />
 <div class="container text-center">
-    <div class="row">
-        <div class="col align-self-center">
-            <!-- Botón para volver al inicio -->
-            <button class="btn btn-primary text-center" (click)="scrollToTop()">
-                <i class="bi bi-arrow-up-circle"></i>&nbsp; Subir </button>
-        </div>
+  <div class="row">
+    <div class="col align-self-center">
+      <!-- Botón para volver al inicio -->
+      <button class="btn btn-primary text-center" (click)="scrollToTop()">
+        <i class="bi bi-arrow-up-circle"></i>&nbsp; Subir </button>
     </div>
+  </div>
 </div>
 
-
-<!-- Modal de Edición -->
-<div class="modal fade" [ngClass]="{ 'show': showEditModal }" [style.display]="showEditModal ? 'block' : 'none'"
+<!-- Contenedor Principal -->
+<div>
+  <!-- Backdrop Oscuro -->
+  <div class="modal-backdrop fade show" *ngIf="showEditModal"></div>
+  <!-- Contenedor Modal -->
+  <div class="modal fade" [ngClass]="{ 'show': showEditModal }" [style.display]="showEditModal ? 'block' : 'none'"
     (click)="onBackdropClick($event)">
-    <div class="modal-dialog">
-        <div class="modal-content" (click)="$event.stopPropagation()">
-            <div class="modal-header">
-                <h5 class="modal-title">Editar Estudio</h5>
-                <button type="button" class="close" (click)="closeEditModal()">&times;</button>
-            </div>
-            <div class="modal-body" *ngIf="selectedStudy">
-                <form>
-                    <!-- Campos del estudio seleccionados -->
-                    <div class="form-group">
-                        <label>Base de Datos</label>
-                        <input class="form-control" type="text" [(ngModel)]="selectedStudy.database" name="database" />
-                    </div>
-                    <div class="form-group">
-                        <label>Author</label>
-                        <input class="form-control" type="text" [(ngModel)]="selectedStudy.author" name="author" />
-                    </div>
-                    <div class="form-group">
-                        <label>Booktitle</label>
-                        <input class="form-control" type="text" [(ngModel)]="selectedStudy.booktitle"
-                            name="booktitle" />
-                    </div>
-                    <div class="form-group">
-                        <label>Title</label>
-                        <input class="form-control" type="text" [(ngModel)]="selectedStudy.title" name="title" />
-                    </div>
-                    <div class="form-group">
-                        <label>Year</label>
-                        <input class="form-control" type="text" [(ngModel)]="selectedStudy.year" name="year" />
-                    </div>
-                    <div class="form-group">
-                        <label>Volume</label>
-                        <input class="form-control" type="text" [(ngModel)]="selectedStudy.volume" name="volume" />
-                    </div>
-                    <div class="form-group">
-                        <label>Number</label>
-                        <input class="form-control" type="text" [(ngModel)]="selectedStudy.number" name="number" />
-                    </div>
-                    <div class="form-group">
-                        <label>Pages</label>
-                        <input class="form-control" type="text" [(ngModel)]="selectedStudy.pages" name="pages" />
-                    </div>
-                    <div class="form-group">
-                        <label>Keywords</label>
-                        <input class="form-control" type="text" [(ngModel)]="selectedStudy.keywords" name="keywords" />
-                    </div>
-                    <div class="form-group">
-                        <label>DOI</label>
-                        <input class="form-control" type="text" [(ngModel)]="selectedStudy.doi" name="doi" />
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" (click)="closeEditModal()">Cancelar</button>
-                <button class="btn btn-primary" (click)="saveStudyEdits()">Guardar</button>
-            </div>
+    <div class="modal-dialog modal-dialog-scrollable modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header d-flex justify-content-between align-items-center">
+          <h5 class="modal-title text-primary fw-bold">
+            <i class="bi bi-pencil-square"></i> &nbsp;Editar Estudio
+          </h5>
+          <button type="button" class="btn-close" aria-label="Cerrar" (click)="closeEditModal()"></button>
         </div>
+
+        <div class="modal-body" *ngIf="selectedStudy">
+          <!-- FORMULARIO -->
+          <form>
+            <!-- Campo oculto para ID del estudio (no visible) -->
+            <input type="hidden" [value]="selectedStudy.id_estudios" name="id_estudios" />
+
+            <!-- Estado (campo "estado" en tu interfaz) -->
+            <div class="form-group mb-3">
+              <label class="form-label fw-bold">Estado</label>
+              <select class="form-select" [(ngModel)]="selectedStudy.status" name="estado" [ngClass]="{
+                          'cell-gray': selectedStudy.status === 'Sin clasificar',
+                          'cell-green': selectedStudy.status === 'Aceptado',
+                          'cell-yellow': selectedStudy.status === 'Duplicado',
+                          'cell-red': selectedStudy.status === 'Rechazado'
+                        }">
+                <option value="Sin clasificar" [ngClass]="{ 'cell-gray': true }">
+                  Sin clasificar
+                </option>
+                <option value="Aceptado" [ngClass]="{ 'cell-green': true }">
+                  Aceptado
+                </option>
+                <option value="Duplicado" [ngClass]="{ 'cell-yellow': true }">
+                  Duplicado
+                </option>
+                <option value="Rechazado" [ngClass]="{ 'cell-red': true }">
+                  Rechazado
+                </option>
+              </select>
+            </div>
+
+            <!-- Input de subir PDF (aparece sólo si el status es "Aceptado") -->
+            <!-- Mostrar solo si el estado es "Aceptado" -->
+            <tr *ngFor="let study of importedStudies">
+              <!-- celdas con datos generales del estudio -->
+              <td>
+                <div *ngIf="study.status === 'Aceptado'">
+                  <!-- Caso 1: Si NO existe url_pdf_articulo, mostrar input para subir -->
+                  <ng-container *ngIf="!study.url_pdf_articulo; else pdfActions">
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      (change)="onFileSelected($event, study)"
+                      class="form-control"
+                    />
+                  </ng-container>
+            
+                  <!-- Caso 2: Existe url_pdf_articulo => mostrar ícono PDF y bote de basura -->
+                  <ng-template #pdfActions>
+                    <a
+                      [href]="study.url_pdf_articulo"
+                      target="_blank"
+                      title="Ver PDF"
+                      style="text-decoration: none; margin-right: 8px;"
+                    >
+                      <i class="bi bi-file-earmark-pdf text-danger" style="font-size: 1.5rem;"></i>
+                    </a>
+            
+                    <i
+                      class="bi bi-trash text-danger"
+                      style="font-size: 1.5rem; cursor: pointer;"
+                      title="Eliminar PDF"
+                      (click)="deletePDF(study)"
+                    ></i>
+                  </ng-template>
+                </div>
+              </td>
+            </tr>
+            
+
+            <!-- Fuente Bibliográfica (fuente_bibliografica) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Base de Datos</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.database"
+                name="fuente_bibliografica" />
+            </div>
+
+            <!-- Autor(es) (autores) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Autor(es)</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.author" name="autores" />
+            </div>
+
+            <!-- Título (titulo) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Título</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.title" name="titulo" />
+            </div>
+
+            <!-- Resumen (resumen) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Resumen</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="selectedStudy.resumen" name="resumen"></textarea>
+            </div>
+
+            <!-- Año y Volumen en una fila -->
+            <div class="row">
+              <div class="col-sm-6 mb-3">
+                <label class="form-label fw-bold">Año</label>
+                <input class="form-control" type="number" [(ngModel)]="selectedStudy.year" name="anio" />
+              </div>
+              <div class="col-sm-6 mb-3">
+                <label class="form-label fw-bold">Volumen</label>
+                <input class="form-control" type="text" [(ngModel)]="selectedStudy.volume" name="volumen" />
+              </div>
+            </div>
+
+            <!-- DOI -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">DOI</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.doi" name="doi" />
+            </div>
+
+            <!-- Revista -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Revista</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.revista" name="revista" />
+            </div>
+
+            <!-- Palabras Clave (keywords) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Palabras Clave</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.keywords" name="keywords" />
+            </div>
+
+            <!-- Palabras Clave del Autor (author_keywords) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Palabras Clave del Autor</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.author_keywords"
+                name="author_keywords" />
+            </div>
+
+            <!-- Bibtex Key (bibtex_key) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Bibtex Key</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.bibtex_key" name="bibtex_key" />
+            </div>
+
+            <!-- Tipo de Documento (document_type) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Tipo de Documento</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.document_type" name="document_type" />
+            </div>
+
+            <!-- Páginas (paginas) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Páginas</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.pages" name="paginas" />
+            </div>
+
+            <!-- URL (url) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">URL</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.url" name="url" />
+            </div>
+
+            <!-- Afiliación (afiliacion) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Afiliación</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.afiliacion" name="afiliacion" />
+            </div>
+
+            <!-- Publisher (publisher) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Publisher</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.publisher" name="publisher" />
+            </div>
+
+            <!-- ISSN (issn) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">ISSN</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.issn" name="issn" />
+            </div>
+
+            <!-- Language (language) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Language</label>
+              <input class="form-control" type="text" [(ngModel)]="selectedStudy.language" name="language" />
+            </div>
+
+            <!-- Comentario (comentario) -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Comentario</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="selectedStudy.comentario"
+                name="comentario"></textarea>
+            </div>
+          </form>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeEditModal()">Cancelar</button>
+          <button class="btn btn-primary" (click)="saveStudyEdits()">Guardar</button>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
