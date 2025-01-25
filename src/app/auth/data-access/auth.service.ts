@@ -1016,5 +1016,49 @@ export class AuthService {
     return parts[1] ?? '';
   }
 
+  /**
+ * Inserta un nuevo estudio en la tabla "estudios".
+ * @param estudioData Datos del estudio que se desean insertar.
+ * @returns Promesa con el resultado de la inserción.
+ */
+  async insertStudy(estudioData: Partial<Estudio>): Promise<any> {
+    try {
+      // Inserta los datos en la tabla "estudios"
+      const { data, error } = await this._supabaseClient
+        .from('estudios')
+        .insert({
+          titulo: estudioData.titulo,
+          resumen: estudioData.resumen,
+          autores: estudioData.autores,
+          anio: estudioData.anio,
+          revista: estudioData.revista,
+          doi: estudioData.doi,
+          estado: estudioData.estado,
+          keywords: estudioData.keywords,
+          author_keywords: estudioData.author_keywords,
+          bibtex_key: estudioData.bibtex_key,
+          document_type: estudioData.document_type,
+          paginas: estudioData.paginas,
+          volumen: estudioData.volumen,
+          url: estudioData.url,
+          afiliacion: estudioData.afiliacion,
+          publisher: estudioData.publisher,
+          issn: estudioData.issn,
+          language: estudioData.language,
+          comentario: estudioData.comentario,
+          fuente_bibliografica: estudioData.fuente_bibliografica,
+          url_pdf_articulo: estudioData.url_pdf_articulo
+        });
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    } catch (error: any) {
+      console.error('Error insertando estudio:', error.message);
+      throw error;
+    }
+  }
+
 
 }

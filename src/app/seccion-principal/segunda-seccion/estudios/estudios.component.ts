@@ -6,6 +6,7 @@ import { AuthService, Estudio } from '../../../auth/data-access/auth.service';
 import { OpenAiService } from '../../../conexion/openAi.service';
 import { Study } from '../../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
+import { DoiApiService } from '../../../conexion/doiApi.service';
 
 
 @Component({
@@ -37,13 +38,16 @@ export class EstudiosComponent implements OnInit {
   filterStatus: string = 'all';
   pdfFile: File | null = null; // variable para almacenar el archivo seleccionado
   originalStudy: any = null;
+  showAddStudyModal = false; // Control del modal 2
+  newStudy: any = {}; // Datos del nuevo estudio
 
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
     private fb: FormBuilder,
     private router: Router,
-    private openAiService: OpenAiService
+    private openAiService: OpenAiService,
+    private doiApiService: DoiApiService
   ) { }
 
 
@@ -239,7 +243,7 @@ export class EstudiosComponent implements OnInit {
         text: `${this.duplicatedCount} estudio(s) ya estaban en la BD y fueron marcados como "Duplicado".`
       }).then(() => {
         // Recarga la página
-        window.location.reload();
+        this.loadEstudiosForRevision();
       });
     } else {
       // Si no hubo duplicados, puedes mostrar un mensaje de éxito o ya lo tienes al final
@@ -249,7 +253,7 @@ export class EstudiosComponent implements OnInit {
         text: `Se han importado ${studies.length} estudios.`
       }).then(() => {
         // Recarga la página
-        window.location.reload();
+        this.loadEstudiosForRevision();
       });
     }
   }
@@ -544,7 +548,6 @@ export class EstudiosComponent implements OnInit {
     this.originalStudy = null;
     this.pdfFile = null;
     // Recarga la página
-    window.location.reload();
   }
 
   // (4) Cerrar el modal si hace clic en el backdrop
@@ -797,9 +800,9 @@ export class EstudiosComponent implements OnInit {
 
   async deletePDF(study: Study): Promise<void> {
     if (!study?.url_pdf_articulo) return;
-  
+
     const filePath = this.authService.getFilePathFromPublicURL(study.url_pdf_articulo);
-  
+
     const result = await Swal.fire({
       title: '¿Eliminar PDF?',
       text: 'Esta acción no se puede deshacer',
@@ -808,22 +811,22 @@ export class EstudiosComponent implements OnInit {
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
     });
-  
+
     if (!result.isConfirmed) return;
-  
+
     try {
       // 1) Eliminar del bucket "documentos"
       await this.authService.removePDF(filePath);
-  
+
       // 2) Actualizar la base de datos
       await this.authService.updateStudy({
         id_estudios: study.id_estudios,
         url_pdf_articulo: null
       });
-  
+
       // 3) Borrar localmente para refrescar la tabla
       study.url_pdf_articulo = '';
-  
+
       Swal.fire({
         icon: 'success',
         title: 'Eliminado',
@@ -911,7 +914,6 @@ export class EstudiosComponent implements OnInit {
         text: 'Ocurrió un problema al guardar los datos.'
       });
       // Recarga la página
-      window.location.reload();
     }
   }
 
@@ -922,4 +924,178 @@ export class EstudiosComponent implements OnInit {
   }
 
 
+  /**
+   * Abre el modal para añadir un nuevo estudio.
+   */
+  openAddStudyModal(): void {
+    this.showAddStudyModal = true;
+    this.newStudy = {
+      status: 'Sin clasificar',
+    }; // Reinicia el formulario
+    this.showEditModal = true;
+  }
+
+  /**
+   * Cierra el modal de añadir estudio.
+   */
+  closeAddStudyModal(): void {
+    this.showAddStudyModal = false;
+    this.showEditModal = false;
+    // Recarga la página
+    //window.location.reload();
+  }
+
+  /**
+   * Llama a la API de CrossRef para buscar los datos del DOI.
+   */
+  fetchCrossRefData(): void {
+    if (!this.newStudy.doi) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Por favor, ingrese un DOI válido.'
+      });
+      return;
+    }
+
+    this.doiApiService.fetchDoiData(this.newStudy.doi).subscribe({
+      next: (data) => {
+        // Llena los campos del modal con los datos recibidos
+        this.newStudy.title = data.title?.[0] || 'Título no disponible';
+        this.newStudy.publisher = data.publisher || 'No disponible';
+        this.newStudy.documentType = data.type || 'No disponible';
+        this.newStudy.author = data.author
+          ? data.author.map((a: any) => `${a.given} ${a.family}`).join(', ')
+          : 'No disponible';
+        this.newStudy.year = data.created?.['date-parts']?.[0]?.[0] || 'No disponible';
+        this.newStudy.revista = data['container-title']?.[0] || 'No disponible';
+        this.newStudy.url = data.URL || 'No disponible';
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Datos recuperados',
+          text: 'Los datos del DOI han sido completados correctamente.'
+        });
+      },
+      error: (err) => {
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron recuperar los datos del DOI proporcionado.'
+        });
+      }
+    });
+  }
+
+  /**
+   * Guarda el nuevo estudio en la base de datos.
+   */
+  async saveNewStudy(): Promise<void> {
+    // Verifica si el título está definido
+    if (!this.newStudy.title || !this.newStudy.doi) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Debe completar al menos el Título y el DOI.'
+      });
+      return;
+    }
+  
+    try {
+      // Busca estudios existentes con el mismo título
+      const { data: existingStudies, error: findError } = await this.authService.findStudyByTitleInRevision(
+        this.newStudy.title,
+        this.reviewId
+      );
+  
+      if (findError) {
+        console.error('Error al buscar estudios duplicados:', findError);
+        Swal.fire({
+          icon: 'warning',
+          title: 'Advertencia',
+          text: 'Hubo un problema al verificar duplicados, pero puede continuar.'
+        });
+      }
+  
+      let statusToInsert = this.newStudy.status || 'Sin clasificar'; // Estado predeterminado
+  
+      if (existingStudies && existingStudies.length > 0) {
+        // Si ya existe un estudio similar, marca como "Duplicado"
+        this.duplicatedCount++;
+        statusToInsert = 'Duplicado';
+      }
+  
+      // Crear el objeto Estudio con los campos básicos
+      const nuevoEstudio: Estudio = {
+        titulo: this.newStudy.title,
+        resumen: '', // Valor predeterminado
+        autores: this.newStudy.author,
+        anio: parseInt(this.newStudy.year) || 0,
+        revista: this.newStudy.revista || '',
+        doi: this.newStudy.doi,
+        id_detalles_revision: this.reviewId, // ID de la revisión actual
+        estado: statusToInsert,
+        keywords: '', // Valor predeterminado
+        fuente_bibliografica: this.newStudy.database || '',
+        publisher: this.newStudy.publisher || '',
+        document_type: this.newStudy.documentType || '',
+        url: this.newStudy.url || '',
+        // Propiedades opcionales no incluidas en el modal:
+        author_keywords: '',
+        bibtex_key: '',
+        paginas: '',
+        volumen: '',
+        afiliacion: '',
+        issn: '',
+        language: '',
+        comentario: ''
+      };
+  
+      // Inserta el nuevo estudio en la base de datos
+      const { data, error } = await this.authService.createEstudio(nuevoEstudio);
+  
+      if (error) {
+        console.error('Error al insertar estudio:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo insertar el estudio en la base de datos.'
+        });
+      } else {
+        // Inserción exitosa
+        console.log('Estudio insertado:', data && data[0]);
+        Swal.fire({
+          icon: 'success',
+          title: 'Éxito',
+          text: 'El estudio se ha guardado correctamente.'
+        });
+        this.closeAddStudyModal(); // Cierra el modal
+        // Opcional: Actualiza la lista de estudios si es necesario
+        await this.loadEstudiosForRevision();
+      }
+    } catch (err) {
+      console.error('Error al guardar el nuevo estudio:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al guardar el estudio.'
+      });
+    }
+  }
+
+  isFormValid(): boolean {
+    return (
+      this.newStudy.doi &&
+      this.newStudy.title &&
+      this.newStudy.publisher &&
+      this.newStudy.documentType &&
+      this.newStudy.author &&
+      this.newStudy.year &&
+      this.newStudy.revista &&
+      this.newStudy.url &&
+      this.newStudy.status &&
+      this.newStudy.database
+    );
+  }
 }

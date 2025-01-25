@@ -83,11 +83,24 @@
                       <h6>En esta sección podra ingresar los articulos que ha encontrado con la
                         cadena de busqueda.</h6>
                       <br>
-                      <!-- Botón para iniciar el proceso de importación -->
-                      <button class="btn btn-primary mb-3" (click)="selectFileType()">
-                        <i class="bi bi-box-arrow-in-up"></i>&nbsp;Importar archivo
-                      </button>
-
+                      <div class="container">
+                        <div class="row align-items-center">
+                          <!-- Columna para el botón "Importar archivo" -->
+                          <div class="col-12 col-md-6 d-flex justify-content-start mb-3 mb-md-0">
+                            <button class="btn btn-primary w-100 w-md-auto" (click)="selectFileType()">
+                              <i class="bi bi-box-arrow-in-up"></i>&nbsp;Importar archivo
+                            </button>
+                          </div>
+                      
+                          <!-- Columna para el botón "Añadir manualmente el estudio" -->
+                          <div class="col-12 col-md-6 d-flex justify-content-end">
+                            <button class="btn btn-primary w-100 w-md-auto" (click)="openAddStudyModal()">
+                              <i class="bi bi-file-earmark-plus"></i>&nbsp;Añadir manualmente el estudio
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <br>
                       <p>Estudios seleccionados: {{ selectedStudiesCount }}</p>
 
                       <!-- Select para filtrar los estados -->
@@ -134,8 +147,16 @@
                                 <input type="checkbox" (click)="toggleSelectAll($event)" [checked]="allSelected" />
                               </th>
 
-                              <th>
+                              <th (click)="sortStudies('status')" style="cursor: pointer;">
                                 Acción
+                                <i
+                                  *ngIf="sortColumn === 'status'"
+                                  class="bi"
+                                  [ngClass]="{
+                                    'bi-arrow-up': sortOrder === 'asc',
+                                    'bi-arrow-down': sortOrder === 'desc'
+                                  }"
+                                ></i>
                               </th>
 
                               <th (click)="sortStudies('database')" style="cursor: pointer;">
@@ -236,7 +257,7 @@
                             <tr *ngFor="let study of displayedStudies; let i = index"
                               (click)="openEditModal(study, $event)">
                               <!-- Checkbox de selección -->
-                              <td (click)="$event.stopPropagation()">
+                              <td class="text-center" (click)="$event.stopPropagation()">
                                 <input type="checkbox" [checked]="study.isSelected"
                                   (click)="toggleSelection(study, $event)" />
                               </td>
@@ -299,7 +320,7 @@
   </div>
 </div>
 
-<!-- Contenedor Principal -->
+<!-- Primer Contenedor del Modal-->
 <div>
   <!-- Backdrop Oscuro -->
   <div class="modal-backdrop fade show" *ngIf="showEditModal"></div>
@@ -347,43 +368,40 @@
 
             <!-- Input de subir PDF (aparece sólo si el status es "Aceptado") -->
             <!-- SECCIÓN PDF: Solo se muestra si el estado es "Aceptado" -->
-      <div class="mb-3" *ngIf="selectedStudy.status === 'Aceptado'">
-        <!-- Si NO existe un PDF, mostramos input para subir -->
-        <ng-container *ngIf="!selectedStudy.url_pdf_articulo; else pdfActions">
-          <label class="form-label fw-bold">Subir PDF</label>
-          <input
-            type="file"
-            accept=".pdf"
-            class="form-control"
-            (change)="onFileSelected($event, selectedStudy)"
-          />
-        </ng-container>
+            <div class=" mb-3" *ngIf="selectedStudy.status === 'Aceptado'">
+              <!-- Si NO existe un PDF, mostramos input para subir -->
+              <ng-container *ngIf="!selectedStudy.url_pdf_articulo; else pdfActions">
+                <label class="form-label fw-bold">Subir PDF</label>
+                <input type="file" accept=".pdf" class="form-control"
+                  (change)="onFileSelected($event, selectedStudy)" />
+              </ng-container>
 
-        <!-- Si YA existe un PDF, mostramos el ícono para abrir y el ícono para eliminar -->
-        <ng-template #pdfActions>
-          <label class="form-label fw-bold">PDF del Artículo</label>
-          <div>
-            <!-- Ícono para abrir el PDF en pestaña nueva -->
-            <a
-              [href]="selectedStudy.url_pdf_articulo"
-              target="_blank"
-              class="text-danger me-2"
-              title="Ver PDF"
-              style="text-decoration: none;"
-            >
-              <i class="bi bi-file-earmark-pdf" style="font-size: 1.5rem;"></i>
-            </a>
-            <!-- Ícono para eliminar PDF -->
-            <i
-              class="bi bi-trash text-danger"
-              style="font-size: 1.5rem; cursor: pointer;"
-              title="Eliminar PDF"
-              (click)="deletePDF(selectedStudy)"
-            ></i>
-          </div>
-        </ng-template>
-      </div>
-            
+              <!-- Si YA existe un PDF, mostramos el ícono para abrir y el ícono para eliminar -->
+              <ng-template #pdfActions>
+                <table class="table table-bordered">
+                  <tr>
+                    <!-- Columna: Etiqueta -->
+                    <td class="fw-bold">PDF del Artículo</td>
+
+                    <!-- Columna: Íconos -->
+                    <td>
+                      <div>
+                        <!-- Ícono para abrir el PDF en una pestaña nueva -->
+                        <a [href]="selectedStudy.url_pdf_articulo" target="_blank" class="text-danger me-2"
+                          title="Ver PDF" style="text-decoration: none;">
+                          <i class="bi bi-file-earmark-pdf" style="font-size: 1.5rem;"></i>
+                        </a>
+                        &nbsp;&nbsp;&nbsp;
+                        <!-- Ícono para eliminar el PDF -->
+                        <i class="bi bi-trash text-danger" style="font-size: 1.5rem; cursor: pointer;"
+                          title="Eliminar PDF" (click)="deletePDF(selectedStudy)"></i>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </ng-template>
+            </div>
+
 
             <!-- Fuente Bibliográfica (fuente_bibliografica) -->
             <div class="mb-3">
@@ -508,6 +526,154 @@
           <button class="btn btn-secondary" (click)="closeEditModal()">Cancelar</button>
           <button class="btn btn-primary" (click)="saveStudyEdits()">Guardar</button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Segundo Contenedor del Modal-->
+<div class="modal-backdrop fade show" *ngIf="showEditModal"></div>
+<div class="modal fade" tabindex="-1" [ngClass]="{ 'show': showAddStudyModal }" style="display: block;" *ngIf="showAddStudyModal">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-primary fw-bold">
+          <i class="bi bi-file-earmark-plus-fill"></i>&nbsp;Añadir Estudio Manualmente</h5>
+        <button type="button" class="btn-close" (click)="closeAddStudyModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <!-- DOI -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">DOI</label>
+            <div class="input-group">
+              <input type="text" class="form-control" [(ngModel)]="newStudy.doi" name="doi" placeholder="Ingrese el DOI (ej. 10.1109/ISPSD.2013.6694422)">
+              <button class="btn btn-secondary" type="button" (click)="fetchCrossRefData()">Buscar</button>
+            </div>
+          </div>
+
+          <!-- Base de Datos -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Base de Datos</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Ej. IEEE, Springer" 
+              [(ngModel)]="newStudy.database" 
+              name="database" 
+            />
+          </div>
+
+          <!-- Título -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Título</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="newStudy.title" 
+              name="title" 
+              placeholder="Título del artículo" 
+            />
+          </div>
+
+          <!-- Publisher -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Publisher</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="newStudy.publisher" 
+              name="publisher" 
+              placeholder="Editor o publicación" 
+            />
+          </div>
+
+          <!-- Tipo de Documento -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Tipo de Documento</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="newStudy.documentType" 
+              name="documentType" 
+              placeholder="Ej. Artículo, Conferencia" 
+            />
+          </div>
+
+          <!-- Autor -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Autor(es)</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="newStudy.author" 
+              name="author" 
+              placeholder="Nombre(s) de los autor(es)" 
+            />
+          </div>
+
+          <!-- Año -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Año</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [(ngModel)]="newStudy.year" 
+              name="year" 
+              placeholder="Año de publicación" 
+            />
+          </div>
+
+          <!-- Revista -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Revista</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="newStudy.revista" 
+              name="revista" 
+              placeholder="Nombre de la revista" 
+            />
+          </div>
+
+          <!-- URL -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">URL</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="newStudy.url" 
+              name="url" 
+              placeholder="Enlace del artículo" 
+            />
+          </div>
+
+          <!-- Estado -->
+          <div class="mb-3">
+            <label class="form-label fw-bold">Estado</label>
+            <select
+              class="form-select"
+              [(ngModel)]="newStudy.status"
+              name="status"
+              [ngClass]="{
+                'cell-gray': newStudy.status === 'Sin clasificar',
+                'cell-green': newStudy.status === 'Aceptado',
+                'cell-yellow': newStudy.status === 'Duplicado',
+                'cell-red': newStudy.status === 'Rechazado'
+              }"
+            >
+              <option value="Sin clasificar">Sin clasificar</option>
+              <option value="Aceptado">Preseleccionado</option>
+              <option value="Duplicado">Duplicado</option>
+              <option value="Rechazado">Descartado</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeAddStudyModal()">Cancelar</button>
+        <button class="btn btn-primary" [disabled]="!isFormValid()" (click)="saveNewStudy()">Guardar Estudio</button>
       </div>
     </div>
   </div>
