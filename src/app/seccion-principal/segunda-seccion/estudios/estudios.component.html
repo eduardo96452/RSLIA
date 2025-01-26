@@ -297,7 +297,7 @@
                       <table class="table table-bordered">
                         <thead>
                           <tr>
-                            <th>ID Estudio</th>
+                            <th style="display:none;">ID Estudio</th>
                             <th>Título</th>
                             <th>Acciones</th>
                           </tr>
@@ -307,7 +307,7 @@
                           <ng-container *ngFor="let study of acceptedStudies">
                             <!-- Fila principal del estudio -->
                             <tr>
-                              <td>{{ study.id_estudios }}</td>
+                              <td style="display:none;">{{ study.id_estudios }}</td>
                               <td>{{ study.titulo }}</td>
                               <td>
                                 <button class="btn btn-primary" (click)="toggleEvaluation(study)">
@@ -321,7 +321,7 @@
                               <td colspan="3">
                                 <!-- Contenido de la Evaluación -->
                                 <div class="p-3 border">
-                                  <h4>Evaluando Estudio ID: {{ study.id_estudios }}</h4>
+                                  <h4 style="display:none;">Evaluando Estudio ID: {{ study.id_estudios }}</h4>
                                   <p><strong>Título: </strong>{{ study.titulo }}</p>
                     
                                   <form>
