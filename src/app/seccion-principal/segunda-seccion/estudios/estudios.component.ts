@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService, Estudio } from '../../../auth/data-access/auth.service';
@@ -7,7 +7,7 @@ import { OpenAiService } from '../../../conexion/openAi.service';
 import { Study } from '../../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
 import { DoiApiService } from '../../../conexion/doiApi.service';
-
+import { format } from 'date-fns';
 
 @Component({
   selector: 'app-estudios',
@@ -40,6 +40,16 @@ export class EstudiosComponent implements OnInit {
   originalStudy: any = null;
   showAddStudyModal = false; // Control del modal 2
   newStudy: any = {}; // Datos del nuevo estudio
+  isLargeScreen: boolean = true;
+  acceptedStudies: Estudio[] = [];
+  qualityQuestions: any[] = [];
+  qualityAnswers: any[] = [];
+  // Para saber qué estudio tiene el acordeón abierto
+  openedStudy: Estudio | null = null;
+
+  // selectedAnswers guardará { [id_pregunta]: id_respuesta }
+  // y quizá el peso seleccionado
+  selectedAnswers: { [key: number]: number } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -56,9 +66,20 @@ export class EstudiosComponent implements OnInit {
     this.loadReviewData();
     this.loadUserData();
     await this.loadEstudiosForRevision();
+    this.checkScreenSize();
+    await this.loadAcceptedStudies();
+    await this.loadPreguntas();
+    await this.loadRespuestas();
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    this.checkScreenSize();
+  }
 
+  private checkScreenSize(): void {
+    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
+  }
 
   // Cargar datos de la base de datos
   async loadReviewData() {
@@ -258,7 +279,6 @@ export class EstudiosComponent implements OnInit {
     }
   }
 
-
   /**
    * Ejemplo simple de parseo para .bib
    * 
@@ -354,10 +374,6 @@ export class EstudiosComponent implements OnInit {
     }
     return '';
   }
-
-
-
-
 
   /**
    * Ejemplo simple de parseo para .ris
@@ -462,7 +478,6 @@ export class EstudiosComponent implements OnInit {
     return '';
   }
 
-
   // Chequea si un Study está vacío
   hasData(study: Study): boolean {
     return (
@@ -519,7 +534,6 @@ export class EstudiosComponent implements OnInit {
       return 0;
     }
   }
-
 
   // (1) Abrir el modal (solo si no es la col. acción ni check)
   openEditModal(study: Study, event: MouseEvent) {
@@ -756,7 +770,6 @@ export class EstudiosComponent implements OnInit {
     console.log('Filtro aplicado:', this.filterStatus);
   }
 
-
   /**
    * Se dispara cuando seleccionamos un archivo en el <input type="file">
    */
@@ -842,11 +855,6 @@ export class EstudiosComponent implements OnInit {
     }
   }
 
-
-
-
-
-
   /**
    * Guarda los cambios del modal (actualización del estudio).
    * Si el estado es "Aceptado" y se sube un archivo, se hace la subida
@@ -922,7 +930,6 @@ export class EstudiosComponent implements OnInit {
       window.open(url, '_blank');
     }
   }
-
 
   /**
    * Abre el modal para añadir un nuevo estudio.
@@ -1097,5 +1104,137 @@ export class EstudiosComponent implements OnInit {
       this.newStudy.status &&
       this.newStudy.database
     );
+  }
+
+
+  // Segunda Pagina
+  async loadAcceptedStudies() {
+    // 1) Cargar estudios Aceptados
+    const { data: estudiosAceptados, error: errorEst } = await this.authService.getAcceptedStudies();
+    if (errorEst) {
+      console.error('Error al cargar estudios aceptados:', errorEst);
+    } else {
+      this.acceptedStudies = estudiosAceptados ?? [];
+    }
+  }
+
+  async loadPreguntas() {
+     // 2) Cargar preguntas
+     const { data: preguntas, error: errorPreg } = await this.authService.getQualityQuestions();
+     if (errorPreg) {
+       console.error('Error al cargar preguntas:', errorPreg);
+     } else {
+       this.qualityQuestions = preguntas ?? [];
+     }
+  }
+
+  async loadRespuestas() {
+    // 3) Cargar respuestas
+    const { data: respuestas, error: errorResp } = await this.authService.getQualityAnswers();
+    if (errorResp) {
+      console.error('Error al cargar respuestas:', errorResp);
+    } else {
+      this.qualityAnswers = respuestas ?? [];
+    }
+  }
+
+  /**
+   * Si el usuario hace clic en una respuesta (radio button)
+   */
+  selectAnswer(idPregunta: number, answerObj: any) {
+    this.selectedAnswers[idPregunta] = answerObj.id_respuesta;
+  }
+
+
+
+  /**
+   * Guarda la evaluación en la tabla "calidad_estudios"
+   */
+  async saveEvaluation(study: Estudio): Promise<void> {
+    const idEstudio = study.id_estudios;
+    if (!idEstudio) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se encontró el ID del estudio.'
+      });
+      return;
+    }
+  
+    try {
+      // Recorremos cada pregunta para obtener la respuesta elegida
+      for (const question of this.qualityQuestions) {
+        const preguntaId = question.id_pregunta;
+        const respuestaId = this.selectedAnswers[preguntaId]; 
+        // (Almacenado por selectAnswer(preguntaId, answer))
+  
+        if (!respuestaId) {
+          // El usuario no eligió respuesta para esta pregunta
+          continue;
+        }
+  
+        // Busca el objeto respuesta para extraer el peso
+        const respuestaObj = this.qualityAnswers.find(
+          (r) => r.id_respuesta === respuestaId
+        );
+        const pesoRespuesta = respuestaObj ? respuestaObj.peso : 0;
+  
+        // Datos para insertar en "calidad_estudios"
+        const calidadData = {
+          id_estudios: idEstudio,
+          pregunta: preguntaId,    // ID en vez de la descripción
+          respuesta: respuestaId,  // ID en vez de la descripción
+          peso: pesoRespuesta,
+          fecha_evaluacion: new Date().toISOString()
+        };
+  
+        // Llamada al método que inserta en la tabla "calidad_estudios"
+        const { data, error } = await this.authService.createCalidadEstudio(calidadData);
+        if (error) {
+          console.error('Error al guardar calidad_estudios:', error);
+        }
+      }
+  
+      Swal.fire({
+        icon: 'success',
+        title: 'Evaluación Guardada',
+        text: 'La evaluación de calidad se guardó correctamente.'
+      });
+  
+      // Cierra la sección de evaluación (acordeón) y limpia las respuestas
+      this.cancelEvaluation();
+  
+    } catch (err) {
+      console.error('Error guardando evaluación:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al guardar la evaluación.'
+      });
+    }
+    this.openedStudy = null;
+  }
+    
+  
+
+
+
+
+  toggleEvaluation(study: Estudio): void {
+    // Si se hace clic en el mismo estudio, se cierra
+    if (this.openedStudy === study) {
+      this.openedStudy = null;
+    } else {
+      // Cambiamos a este estudio y vaciamos las selecciones si deseas
+      this.openedStudy = study;
+      // this.selectedAnswers = {};
+    }
+  }
+
+  cancelEvaluation(): void {
+    // Cierra la sub-fila
+    this.openedStudy = null;
+    // Limpia selecciones si es necesario
+    this.selectedAnswers = {};
   }
 }

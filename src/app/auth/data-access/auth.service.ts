@@ -324,6 +324,45 @@ export class AuthService {
     return count || 0; // Retorna el conteo obtenido
   }
 
+  async countUserDocuments(userId: string): Promise<number> {
+    try {
+      // Primero obtén todos los id_detalles_revision asociados al usuario
+      const { data: revisions, error: revisionError } = await this._supabaseClient
+        .from('detalles_revision')
+        .select('id_detalles_revision')
+        .eq('id_usuarios', userId);
+  
+      if (revisionError) {
+        console.error('Error al obtener id_detalles_revision:', revisionError);
+        return 0;
+      }
+  
+      if (!revisions || revisions.length === 0) {
+        console.warn('No se encontraron revisiones para este usuario.');
+        return 0;
+      }
+  
+      // Extrae los id_detalles_revision en un array
+      const revisionIds = revisions.map((revision) => revision.id_detalles_revision);
+  
+      // Ahora cuenta los documentos en la tabla "estudios" que correspondan a estos id_detalles_revision
+      const { count, error: countError } = await this._supabaseClient
+        .from('estudios')
+        .select('*', { count: 'exact', head: true })
+        .in('id_detalles_revision', revisionIds); // Filtra por id_detalles_revision
+  
+      if (countError) {
+        console.error('Error al contar los documentos procesados:', countError);
+        return 0;
+      }
+  
+      return count || 0;
+    } catch (err) {
+      console.error('Error inesperado:', err);
+      return 0;
+    }
+  }
+
   async getUserReviews(userId: string) {
     console.log('Fetching reviews for user:', userId);
 
@@ -841,7 +880,6 @@ export class AuthService {
     return { data, error };
   }
 
-
   /**
    * READ (2): Obtener un estudio por su ID (id_estudios).
    */
@@ -897,8 +935,6 @@ export class AuthService {
     return { data, error };
   }
 
-
-
   // ------------------------------------------------------------------
   // 1. Subida de PDF al bucket "documentos"
   // ------------------------------------------------------------------
@@ -937,7 +973,6 @@ export class AuthService {
       throw error;
     }
   }
-
 
   // ------------------------------------------------------------------
   // 2. Actualización de la tabla "estudios"
@@ -1061,4 +1096,40 @@ export class AuthService {
   }
 
 
+
+
+  async getAcceptedStudies() {
+  const { data, error } = await this._supabaseClient
+    .from('estudios')
+    .select('*')
+    .eq('estado', 'Aceptado');
+
+  return { data, error };
+}
+
+async getQualityQuestions() {
+  const { data, error } = await this._supabaseClient
+    .from('evaluacion_calidad_preguntas')
+    .select('*');
+  return { data, error };
+}
+
+async getQualityAnswers() {
+  const { data, error } = await this._supabaseClient
+    .from('evaluacion_calidad_respuestas')
+    .select('*');
+  return { data, error };
+}
+
+/**
+ * Inserta una evaluación en la tabla "calidad_estudios",
+ * usando IDs en vez de texto.
+ */
+async createCalidadEstudio(calidadData: any) {
+  const { data, error } = await this._supabaseClient
+    .from('calidad_estudios')
+    .insert([calidadData])
+    .select();
+  return { data, error };
+}
 }

@@ -31,3 +31,40 @@
   #scrollToTopButton:hover {
     opacity: 1;      /* Totalmente visible al pasar el mouse */
   }
+
+  .nav-tabs .nav-link {
+    font-size: calc(1.2rem - 0.2vw); /* Reduce el tamaño de la fuente dinámicamente */
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+    text-overflow: ellipsis; /* Si hay un desbordamiento, muestra elipsis */
+    overflow: hidden; /* Oculta el texto que no cabe */
+  }
+  
+  @media (max-width: 576px) {
+    .nav-tabs .nav-link {
+      font-size: 0.97rem; /* Tamaño más pequeño en pantallas muy pequeñas */
+    }
+  }
+
+  .nav-tabs .nav-link {
+    padding-top: 1rem; /* Espaciado superior */
+  padding-bottom: 1rem; /* Espaciado inferior */
+    white-space: normal; /* Permite que el texto se divida en varias líneas */
+    word-break: break-word; /* Divide las palabras largas si es necesario */
+    text-align: center; /* Asegura que el texto esté centrado */
+  }
+
+/* Ajustar el estilo de la pestaña Protocolo */
+.protocolo-tab {
+  padding-top: 1rem; /* Espaciado superior */
+  padding-bottom: 1rem; /* Espaciado inferior */
+  white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+  text-align: center; /* Centra el texto horizontalmente */
+}
+
+/* Espaciado adicional para pantallas pequeñas */
+@media (max-width: 576px) {
+  .protocolo-tab {
+    padding-top: 2rem; /* Más espacio arriba */
+    padding-bottom: 2rem; /* Más espacio abajo */
+  }
+}

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NavbarComponent } from '../../principal/navbar/navbar.component';
@@ -28,7 +28,7 @@ export class DetalleRevisionComponent implements OnInit {
   isModified: boolean = false;
   form: FormGroup;
   userData: any = null;
-
+  isLargeScreen: boolean = true;
 
   updateCharCount1() {
     this.charCount1 = this.description.length;
@@ -60,6 +60,8 @@ export class DetalleRevisionComponent implements OnInit {
       }
     });
 
+    this.checkScreenSize();
+
     this.reviewId = this.route.snapshot.queryParams['id'];
 
     this.reviewId = this.route.snapshot.paramMap.get('id')!;
@@ -74,6 +76,15 @@ export class DetalleRevisionComponent implements OnInit {
       this.isModified = this.form.dirty || this.form.touched; // Detecta cambios
     });
 
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    this.checkScreenSize();
+  }
+
+  private checkScreenSize(): void {
+    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
   }
 
   async loadUserData() {

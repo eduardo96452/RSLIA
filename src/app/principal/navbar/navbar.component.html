@@ -1,4 +1,7 @@
-<div class="container">
+<div [ngClass]="{
+  'px-5': isLargeScreen,
+  'container': !isLargeScreen
+}">
   <header
     class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
     <div class="col-md-3 mb-md-0">
@@ -12,7 +15,8 @@
       <div class="dropdown text-end">
         <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown"
           aria-expanded="false">
-          <img [src]="userData?.ruta_imagen || 'https://uxcpuzwvwhtqjtiyolfm.supabase.co/storage/v1/object/public/avatars/path/to/file/perfil.png'"
+          <img
+            [src]="userData?.ruta_imagen || 'https://uxcpuzwvwhtqjtiyolfm.supabase.co/storage/v1/object/public/avatars/path/to/file/perfil.png'"
             alt="{{ userData?.nombre_usuario || 'Usuario' }}" width="32" height="32" class="rounded-circle">
           {{ userData?.nombre_usuario || 'Usuario' }}
         </a>

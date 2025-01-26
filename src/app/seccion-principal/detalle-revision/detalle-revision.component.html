@@ -1,18 +1,14 @@
 <main>
   <div>
-    <div class="container">
+    <div [ngClass]="{
+      'px-5': isLargeScreen,
+      'container': !isLargeScreen
+    }">
       <div class="row align-items-start">
         <div class="col-md-12">
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <div class="row">
-                <!--<div class="col-4">
-                  <li class="breadcrumb-item"><a href="/panel_principal">{{ userData?.nombre_usuario || 'Usuario' }}</a>
-                  </li>
-                </div>
-                <div class="col-1">
-                  <p><strong>/</strong></p>
-                </div>-->
                 <div >
                   <li class="breadcrumb-item active" aria-current="page">{{reviewData.titulo_revision}}</li>
                 </div>
@@ -24,12 +20,12 @@
       </div>
       <br>
       <div class="row">
-        <div class="col col-sm col-md-3">
+        <div class="col col-sm col-md-2">
           <div class="d-flex">
             <div class="floating-menu">
-              <!-- Descripción General -->
+              <!-- Descripción general -->
               <div class="menu-item active" [routerLink]="['/detalle_revision']" [queryParams]="{ id: reviewId }">
-                Descripción General
+                Descripción general
               </div>
 
               <!-- Planificación -->
@@ -51,7 +47,7 @@
           <br />
         </div>
 
-        <div class="col col-sm col-md-9">
+        <div class="col col-sm col-md-10">
           <!-- Tarjeta Principal -->
           <div class="card" style="flex-grow: 1;">
             <div class="card-header">

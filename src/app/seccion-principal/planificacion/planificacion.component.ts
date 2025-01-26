@@ -113,6 +113,7 @@ export class PlanificacionComponent implements OnInit {
   questions1: Pregunta[] = []; // Lista de preguntas
   answers1: Respuesta[] = []; // Lista de respuestas
   limitScore1: number = 0; // Puntuación límite
+  isLargeScreen: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -125,6 +126,8 @@ export class PlanificacionComponent implements OnInit {
   async ngOnInit(): Promise<void> {
 
     this.reviewId = this.route.snapshot.queryParams['id'];
+
+    this.checkScreenSize();
 
     this.loadReviewData();
 
@@ -151,6 +154,14 @@ export class PlanificacionComponent implements OnInit {
     this.loadQuestions1();
     this.loadAnswers1();
     this.loadPuntuacion();
+  }
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    this.checkScreenSize();
+  }
+
+  private checkScreenSize(): void {
+    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
   }
 
   @HostListener('window:scroll', [])

@@ -1,4 +1,7 @@
-<div class="container py-4">
+<div [ngClass]="{
+  'px-5': isLargeScreen,
+  'container': !isLargeScreen
+}">
   <div class="card mx-auto" style="max-width: 600px;">
     <!-- Card Header -->
     <div class="card-header">

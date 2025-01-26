@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -19,6 +19,7 @@ export class HomeRevisionComponent implements OnInit  {
   description: string = '';
   tipoRevision: string = '';
   charCount: number = 0; // Contador de caracteres (opcional)
+  isLargeScreen: boolean = true;
 
   constructor(private router: Router, private authService: AuthService) { }
 
@@ -28,6 +29,16 @@ export class HomeRevisionComponent implements OnInit  {
 
   async ngOnInit() {
     this.charCount = this.description.length;
+    this.checkScreenSize();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    this.checkScreenSize();
+  }
+
+  private checkScreenSize(): void {
+    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
   }
 
   onTextChange(value: string) {

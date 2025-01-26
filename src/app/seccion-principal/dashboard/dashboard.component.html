@@ -1,5 +1,8 @@
-<div class="d-flex">
-    <div class="container ">
+<div class="">
+    <div [ngClass]="{
+        'px-5': isLargeScreen,
+        'container': !isLargeScreen
+      }">
         <!-- Contenido Principal -->
         <div class="col-md-12 p-4">
             <h3>Panel principal</h3>
@@ -19,7 +22,7 @@
                     <div class="card text-white bg-primary h-100">
                         <div class="card-body">
                             <h5 class="card-title">Documentos procesados</h5>
-                            <p class="card-text display-4 text-center">0</p>
+                            <p class="card-text display-4 text-center">{{ userDocumentCount }}</p>
                         </div>
                     </div>
                 </div>
@@ -53,9 +56,7 @@
                                     <div style="background-color: #f8f9fa; text-align: center;">
                                         <br />
                                         <p class="card-text align-items-center text-center">Aquí se muestran las
-                                            revisiones
-                                            que
-                                            estan en progreso.</p>
+                                            revisiones que están en progreso.</p>
                                         <table class="table table-striped">
                                             <thead>
                                                 <tr>
@@ -69,16 +70,16 @@
                                                 <tr *ngFor="let review of userReviews; let i = index">
                                                     <td>{{ i + 1 }}</td>
                                                     <td>
-                                                      <!-- Usamos queryParams en lugar de /detalle_revision/:id -->
-                                                      <a 
-                                                        [routerLink]="['/detalle_revision']"
-                                                        [queryParams]="{ id: review.id_detalles_revision }"
-                                                        class="text-primary text-decoration-underline"
-                                                      >
-                                                        {{ review.titulo_revision }}
-                                                      </a>
+                                                        <!-- Usamos queryParams en lugar de /detalle_revision/:id -->
+                                                        <a [routerLink]="['/detalle_revision']"
+                                                            [queryParams]="{ id: review.id_detalles_revision }"
+                                                            class="text-primary text-decoration-underline">
+                                                            {{ review.titulo_revision.length > 60 ?
+                                                            (review.titulo_revision | slice: 0:50) + '...' :
+                                                            review.titulo_revision }}
+                                                        </a>
                                                     </td>
-                                                  </tr>
+                                                </tr>
                                             </tbody>
                                         </table>
                                     </div>

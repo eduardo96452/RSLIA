@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -14,6 +14,7 @@ export class NavbarComponent implements OnInit {
   activeLink: string = 'inicio';
   userData: any = null;
   isLoggedIn: boolean = false;
+  isLargeScreen: boolean = true;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -29,6 +30,16 @@ export class NavbarComponent implements OnInit {
         this.userData = null;
       }
     });
+    this.checkScreenSize();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    this.checkScreenSize();
+  }
+
+  private checkScreenSize(): void {
+    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
   }
 
   async loadUserData() {

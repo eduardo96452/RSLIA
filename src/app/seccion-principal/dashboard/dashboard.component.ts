@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NavbarComponent } from "../../principal/navbar/navbar.component";
@@ -18,6 +18,8 @@ export class DashboardComponent implements OnInit {
   userReviewCount: number = 0;
   userReviews: any[] = [];
   slug: string | null = null;
+  isLargeScreen: boolean = true;
+  userDocumentCount: number = 0; // Almacena el conteo de documentos procesados
 
   constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute) {}
 
@@ -26,6 +28,17 @@ export class DashboardComponent implements OnInit {
     await this.loadUserReviews();
     this.slug = this.route.snapshot.paramMap.get('slug');
     this.loadRevisionBySlug(this.slug);
+    this.checkScreenSize();
+    await this.loadUserDocumentCount();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    this.checkScreenSize();
+  }
+
+  private checkScreenSize(): void {
+    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
   }
 
   loadRevisionBySlug(slug: string | null): void {
@@ -64,6 +77,17 @@ export class DashboardComponent implements OnInit {
     } else {
       console.warn('Usuario no autenticado');
       this.userReviewCount = 0;
+    }
+  }
+
+  async loadUserDocumentCount(): Promise<void> {
+    const userId = localStorage.getItem('user_id');
+
+    if (userId) {
+      this.userDocumentCount = await this.authService.countUserDocuments(userId);
+    } else {
+      console.warn('Usuario no autenticado');
+      this.userDocumentCount = 0;
     }
   }
 }

@@ -26,6 +26,7 @@ export class InformesComponent implements OnInit, AfterViewInit {
   locked = false;
   nodeId: string = '';
   nodeLabel: string = '';
+  isLargeScreen: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -45,6 +46,17 @@ export class InformesComponent implements OnInit, AfterViewInit {
       this.cy.resize();
       this.cy.fit();
     }
+
+    this.checkScreenSize();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize1(): void {
+    this.checkScreenSize();
+  }
+
+  private checkScreenSize(): void {
+    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
   }
 
   // Cargar datos de la base de datos

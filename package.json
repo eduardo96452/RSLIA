@@ -26,6 +26,7 @@
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "cytoscape": "^3.31.0",
+    "date-fns": "^4.1.0",
     "firebase": "^11.1.0",
     "gojs": "^3.0.18",
     "gojs-angular": "^2.0.9",
