@@ -2,14 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { NavbarComponent } from "../../principal/navbar/navbar.component";
 import { AuthService } from '../../auth/data-access/auth.service';
-import { FooterComponent } from "../../principal/footer/footer.component";
+import { NgChartsModule } from 'ng2-charts';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, NavbarComponent, FooterComponent],
+  imports: [RouterLink, CommonModule, FormsModule, NgChartsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -20,6 +19,7 @@ export class DashboardComponent implements OnInit {
   slug: string | null = null;
   isLargeScreen: boolean = true;
   userDocumentCount: number = 0; // Almacena el conteo de documentos procesados
+  datosGrafico: Array<{ database: string, count: number }> = [];
 
   constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute) {}
 
@@ -30,6 +30,13 @@ export class DashboardComponent implements OnInit {
     this.loadRevisionBySlug(this.slug);
     this.checkScreenSize();
     await this.loadUserDocumentCount();
+    try {
+      this.datosGrafico = await this.authService.getDistribucionEstudiosPorBaseDeDatosDeUsuario();
+      // Aquí ya tienes la info lista para graficar:
+      // Por ejemplo, [{ database: 'PubMed', count: 10 }, { database: 'Scopus', count: 7 }, ... ]
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @HostListener('window:resize', ['$event'])

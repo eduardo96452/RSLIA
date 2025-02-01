@@ -331,37 +331,114 @@ export class AuthService {
         .from('detalles_revision')
         .select('id_detalles_revision')
         .eq('id_usuarios', userId);
-  
+
       if (revisionError) {
         console.error('Error al obtener id_detalles_revision:', revisionError);
         return 0;
       }
-  
+
       if (!revisions || revisions.length === 0) {
         console.warn('No se encontraron revisiones para este usuario.');
         return 0;
       }
-  
+
       // Extrae los id_detalles_revision en un array
       const revisionIds = revisions.map((revision) => revision.id_detalles_revision);
-  
+
       // Ahora cuenta los documentos en la tabla "estudios" que correspondan a estos id_detalles_revision
       const { count, error: countError } = await this._supabaseClient
         .from('estudios')
         .select('*', { count: 'exact', head: true })
         .in('id_detalles_revision', revisionIds); // Filtra por id_detalles_revision
-  
+
       if (countError) {
         console.error('Error al contar los documentos procesados:', countError);
         return 0;
       }
-  
+
       return count || 0;
     } catch (err) {
       console.error('Error inesperado:', err);
       return 0;
     }
   }
+
+
+
+  /**
+   * Devuelve la distribución de estudios por base de datos para **todas** las revisiones
+   * de un usuario, basándose en el user_id guardado en localStorage.
+   * 
+   * @returns Un arreglo de objetos con { database, count }, donde:
+   *          - database = nombre de la base de datos (p.ej.: "PubMed")
+   *          - count = cuántos estudios provienen de esa base
+   */
+  public async getDistribucionEstudiosPorBaseDeDatosDeUsuario(): Promise<{ database: string; count: number }[]> {
+    try {
+      // 1. Obtener el userId del localStorage
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        throw new Error('No se encontró user_id en localStorage.');
+      }
+
+      // 2. Buscar todas las revisiones (detalles_revision) donde id_usuario = userId
+      const { data: revisiones, error: errorRev } = await this._supabaseClient
+        .from('detalles_revision')
+        .select('id_detalles_revision')
+        .eq('id_usuario', userId);
+
+      if (errorRev) {
+        throw errorRev;
+      }
+      if (!revisiones || revisiones.length === 0) {
+        // Si el usuario no tiene revisiones, devolvemos un array vacío
+        return [];
+      }
+
+      // 3. Tomar todos los "id_detalles_revision" del usuario
+      const revisionIds = revisiones.map(r => r.id_detalles_revision);
+
+      // 4. Buscar en estudios todos los registros donde id_detalles_revision está en ese array
+      const { data: estudios, error: errorEst } = await this._supabaseClient
+        .from('estudios')
+        .select('fuente_bibliografica')
+        .in('id_detalles_revision', revisionIds);
+
+      if (errorEst) {
+        throw errorEst;
+      }
+      if (!estudios) {
+        return [];
+      }
+
+      // 5. Agrupar los estudios por fuente_bibliografica
+      const distributionMap: Record<string, number> = {};
+
+      for (const est of estudios) {
+        const fuente = est.fuente_bibliografica || 'Desconocido';
+        if (!distributionMap[fuente]) {
+          distributionMap[fuente] = 0;
+        }
+        distributionMap[fuente]++;
+      }
+
+      // 6. Convertir el objeto en un arreglo de { database, count }
+      const distributionArray = Object.keys(distributionMap).map(key => ({
+        database: key,
+        count: distributionMap[key],
+      }));
+
+      return distributionArray;
+    } catch (error) {
+      console.error('Error al obtener la distribución de estudios por base de datos:', error);
+      throw error;
+    }
+  }
+
+
+
+
+
 
   async getUserReviews(userId: string) {
     console.log('Fetching reviews for user:', userId);
@@ -1095,41 +1172,40 @@ export class AuthService {
     }
   }
 
-
-
-
   async getAcceptedStudies() {
-  const { data, error } = await this._supabaseClient
-    .from('estudios')
-    .select('*')
-    .eq('estado', 'Aceptado');
+    const { data, error } = await this._supabaseClient
+      .from('estudios')
+      .select('*')
+      .eq('estado', 'Aceptado');
 
-  return { data, error };
-}
+    return { data, error };
+  }
 
-async getQualityQuestions() {
-  const { data, error } = await this._supabaseClient
-    .from('evaluacion_calidad_preguntas')
-    .select('*');
-  return { data, error };
-}
+  async getQualityQuestions() {
+    const { data, error } = await this._supabaseClient
+      .from('evaluacion_calidad_preguntas')
+      .select('*');
+    return { data, error };
+  }
 
-async getQualityAnswers() {
-  const { data, error } = await this._supabaseClient
-    .from('evaluacion_calidad_respuestas')
-    .select('*');
-  return { data, error };
-}
+  async getQualityAnswers() {
+    const { data, error } = await this._supabaseClient
+      .from('evaluacion_calidad_respuestas')
+      .select('*');
+    return { data, error };
+  }
 
-/**
- * Inserta una evaluación en la tabla "calidad_estudios",
- * usando IDs en vez de texto.
- */
-async createCalidadEstudio(calidadData: any) {
-  const { data, error } = await this._supabaseClient
-    .from('calidad_estudios')
-    .insert([calidadData])
-    .select();
-  return { data, error };
-}
+  /**
+   * Inserta una evaluación en la tabla "calidad_estudios",
+   * usando IDs en vez de texto.
+   */
+  async createCalidadEstudio(calidadData: any) {
+    const { data, error } = await this._supabaseClient
+      .from('calidad_estudios')
+      .insert([calidadData])
+      .select();
+    return { data, error };
+  }
+
+
 }

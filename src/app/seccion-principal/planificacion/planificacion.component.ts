@@ -2,12 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { NavbarComponent } from '../../principal/navbar/navbar.component';
 import { AuthService, KeywordRow, Respuesta } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
 import Swal from 'sweetalert2';
 import { HttpClientModule } from '@angular/common/http';
-import { FooterComponent } from "../../principal/footer/footer.component";
 import { Question } from '../../auth/data-access/auth.service';
 import { Criterio } from '../../auth/data-access/auth.service';
 import { Pregunta } from '../../auth/data-access/auth.service';
@@ -16,7 +14,7 @@ import { Pregunta } from '../../auth/data-access/auth.service';
 @Component({
   selector: 'app-planificacion',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule, NavbarComponent, ReactiveFormsModule, HttpClientModule, FooterComponent],
+  imports: [RouterLink, CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule],
   templateUrl: './planificacion.component.html',
   styleUrl: './planificacion.component.css'
 })
@@ -114,6 +112,7 @@ export class PlanificacionComponent implements OnInit {
   answers1: Respuesta[] = []; // Lista de respuestas
   limitScore1: number = 0; // Puntuación límite
   isLargeScreen: boolean = true;
+  showButton = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -162,17 +161,6 @@ export class PlanificacionComponent implements OnInit {
 
   private checkScreenSize(): void {
     this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
-  }
-
-  @HostListener('window:scroll', [])
-  onWindowScroll() {
-    // Cambia la visibilidad del botón al desplazarse más de 300px
-    this.showScrollButton = window.scrollY > 300;
-  }
-
-  scrollToTop() {
-    // Desplazamiento suave hacia la parte superior
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   async loadUserData() {

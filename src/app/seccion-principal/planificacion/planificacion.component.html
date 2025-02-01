@@ -162,7 +162,7 @@
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
                                                             <i class="fa-solid fa-pencil"></i>&nbsp;2) Selecciona una
-                                                            metodología:
+                                                            metodología
                                                         </h5>
                                                     </button>
                                                 </h2>
@@ -933,146 +933,172 @@
                                             estudio.
                                         </p>
 
-                                        <div class="card mb-4">
-                                            <div class="card-header p-3">
-                                                <h4 class="card-title mb-0">
-                                                    <i class="bi bi-question-circle"></i> Preguntas de evaluación de
-                                                    calidad
-                                                </h4>
-                                            </div>
-                                            <div class="card-body">
-                                                <button class="btn btn-primary mb-3" (click)="addQuestion1()">
-                                                    <i class="bi bi-plus-circle"></i> Añadir pregunta
-                                                </button>
-                                                <ul class="list-group">
-                                                    <li *ngFor="let question1 of questions1; let i = index"
-                                                        class="list-group-item d-flex justify-content-between align-items-center">
-                                                        <span>{{ question1.descripcion }}</span>
-                                                        <div>
-                                                            <button class="btn btn-warning btn-sm me-2"
-                                                                (click)="editQuestion1(i)">
-                                                                <i class="bi bi-pencil-square"></i> Editar
-                                                            </button>
-                                                            <button class="btn btn-danger btn-sm"
-                                                                (click)="deleteQuestion1(i)">
-                                                                <i class="bi bi-trash"></i> Eliminar
-                                                            </button>
-                                                        </div>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-
-                                        <!-- Tarjeta de Respuestas -->
-                                        <div class="card mb-4">
-                                            <div class="card-header p-3">
-                                                <h4 class="card-title mb-0">
-                                                    <i class="bi bi-check-circle"></i> Respuestas de evaluación
-                                                </h4>
-                                            </div>
-                                            <div class="card-body">
-                                                <!-- Botón para crear una fila nueva en modo edición -->
-                                                <button class="btn btn-primary mb-3" (click)="addLocalAnswer()">
-                                                    <i class="bi bi-plus-circle"></i> Añadir respuesta
-                                                </button>
-
-                                                <table class="table table-bordered">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Descripción</th>
-                                                            <th>Peso</th>
-                                                            <th>Acción</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr *ngFor="let answer1 of answers1; let i = index">
-                                                            <!-- Columna Descripción -->
-                                                            <td>
-                                                                <!-- Si está en edición, muestra un input; si no, muestra el texto -->
-                                                                <ng-container *ngIf="answer1.isEditing; else showDesc">
-                                                                    <input type="text"
-                                                                        class="form-control form-control-sm"
-                                                                        [(ngModel)]="answer1.descripcion" />
-                                                                </ng-container>
-                                                                <ng-template #showDesc>
-                                                                    {{ answer1.descripcion }}
-                                                                </ng-template>
-                                                            </td>
-
-                                                            <!-- Columna Peso -->
-                                                            <td>
-                                                                <!-- Si está en edición => input editable, de lo contrario input readOnly -->
-                                                                <input type="number"
-                                                                    class="form-control form-control-sm"
-                                                                    [(ngModel)]="answer1.peso"
-                                                                    [readonly]="!answer1.isEditing" />
-                                                            </td>
-
-                                                            <!-- Columna Acción -->
-                                                            <td>
-                                                                <!-- CASO 1: Fila en modo edición, y no tiene ID => Botón verde "Guardar" para nueva respuesta -->
-                                                                <button
-                                                                    *ngIf="answer1.isEditing && !answer1.id_respuesta"
-                                                                    class="btn btn-success btn-sm me-2"
-                                                                    (click)="saveNewAnswer(i)">
-                                                                    <i class="bi bi-check-square"></i> Guardar
-                                                                </button>
-
-                                                                <!-- CASO 2: Fila en modo edición, pero ya existe (id_respuesta) => Botón verde "Guardar" para update -->
-                                                                <button
-                                                                    *ngIf="answer1.isEditing && answer1.id_respuesta"
-                                                                    class="btn btn-success btn-sm me-2"
-                                                                    (click)="updateAnswer1(i)">
-                                                                    <i class="bi bi-check-square"></i> Guardar
-                                                                </button>
-
-                                                                <!-- CASO 3: Fila sin edición => Botón amarillo "Editar" -->
-                                                                <button *ngIf="!answer1.isEditing"
-                                                                    class="btn btn-warning btn-sm me-2"
-                                                                    (click)="editAnswer1(i)">
-                                                                    <i class="bi bi-pencil-square"></i> Editar
-                                                                </button>
-
-                                                                <!-- Botón Eliminar en todos los casos -->
-                                                                <button class="btn btn-danger btn-sm"
-                                                                    (click)="deleteAnswer1(i)">
-                                                                    <i class="bi bi-trash"></i> Eliminar
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-
-
-                                        <!-- Tarjeta de Puntuaciones -->
-                                        <div class="card mb-4">
-                                            <div class="card-header p-3">
-                                                <h4 class="card-title mb-0">
-                                                    <i class="bi bi-bar-chart"></i> Puntuaciones de evaluación de
-                                                    calidad
-                                                </h4>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="row mb-3">
-                                                    <!-- Puntuación Máxima -->
-                                                    <div class="col-md-6">
-                                                        <label for="maxScore" class="form-label">Puntuación
-                                                            máxima</label>
-                                                        <input type="number" id="maxScore" class="form-control"
-                                                            value="3.0" readonly />
+                                        <div class="accordion accordion-flush" id="accordionFlushExample">
+                                            <!-- Acordeon de Preguntas -->
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header d-flex align-items-center">
+                                                    <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseSeven"
+                                                        aria-expanded="false" aria-controls="flush-collapseSeven"
+                                                        style="background-color: #F8F8F8; flex: 7;">
+                                                        <h5 class="card-title mb-0">
+                                                            <i class="bi bi-question-circle"></i> Preguntas de
+                                                            evaluación de calidad
+                                                        </h5>
+                                                    </button>
+                                                </h2>
+                                                <div id="flush-collapseSeven" class="accordion-collapse collapse"
+                                                    data-bs-parent="#accordionFlushExample">
+                                                    <div class="accordion-body">
+                                                        <button class="btn btn-primary mb-3" (click)="addQuestion1()">
+                                                            <i class="bi bi-plus-circle"></i> Añadir pregunta
+                                                        </button>
+                                                        <ul class="list-group">
+                                                            <li *ngFor="let question1 of questions1; let i = index"
+                                                                class="list-group-item d-flex justify-content-between align-items-center">
+                                                                <span>{{ question1.descripcion }}</span>
+                                                                <div>
+                                                                    <button class="btn btn-warning btn-sm me-2"
+                                                                        (click)="editQuestion1(i)">
+                                                                        <i class="bi bi-pencil-square"></i> Editar
+                                                                    </button>
+                                                                    <button class="btn btn-danger btn-sm"
+                                                                        (click)="deleteQuestion1(i)">
+                                                                        <i class="bi bi-trash"></i> Eliminar
+                                                                    </button>
+                                                                </div>
+                                                            </li>
+                                                        </ul>
                                                     </div>
-                                                    <!-- Puntuación Límite -->
-                                                    <div class="col-md-6">
-                                                        <label for="limitScore" class="form-label">Puntuación
-                                                            límite</label>
-                                                        <div class="input-group">
-                                                            <input type="number" id="limitScore" class="form-control"
-                                                                [(ngModel)]="limitScore1" />
-                                                            <button class="btn btn-primary" (click)="saveLimitScore()">
-                                                                Guardar
-                                                            </button>
+                                                </div>
+                                            </div>
+                                            <!-- Acordeon de Respuestas -->
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header d-flex align-items-center">
+                                                    <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseeight"
+                                                        aria-expanded="false" aria-controls="flush-collapseeight"
+                                                        style="background-color: #F8F8F8; flex: 7;">
+                                                        <h5 class="card-title mb-0">
+                                                            <i class="bi bi-check-circle"></i> Respuestas de evaluación
+                                                        </h5>
+                                                    </button>
+                                                </h2>
+                                                <div id="flush-collapseeight" class="accordion-collapse collapse"
+                                                    data-bs-parent="#accordionFlushExample">
+                                                    <div class="accordion-body">
+                                                        <!-- Botón para crear una fila nueva en modo edición -->
+                                                        <button class="btn btn-primary mb-3" (click)="addLocalAnswer()">
+                                                            <i class="bi bi-plus-circle"></i> Añadir respuesta
+                                                        </button>
+
+                                                        <table class="table table-bordered">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Descripción</th>
+                                                                    <th>Peso</th>
+                                                                    <th>Acción</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr *ngFor="let answer1 of answers1; let i = index">
+                                                                    <!-- Columna Descripción -->
+                                                                    <td>
+                                                                        <!-- Si está en edición, muestra un input; si no, muestra el texto -->
+                                                                        <ng-container
+                                                                            *ngIf="answer1.isEditing; else showDesc">
+                                                                            <input type="text"
+                                                                                class="form-control form-control-sm"
+                                                                                [(ngModel)]="answer1.descripcion" />
+                                                                        </ng-container>
+                                                                        <ng-template #showDesc>
+                                                                            {{ answer1.descripcion }}
+                                                                        </ng-template>
+                                                                    </td>
+
+                                                                    <!-- Columna Peso -->
+                                                                    <td>
+                                                                        <!-- Si está en edición => input editable, de lo contrario input readOnly -->
+                                                                        <input type="number"
+                                                                            class="form-control form-control-sm"
+                                                                            [(ngModel)]="answer1.peso"
+                                                                            [readonly]="!answer1.isEditing" />
+                                                                    </td>
+
+                                                                    <!-- Columna Acción -->
+                                                                    <td>
+                                                                        <!-- CASO 1: Fila en modo edición, y no tiene ID => Botón verde "Guardar" para nueva respuesta -->
+                                                                        <button
+                                                                            *ngIf="answer1.isEditing && !answer1.id_respuesta"
+                                                                            class="btn btn-success btn-sm me-2"
+                                                                            (click)="saveNewAnswer(i)">
+                                                                            <i class="bi bi-check-square"></i> Guardar
+                                                                        </button>
+
+                                                                        <!-- CASO 2: Fila en modo edición, pero ya existe (id_respuesta) => Botón verde "Guardar" para update -->
+                                                                        <button
+                                                                            *ngIf="answer1.isEditing && answer1.id_respuesta"
+                                                                            class="btn btn-success btn-sm me-2"
+                                                                            (click)="updateAnswer1(i)">
+                                                                            <i class="bi bi-check-square"></i> Guardar
+                                                                        </button>
+
+                                                                        <!-- CASO 3: Fila sin edición => Botón amarillo "Editar" -->
+                                                                        <button *ngIf="!answer1.isEditing"
+                                                                            class="btn btn-warning btn-sm me-2"
+                                                                            (click)="editAnswer1(i)">
+                                                                            <i class="bi bi-pencil-square"></i> Editar
+                                                                        </button>
+
+                                                                        <!-- Botón Eliminar en todos los casos -->
+                                                                        <button class="btn btn-danger btn-sm"
+                                                                            (click)="deleteAnswer1(i)">
+                                                                            <i class="bi bi-trash"></i> Eliminar
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header d-flex align-items-center">
+                                                    <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseNine"
+                                                        aria-expanded="false" aria-controls="flush-collapseNine"
+                                                        style="background-color: #F8F8F8; flex: 7;">
+                                                        <h5 class="card-title mb-0">
+                                                            <i class="bi bi-bar-chart"></i> Puntuaciones de evaluación
+                                                            de calidad
+                                                        </h5>
+                                                    </button>
+                                                </h2>
+                                                <div id="flush-collapseNine" class="accordion-collapse collapse"
+                                                    data-bs-parent="#accordionFlushExample">
+                                                    <div class="accordion-body">
+                                                        <div class="row mb-3">
+                                                            <!-- Puntuación Máxima -->
+                                                            <div class="col-md-6">
+                                                                <label for="maxScore" class="form-label">Puntuación
+                                                                    máxima</label>
+                                                                <input type="number" id="maxScore" class="form-control"
+                                                                    value="3.0" readonly />
+                                                            </div>
+                                                            <!-- Puntuación Límite -->
+                                                            <div class="col-md-6">
+                                                                <label for="limitScore" class="form-label">Puntuación
+                                                                    límite</label>
+                                                                <div class="input-group">
+                                                                    <input type="number" id="limitScore"
+                                                                        class="form-control"
+                                                                        [(ngModel)]="limitScore1" />
+                                                                    <button class="btn btn-primary"
+                                                                        (click)="saveLimitScore()">
+                                                                        Guardar
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1088,13 +1114,3 @@
         </div>
     </div>
 </main>
-<br />
-<div class="container text-center">
-    <div class="row">
-        <div class="col align-self-center">
-            <!-- Botón para volver al inicio -->
-            <button class="btn btn-primary text-center" (click)="scrollToTop()">
-                <i class="bi bi-arrow-up-circle"></i>&nbsp; Subir </button>
-        </div>
-    </div>
-</div>

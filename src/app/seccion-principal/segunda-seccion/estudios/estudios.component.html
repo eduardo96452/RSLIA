@@ -288,12 +288,12 @@
                   </div>
 
 
-          
+
                   <!-- Contenido Página 2 -->
                   <div class="tab-pane fade" id="pagina2" role="tabpanel" aria-labelledby="tab2">
                     <div class="containes">
                       <p>Tabla de estudios en estado "Aceptado" y sus preguntas de calidad</p>
-                    
+
                       <table class="table table-bordered">
                         <thead>
                           <tr>
@@ -315,7 +315,7 @@
                                 </button>
                               </td>
                             </tr>
-                    
+
                             <!-- Sub-fila (acordeón), solo visible si openedStudy es este mismo estudio -->
                             <tr *ngIf="openedStudy === study">
                               <td colspan="3">
@@ -323,7 +323,7 @@
                                 <div class="p-3 border">
                                   <h4 style="display:none;">Evaluando Estudio ID: {{ study.id_estudios }}</h4>
                                   <p><strong>Título: </strong>{{ study.titulo }}</p>
-                    
+
                                   <form>
                                     <!-- Tabla de Preguntas / Respuestas -->
                                     <table class="table">
@@ -339,14 +339,12 @@
                                           <td>
                                             <!-- Radio Buttons para las respuestas -->
                                             <div *ngFor="let answer of qualityAnswers">
-                                              <ng-container *ngIf="answer.id_detalles_revision === question.id_detalles_revision">
-                                                <input
-                                                  type="radio"
-                                                  [name]="'resp_' + question.id_pregunta"
+                                              <ng-container
+                                                *ngIf="answer.id_detalles_revision === question.id_detalles_revision">
+                                                <input type="radio" [name]="'resp_' + question.id_pregunta"
                                                   [value]="answer.id_respuesta"
                                                   (change)="selectAnswer(question.id_pregunta, answer)"
-                                                  [checked]="selectedAnswers[question.id_pregunta] === answer.id_respuesta"
-                                                />
+                                                  [checked]="selectedAnswers[question.id_pregunta] === answer.id_respuesta" />
                                                 {{ answer.descripcion }} (peso: {{ answer.peso }})
                                               </ng-container>
                                             </div>
@@ -354,7 +352,7 @@
                                         </tr>
                                       </tbody>
                                     </table>
-                    
+
                                     <button class="btn btn-success me-2" (click)="saveEvaluation(study)">
                                       Guardar Evaluación
                                     </button>
@@ -369,9 +367,6 @@
                         </tbody>
                       </table>
                     </div>
-                    
-
-
 
 
                   </div>
@@ -384,16 +379,6 @@
     </div>
   </div>
 </main>
-<br />
-<div class="container text-center">
-  <div class="row">
-    <div class="col align-self-center">
-      <!-- Botón para volver al inicio -->
-      <button class="btn btn-primary text-center" (click)="scrollToTop()">
-        <i class="bi bi-arrow-up-circle"></i>&nbsp; Subir </button>
-    </div>
-  </div>
-</div>
 
 <!-- Primer Contenedor del Modal-->
 <div>
@@ -606,107 +591,108 @@
   </div>
 </div>
 
-
 <!-- Segundo Contenedor del Modal-->
-<div class="modal-backdrop fade show" *ngIf="showEditModal"></div>
-<div class="modal fade" tabindex="-1" [ngClass]="{ 'show': showAddStudyModal }" style="display: block;"
-  *ngIf="showAddStudyModal">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title text-primary fw-bold">
-          <i class="bi bi-file-earmark-plus-fill"></i>&nbsp;Añadir Estudio Manualmente
-        </h5>
-        <button type="button" class="btn-close" (click)="closeAddStudyModal()"></button>
-      </div>
-      <div class="modal-body">
-        <form>
-          <!-- DOI -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">DOI</label>
-            <div class="input-group">
-              <input type="text" class="form-control" [(ngModel)]="newStudy.doi" name="doi"
-                placeholder="Ingrese el DOI (ej. 10.1109/ISPSD.2013.6694422)">
-              <button class="btn btn-secondary" type="button" (click)="fetchCrossRefData()">Buscar</button>
+<div>
+  <div class="modal-backdrop fade show" *ngIf="showEditModal"></div>
+  <div class="modal fade" tabindex="-1" [ngClass]="{ 'show': showAddStudyModal }" style="display: block;"
+    *ngIf="showAddStudyModal">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-primary fw-bold">
+            <i class="bi bi-file-earmark-plus-fill"></i>&nbsp;Añadir Estudio Manualmente
+          </h5>
+          <button type="button" class="btn-close" (click)="closeAddStudyModal()"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <!-- DOI -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">DOI</label>
+              <div class="input-group">
+                <input type="text" class="form-control" [(ngModel)]="newStudy.doi" name="doi"
+                  placeholder="Ingrese el DOI (ej. 10.1109/ISPSD.2013.6694422)">
+                <button class="btn btn-secondary" type="button" (click)="fetchCrossRefData()">Buscar</button>
+              </div>
             </div>
-          </div>
 
-          <!-- Base de Datos -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Base bibliográfica</label>
-            <input type="text" class="form-control" placeholder="Ej. IEEE, Springer" [(ngModel)]="newStudy.database"
-              name="database" />
-          </div>
+            <!-- Base de Datos -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Base bibliográfica</label>
+              <input type="text" class="form-control" placeholder="Ej. IEEE, Springer" [(ngModel)]="newStudy.database"
+                name="database" />
+            </div>
 
-          <!-- Título -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Título</label>
-            <input type="text" class="form-control" [(ngModel)]="newStudy.title" name="title"
-              placeholder="Título del artículo" />
-          </div>
+            <!-- Título -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Título</label>
+              <input type="text" class="form-control" [(ngModel)]="newStudy.title" name="title"
+                placeholder="Título del artículo" />
+            </div>
 
-          <!-- Publisher -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Publisher</label>
-            <input type="text" class="form-control" [(ngModel)]="newStudy.publisher" name="publisher"
-              placeholder="Editor o publicación" />
-          </div>
+            <!-- Publisher -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Publisher</label>
+              <input type="text" class="form-control" [(ngModel)]="newStudy.publisher" name="publisher"
+                placeholder="Editor o publicación" />
+            </div>
 
-          <!-- Tipo de Documento -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Tipo de Documento</label>
-            <input type="text" class="form-control" [(ngModel)]="newStudy.documentType" name="documentType"
-              placeholder="Ej. Artículo, Conferencia" />
-          </div>
+            <!-- Tipo de Documento -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Tipo de Documento</label>
+              <input type="text" class="form-control" [(ngModel)]="newStudy.documentType" name="documentType"
+                placeholder="Ej. Artículo, Conferencia" />
+            </div>
 
-          <!-- Autor -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Autor(es)</label>
-            <input type="text" class="form-control" [(ngModel)]="newStudy.author" name="author"
-              placeholder="Nombre(s) de los autor(es)" />
-          </div>
+            <!-- Autor -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Autor(es)</label>
+              <input type="text" class="form-control" [(ngModel)]="newStudy.author" name="author"
+                placeholder="Nombre(s) de los autor(es)" />
+            </div>
 
-          <!-- Año -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Año</label>
-            <input type="number" class="form-control" [(ngModel)]="newStudy.year" name="year"
-              placeholder="Año de publicación" />
-          </div>
+            <!-- Año -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Año</label>
+              <input type="number" class="form-control" [(ngModel)]="newStudy.year" name="year"
+                placeholder="Año de publicación" />
+            </div>
 
-          <!-- Revista -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Revista</label>
-            <input type="text" class="form-control" [(ngModel)]="newStudy.revista" name="revista"
-              placeholder="Nombre de la revista" />
-          </div>
+            <!-- Revista -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Revista</label>
+              <input type="text" class="form-control" [(ngModel)]="newStudy.revista" name="revista"
+                placeholder="Nombre de la revista" />
+            </div>
 
-          <!-- URL -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">URL</label>
-            <input type="text" class="form-control" [(ngModel)]="newStudy.url" name="url"
-              placeholder="Enlace del artículo" />
-          </div>
+            <!-- URL -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">URL</label>
+              <input type="text" class="form-control" [(ngModel)]="newStudy.url" name="url"
+                placeholder="Enlace del artículo" />
+            </div>
 
-          <!-- Estado -->
-          <div class="mb-3">
-            <label class="form-label fw-bold">Estado</label>
-            <select class="form-select" [(ngModel)]="newStudy.status" name="status" [ngClass]="{
+            <!-- Estado -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Estado</label>
+              <select class="form-select" [(ngModel)]="newStudy.status" name="status" [ngClass]="{
                 'cell-gray': newStudy.status === 'Sin clasificar',
                 'cell-green': newStudy.status === 'Aceptado',
                 'cell-yellow': newStudy.status === 'Duplicado',
                 'cell-red': newStudy.status === 'Rechazado'
               }">
-              <option value="Sin clasificar">Sin clasificar</option>
-              <option value="Aceptado">Preseleccionado</option>
-              <option value="Duplicado">Duplicado</option>
-              <option value="Rechazado">Descartado</option>
-            </select>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeAddStudyModal()">Cancelar</button>
-        <button class="btn btn-primary" [disabled]="!isFormValid()" (click)="saveNewStudy()">Guardar Estudio</button>
+                <option value="Sin clasificar">Sin clasificar</option>
+                <option value="Aceptado">Preseleccionado</option>
+                <option value="Duplicado">Duplicado</option>
+                <option value="Rechazado">Descartado</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeAddStudyModal()">Cancelar</button>
+          <button class="btn btn-primary" [disabled]="!isFormValid()" (click)="saveNewStudy()">Guardar Estudio</button>
+        </div>
       </div>
     </div>
   </div>

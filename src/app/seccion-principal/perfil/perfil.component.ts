@@ -3,14 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
-import { NavbarComponent } from '../../principal/navbar/navbar.component';
 import { SupabaseService } from '../../conexion/supabase.service';
-import { FooterComponent } from "../../principal/footer/footer.component";
 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, NavbarComponent, ReactiveFormsModule, FooterComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ReactiveFormsModule],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.css'
 })

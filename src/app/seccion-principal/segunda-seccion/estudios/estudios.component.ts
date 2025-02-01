@@ -1214,11 +1214,6 @@ export class EstudiosComponent implements OnInit {
     }
     this.openedStudy = null;
   }
-    
-  
-
-
-
 
   toggleEvaluation(study: Estudio): void {
     // Si se hace clic en el mismo estudio, se cierra
