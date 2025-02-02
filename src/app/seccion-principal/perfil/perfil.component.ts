@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { SupabaseService } from '../../conexion/supabase.service';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-perfil',
@@ -17,7 +18,8 @@ export class PerfilComponent implements OnInit {
   imageFile: File | null = null;
   imageUrl: string | null = null;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private supabase: SupabaseService) {
+  constructor(private fb: FormBuilder, private authService: AuthService, private supabase: SupabaseService, 
+    private router: Router) {
     this.userForm = this.fb.group({
       nombre_usuario: [{ value: '', disabled: true }],
       nombre: [''],
@@ -29,6 +31,14 @@ export class PerfilComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserData();
+
+    // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        // Llevamos el scroll al tope
+        window.scrollTo(0, 0);
+      });
   }
 
   async loadUserData() {

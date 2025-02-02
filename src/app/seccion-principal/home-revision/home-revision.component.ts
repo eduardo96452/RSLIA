@@ -1,9 +1,10 @@
 import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-home-revision',
@@ -28,6 +29,14 @@ export class HomeRevisionComponent implements OnInit  {
   async ngOnInit() {
     this.charCount = this.description.length;
     this.checkScreenSize();
+
+    // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        // Llevamos el scroll al tope
+        window.scrollTo(0, 0);
+      });
   }
 
   @HostListener('window:resize', ['$event'])

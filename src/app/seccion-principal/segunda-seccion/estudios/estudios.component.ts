@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService, Estudio } from '../../../auth/data-access/auth.service';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
+import { AuthService, Criterio, Estudio } from '../../../auth/data-access/auth.service';
 import { OpenAiService } from '../../../conexion/openAi.service';
 import { Study } from '../../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
 import { DoiApiService } from '../../../conexion/doiApi.service';
 import { format } from 'date-fns';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-estudios',
@@ -44,12 +45,16 @@ export class EstudiosComponent implements OnInit {
   acceptedStudies: Estudio[] = [];
   qualityQuestions: any[] = [];
   qualityAnswers: any[] = [];
-  // Para saber qué estudio tiene el acordeón abierto
   openedStudy: Estudio | null = null;
-
-  // selectedAnswers guardará { [id_pregunta]: id_respuesta }
-  // y quizá el peso seleccionado
   selectedAnswers: { [key: number]: number } = {};
+
+  criterios: any[] = [];
+  inclusionCriterios: any[] = [];
+  exclusionCriterios: any[] = [];
+  selectedCriterioId: number | null = null;
+  selectedCriterio: string | null = null;
+  selectedEstudioId!: number;
+  
 
   constructor(
     private route: ActivatedRoute,
@@ -70,6 +75,15 @@ export class EstudiosComponent implements OnInit {
     await this.loadAcceptedStudies();
     await this.loadPreguntas();
     await this.loadRespuestas();
+
+    // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        // Llevamos el scroll al tope
+        window.scrollTo(0, 0);
+      });
+    await this.loadCriterios();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -553,6 +567,8 @@ export class EstudiosComponent implements OnInit {
     this.originalStudy = { ...study };
     this.pdfFile = null;
     this.showEditModal = true;
+
+    this.autoSelectCriterio();
   }
 
   // (2) Cerrar modal
@@ -562,6 +578,8 @@ export class EstudiosComponent implements OnInit {
     this.originalStudy = null;
     this.pdfFile = null;
     // Recarga la página
+
+    this.selectedCriterio = null;
   }
 
   // (4) Cerrar el modal si hace clic en el backdrop
@@ -1008,14 +1026,14 @@ export class EstudiosComponent implements OnInit {
       });
       return;
     }
-  
+
     try {
       // Busca estudios existentes con el mismo título
       const { data: existingStudies, error: findError } = await this.authService.findStudyByTitleInRevision(
         this.newStudy.title,
         this.reviewId
       );
-  
+
       if (findError) {
         console.error('Error al buscar estudios duplicados:', findError);
         Swal.fire({
@@ -1024,15 +1042,15 @@ export class EstudiosComponent implements OnInit {
           text: 'Hubo un problema al verificar duplicados, pero puede continuar.'
         });
       }
-  
+
       let statusToInsert = this.newStudy.status || 'Sin clasificar'; // Estado predeterminado
-  
+
       if (existingStudies && existingStudies.length > 0) {
         // Si ya existe un estudio similar, marca como "Duplicado"
         this.duplicatedCount++;
         statusToInsert = 'Duplicado';
       }
-  
+
       // Crear el objeto Estudio con los campos básicos
       const nuevoEstudio: Estudio = {
         titulo: this.newStudy.title,
@@ -1058,10 +1076,10 @@ export class EstudiosComponent implements OnInit {
         language: '',
         comentario: ''
       };
-  
+
       // Inserta el nuevo estudio en la base de datos
       const { data, error } = await this.authService.createEstudio(nuevoEstudio);
-  
+
       if (error) {
         console.error('Error al insertar estudio:', error);
         Swal.fire({
@@ -1119,13 +1137,13 @@ export class EstudiosComponent implements OnInit {
   }
 
   async loadPreguntas() {
-     // 2) Cargar preguntas
-     const { data: preguntas, error: errorPreg } = await this.authService.getQualityQuestions();
-     if (errorPreg) {
-       console.error('Error al cargar preguntas:', errorPreg);
-     } else {
-       this.qualityQuestions = preguntas ?? [];
-     }
+    // 2) Cargar preguntas
+    const { data: preguntas, error: errorPreg } = await this.authService.getQualityQuestions();
+    if (errorPreg) {
+      console.error('Error al cargar preguntas:', errorPreg);
+    } else {
+      this.qualityQuestions = preguntas ?? [];
+    }
   }
 
   async loadRespuestas() {
@@ -1160,25 +1178,25 @@ export class EstudiosComponent implements OnInit {
       });
       return;
     }
-  
+
     try {
       // Recorremos cada pregunta para obtener la respuesta elegida
       for (const question of this.qualityQuestions) {
         const preguntaId = question.id_pregunta;
-        const respuestaId = this.selectedAnswers[preguntaId]; 
+        const respuestaId = this.selectedAnswers[preguntaId];
         // (Almacenado por selectAnswer(preguntaId, answer))
-  
+
         if (!respuestaId) {
           // El usuario no eligió respuesta para esta pregunta
           continue;
         }
-  
+
         // Busca el objeto respuesta para extraer el peso
         const respuestaObj = this.qualityAnswers.find(
           (r) => r.id_respuesta === respuestaId
         );
         const pesoRespuesta = respuestaObj ? respuestaObj.peso : 0;
-  
+
         // Datos para insertar en "calidad_estudios"
         const calidadData = {
           id_estudios: idEstudio,
@@ -1187,23 +1205,23 @@ export class EstudiosComponent implements OnInit {
           peso: pesoRespuesta,
           fecha_evaluacion: new Date().toISOString()
         };
-  
+
         // Llamada al método que inserta en la tabla "calidad_estudios"
         const { data, error } = await this.authService.createCalidadEstudio(calidadData);
         if (error) {
           console.error('Error al guardar calidad_estudios:', error);
         }
       }
-  
+
       Swal.fire({
         icon: 'success',
         title: 'Evaluación Guardada',
         text: 'La evaluación de calidad se guardó correctamente.'
       });
-  
+
       // Cierra la sección de evaluación (acordeón) y limpia las respuestas
       this.cancelEvaluation();
-  
+
     } catch (err) {
       console.error('Error guardando evaluación:', err);
       Swal.fire({
@@ -1232,4 +1250,89 @@ export class EstudiosComponent implements OnInit {
     // Limpia selecciones si es necesario
     this.selectedAnswers = {};
   }
+
+
+
+  async loadCriterios() {
+    try {
+      const todos = await this.authService.getCriteriosByRevision(this.reviewId);
+      this.inclusionCriterios = todos.filter(c => c.tipo === 'inclusion');
+      this.exclusionCriterios = todos.filter(c => c.tipo === 'exclusion');
+    } catch (err) {
+      console.error('Error al cargar criterios:', err);
+    }
+  }
+
+
+
+
+  async autoSelectCriterio() {
+    if (!this.selectedStudy || !this.selectedStudy.id_estudios) {
+      this.selectedCriterio = 'Seleccione un criterio';
+      return;
+    }
+
+    try {
+      // 1. Obtener el ID del criterio guardado
+      const idCriterio = await this.authService.getIdCriterioDeEstudio(
+        this.selectedStudy.id_estudios
+      );
+
+      // 2. Si no hay criterio asignado, mostrar "Seleccione un criterio"
+      if (!idCriterio) {
+        this.selectedCriterio = 'Seleccione un criterio';
+        return;
+      }
+
+      // 3. Buscar en los arrays de criterios para encontrar la descripción
+      const found = this.inclusionCriterios.find(c => c.id_criterios === idCriterio)
+                 || this.exclusionCriterios.find(c => c.id_criterios === idCriterio);
+
+      // 4. Si encontramos la descripción, mostrarla, si no, "Seleccione un criterio"
+      if (found) {
+        this.selectedCriterio = found.descripcion;
+      } else {
+        this.selectedCriterio = 'Seleccione un criterio';
+      }
+    } catch (error) {
+      console.error('Error al obtener/seleccionar criterio:', error);
+      // Ante cualquier error, mostramos también "Seleccione un criterio"
+      this.selectedCriterio = 'Seleccione un criterio';
+    }
+  }
+
+  /**
+   * Se llama al hacer click en un criterio dentro del dropdown.
+   */
+  async selectCriterio(criterioId: number, descripcion: string) {
+    // Verificar que exista un estudio seleccionado
+    if (!this.selectedStudy || !this.selectedStudy.id_estudios) {
+      Swal.fire('Atención', 'No se ha seleccionado ningún estudio para asignarle el criterio.', 'info');
+      return;
+    }
+
+    try {
+      // Actualiza en la BD
+      await this.authService.updateEstudioWithCriterio(this.selectedStudy.id_estudios, criterioId);
+
+      // (Opcional) si mantienes la ID en tu objeto local:
+      // this.selectedStudy.id_criterios = criterioId;
+
+      // Actualiza la descripción en el botón
+      this.selectedCriterio = descripcion;
+
+      Swal.fire({
+        title: 'Criterio asignado',
+        text: `Se asignó "${descripcion}" al estudio #${this.selectedStudy.id_estudios}.`,
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      console.error('Error al guardar el criterio en el estudio:', err);
+      Swal.fire('Error', 'No se pudo asignar el criterio al estudio.', 'error');
+    }
+  }
+
+  
 }

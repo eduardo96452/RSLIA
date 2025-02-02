@@ -35,6 +35,7 @@ export interface Criterio {
   descripcion: string;   // Descripción del criterio
   tipo: 'exclusion' | 'inclusion'; // Tipo del criterio
   isEditing?: boolean;   // Para controlar el modo de edición en la tabla
+  
 }
 
 export interface Pregunta {
@@ -78,6 +79,7 @@ export interface Study {
   comentario?: string;
   resumen: string;
   url_pdf_articulo?: string;
+  id_criterio?: number;
 }
 
 export interface Estudio {
@@ -108,7 +110,13 @@ export interface Estudio {
   url_pdf_articulo?: string | null | undefined;
 }
 
-
+export interface Criterio1 {
+  id_criterios: number;
+  descripcion: string;
+  tipo: string; // "inclusion" | "exclusion"
+  fecha_ingreso?: string;
+  id_detalles_revision: string;
+}
 
 
 @Injectable({
@@ -363,83 +371,50 @@ export class AuthService {
     }
   }
 
-
-
-  /**
-   * Devuelve la distribución de estudios por base de datos para **todas** las revisiones
-   * de un usuario, basándose en el user_id guardado en localStorage.
-   * 
-   * @returns Un arreglo de objetos con { database, count }, donde:
-   *          - database = nombre de la base de datos (p.ej.: "PubMed")
-   *          - count = cuántos estudios provienen de esa base
-   */
-  public async getDistribucionEstudiosPorBaseDeDatosDeUsuario(): Promise<{ database: string; count: number }[]> {
-    try {
-      // 1. Obtener el userId del localStorage
-      const userId = localStorage.getItem('user_id');
-      if (!userId) {
-        throw new Error('No se encontró user_id en localStorage.');
-      }
-
-      // 2. Buscar todas las revisiones (detalles_revision) donde id_usuario = userId
-      const { data: revisiones, error: errorRev } = await this._supabaseClient
-        .from('detalles_revision')
-        .select('id_detalles_revision')
-        .eq('id_usuario', userId);
-
-      if (errorRev) {
-        throw errorRev;
-      }
-      if (!revisiones || revisiones.length === 0) {
-        // Si el usuario no tiene revisiones, devolvemos un array vacío
-        return [];
-      }
-
-      // 3. Tomar todos los "id_detalles_revision" del usuario
-      const revisionIds = revisiones.map(r => r.id_detalles_revision);
-
-      // 4. Buscar en estudios todos los registros donde id_detalles_revision está en ese array
-      const { data: estudios, error: errorEst } = await this._supabaseClient
-        .from('estudios')
-        .select('fuente_bibliografica')
-        .in('id_detalles_revision', revisionIds);
-
-      if (errorEst) {
-        throw errorEst;
-      }
-      if (!estudios) {
-        return [];
-      }
-
-      // 5. Agrupar los estudios por fuente_bibliografica
-      const distributionMap: Record<string, number> = {};
-
-      for (const est of estudios) {
-        const fuente = est.fuente_bibliografica || 'Desconocido';
-        if (!distributionMap[fuente]) {
-          distributionMap[fuente] = 0;
-        }
-        distributionMap[fuente]++;
-      }
-
-      // 6. Convertir el objeto en un arreglo de { database, count }
-      const distributionArray = Object.keys(distributionMap).map(key => ({
-        database: key,
-        count: distributionMap[key],
-      }));
-
-      return distributionArray;
-    } catch (error) {
-      console.error('Error al obtener la distribución de estudios por base de datos:', error);
-      throw error;
+  async getEstudiosDistributionByDatabase(): Promise<{ [key: string]: number }> {
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      throw new Error('User ID not found in localStorage');
     }
+
+    // Obtener todos los id_detalles_revision asociados al usuario
+    const { data: detallesRevision, error: detallesError } = await this._supabaseClient
+      .from('detalles_revision')
+      .select('id_detalles_revision')
+      .eq('id_usuarios', userId);
+
+    if (detallesError) {
+      throw new Error('Error fetching detalles_revision: ' + detallesError.message);
+    }
+
+    const idsDetallesRevision = detallesRevision.map(d => d.id_detalles_revision);
+
+    // Obtener todos los estudios asociados a esos id_detalles_revision
+    const { data: estudios, error: estudiosError } = await this._supabaseClient
+      .from('estudios')
+      .select('fuente_bibliografica')
+      .in('id_detalles_revision', idsDetallesRevision);
+
+    if (estudiosError) {
+      throw new Error('Error fetching estudios: ' + estudiosError.message);
+    }
+
+    // Contar la cantidad de estudios por base de datos
+    const distribution: { [key: string]: number } = {};
+    estudios.forEach(estudio => {
+      const fuente = estudio.fuente_bibliografica;
+      if (fuente) {
+        if (distribution[fuente]) {
+          distribution[fuente]++;
+        } else {
+          distribution[fuente] = 1;
+        }
+      }
+    });
+
+    return distribution;
   }
-
-
-
-
-
-
+  
   async getUserReviews(userId: string) {
     console.log('Fetching reviews for user:', userId);
 
@@ -1207,5 +1182,44 @@ export class AuthService {
     return { data, error };
   }
 
+  async getCriteriosByRevision(idDetallesRevision: string) {
+    const { data, error } = await this._supabaseClient
+      .from('criterios')
+      .select('id_criterios, descripcion, tipo')
+      .eq('id_detalles_revision', idDetallesRevision)
+      .order('fecha_ingreso', { ascending: true });
 
+    if (error) throw error;
+    return data;
+  }
+
+  async updateEstudioWithCriterio(estudioId: number, criterioId: number) {
+    const { data, error } = await this._supabaseClient
+      .from('estudios')
+      .update({ id_criterio: criterioId })
+      .eq('id_estudios', estudioId);
+  
+    if (error) throw error;
+    return data;
+  }
+
+  async getIdCriterioDeEstudio(estudioId: number): Promise<number | null> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('estudios')
+        .select('id_criterio')
+        .eq('id_estudios', estudioId)
+        .single(); // Para retornar sólo una fila
+
+      if (error) throw error;
+      // data será del tipo { id_criterios: number | null }
+      if (!data) return null;
+
+      return data.id_criterio || null;
+    } catch (err) {
+      console.error('Error al obtener id_criterios de estudio:', err);
+      throw err;
+    }
+  }
+  
 }

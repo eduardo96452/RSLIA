@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { AuthService, KeywordRow, Respuesta } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
 import Swal from 'sweetalert2';
@@ -9,6 +9,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { Question } from '../../auth/data-access/auth.service';
 import { Criterio } from '../../auth/data-access/auth.service';
 import { Pregunta } from '../../auth/data-access/auth.service';
+import { filter } from 'rxjs';
 
 
 @Component({
@@ -153,7 +154,16 @@ export class PlanificacionComponent implements OnInit {
     this.loadQuestions1();
     this.loadAnswers1();
     this.loadPuntuacion();
+
+    // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        // Llevamos el scroll al tope
+        window.scrollTo(0, 0);
+      });
   }
+
   @HostListener('window:resize', ['$event'])
   onResize(): void {
     this.checkScreenSize();
@@ -288,7 +298,7 @@ export class PlanificacionComponent implements OnInit {
       text: 'Por favor, espera un momento.',
       allowOutsideClick: false,
       didOpen: () => {
-        Swal.showLoading();
+        Swal.showLoading(Swal.getConfirmButton());
       }
     });
 

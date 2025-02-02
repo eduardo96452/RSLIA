@@ -38,10 +38,20 @@
             </div>
             <!-- Gráficos / Secciones adicionales -->
             <div class="row">
-                <div class="col-md-6">
-                    <canvas id="barChartBases"></canvas>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div *ngIf="isLoading" class="loading">Cargando datos...</div>
+
+                            <div *ngIf="errorMessage" class="error">
+                                {{ errorMessage }}
+                            </div>
+
+                            <canvas #chartCanvas *ngIf="!isLoading && !errorMessage"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 mb-4">
                     <div class="card">
                         <div class="card-body">
                             <div class="container text-center">
@@ -51,7 +61,8 @@
                                     </div>
                                     <div class="col">
                                         <button type="button" routerLink="/Descripción_General"
-                                            class="btn btn-primary p-2">Crer una revisión</button>
+                                            class="btn btn-primary p-2">Crer
+                                            una revisión</button>
                                     </div>
                                     <div>
                                         <br />

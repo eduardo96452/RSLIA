@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-detalle-revision',
@@ -73,6 +74,14 @@ export class DetalleRevisionComponent implements OnInit {
     this.form.valueChanges.subscribe(() => {
       this.isModified = this.form.dirty || this.form.touched; // Detecta cambios
     });
+
+    // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        // Llevamos el scroll al tope
+        window.scrollTo(0, 0);
+      });
 
   }
 

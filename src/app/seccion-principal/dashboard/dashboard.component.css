@@ -26,3 +26,27 @@
   .menu-item:hover {
     background-color: #f1f1f1;
   }
+
+
+
+
+
+  
+  .loading, .error {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.1em;
+  }
+  
+  .error {
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    border-radius: 4px;
+    background-color: #f8d7da;
+  }
+  
+  canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }

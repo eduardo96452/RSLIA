@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import cytoscape from 'cytoscape';
 import { FormBuilder, FormsModule } from '@angular/forms';
 import { jsPDF } from 'jspdf';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../auth/data-access/auth.service';
 import { OpenAiService } from '../../../conexion/openAi.service';
+import { filter } from 'rxjs';
 
 
 @Component({
@@ -48,6 +49,14 @@ export class InformesComponent implements OnInit, AfterViewInit {
     }
 
     this.checkScreenSize();
+
+    // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        // Llevamos el scroll al tope
+        window.scrollTo(0, 0);
+      });
   }
 
   @HostListener('window:resize', ['$event'])
