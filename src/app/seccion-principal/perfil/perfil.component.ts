@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { SupabaseService } from '../../conexion/supabase.service';
-import { filter } from 'rxjs';
+import { filter, map, Observable, startWith } from 'rxjs';
+import { CountryService } from '../../conexion/country.service';
 
 @Component({
   selector: 'app-perfil',
@@ -18,8 +19,19 @@ export class PerfilComponent implements OnInit {
   imageFile: File | null = null;
   imageUrl: string | null = null;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private supabase: SupabaseService, 
-    private router: Router) {
+  searchText: string = '';
+  countries: any[] = [];
+  filteredCountries: any[] = [];
+  dropdownVisible: boolean = false; // Controla la visibilidad del dropdown
+
+
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private supabase: SupabaseService,
+    private router: Router,
+    private countryService: CountryService
+  ) {
     this.userForm = this.fb.group({
       nombre_usuario: [{ value: '', disabled: true }],
       nombre: [''],
@@ -39,15 +51,45 @@ export class PerfilComponent implements OnInit {
         // Llevamos el scroll al tope
         window.scrollTo(0, 0);
       });
+
+      this.countryService.getCountries().subscribe((data: any[]) => {
+        // Ordena alfabéticamente usando el nombre común
+        this.countries = data.sort((a, b) =>
+          a.name?.common.localeCompare(b.name?.common)
+        );
+        // Inicialmente no mostramos ningún resultado en el dropdown
+        this.filteredCountries = [];
+      });
+  }
+
+  // Muestra el dropdown y filtra la lista en función del valor actual
+  showDropdown(): void {
+    this.dropdownVisible = true;
+    this.filterCountries();
+  }
+
+  // Filtra los países según el texto ingresado y los mantiene ordenados
+  filterCountries(): void {
+    const filterValue = this.searchText.toLowerCase();
+    this.filteredCountries = this.countries.filter(country =>
+      country.name?.common.toLowerCase().includes(filterValue)
+    );
+  }
+
+  // Al seleccionar un país, coloca su nombre en el input y oculta el dropdown
+  selectCountry(country: any): void {
+    this.searchText = country.name.common;
+    this.filteredCountries = [];
+    this.dropdownVisible = false;
   }
 
   async loadUserData() {
     const session = await this.authService.getSession();
     const uid = session?.user?.id;
-  
+
     if (uid) {
       const userData = await this.authService.getUserDataByUID(uid);
-  
+
       if (userData && Object.keys(userData).length > 0) { // Verificar que userData no sea undefined y tenga datos
         this.userForm.patchValue({
           nombre_usuario: userData.nombre_usuario || '', // Default a '' si está undefined
@@ -71,31 +113,31 @@ export class PerfilComponent implements OnInit {
       this.imageFile = file;
     }
   }
-  
+
   // Esta es la función de tu servicio para subir la imagen
-async uploadImage(file: File): Promise<string> {
-  const { data, error } = await this.supabase.supabaseClient
-    .storage
-    .from('avatars') // Nombre del bucket
-    .upload(`path/to/file/${file.name}`, file);
+  async uploadImage(file: File): Promise<string> {
+    const { data, error } = await this.supabase.supabaseClient
+      .storage
+      .from('avatars') // Nombre del bucket
+      .upload(`path/to/file/${file.name}`, file);
 
-  if (error) {
-    console.error('Error uploading file:', error);
-    return '';
+    if (error) {
+      console.error('Error uploading file:', error);
+      return '';
+    }
+
+    // Obtén la URL pública del archivo recién subido
+    const publicUrl = this.supabase.supabaseClient
+      .storage
+      .from('avatars')
+      .getPublicUrl(data.path).data.publicUrl; // 'data.path' contiene la ruta del archivo
+
+    return publicUrl || ''; // Devuelve la URL pública
   }
-
-  // Obtén la URL pública del archivo recién subido
-  const publicUrl = this.supabase.supabaseClient
-    .storage
-    .from('avatars')
-    .getPublicUrl(data.path).data.publicUrl; // 'data.path' contiene la ruta del archivo
-
-  return publicUrl || ''; // Devuelve la URL pública
-}
 
   async updateUserProfileImage(imageUrl: string) {
     const uid = localStorage.getItem('user_id');
-    
+
     if (uid) {
       const { data, error } = await this.authService.updateUser(uid, {
         ...this.userForm.value,

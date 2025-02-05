@@ -44,3 +44,13 @@ ul {
 .menu-item:hover {
   background-color: #f1f1f1;
 }
+
+
+
+
+
+
+.dropdown-menu {
+  max-height: 200px;  /* Puedes cambiar a 200px si 20px es muy pequeño */
+  overflow-y: auto;
+}
