@@ -90,7 +90,7 @@
               </form>
             </div>
             <div class="card-footer text-end">
-              <button [routerLink]="isModified ? null : '/planificacion'" class="btn btn-primary" type="submit"
+              <button [routerLink]="isModified ? null : '/planificacion'" class="btn btn-success" type="submit"
                 (click)="isModified ? updateReview() : navigateToNext()">
                 <i class="fa-solid" [ngClass]="isModified ? 'fa-save' : 'fa-paper-plane'"></i> &nbsp;
                 {{ isModified ? 'Actualizar' : 'Siguiente' }}

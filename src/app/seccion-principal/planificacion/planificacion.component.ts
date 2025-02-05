@@ -27,6 +27,7 @@ export class PlanificacionComponent implements OnInit {
   // Este array define tus metodologías (puedes ajustar el formato).
   // Observa que en paréntesis está la letra clave.
   methodologies: string[] = [
+    'Escenario (S)',
     'Población (P)',
     'Intervención (I)',
     'Comparación (C)',
@@ -51,23 +52,23 @@ export class PlanificacionComponent implements OnInit {
   descripcion = '';
 
   metodoToPagina: { [key: string]: string } = {
-    'PICO': 'pagina1',
-    'PICOC': 'pagina2',
-    'PICOTT': 'pagina3',
-    'SPICE': 'pagina4'
+    'PICO': 'PICO',
+    'PICOC': 'PICOC',
+    'PICOTT': 'PICOTT',
+    'SPICE': 'SPICE'
   };
 
   paginaToMetodo: { [key: string]: string } = {
-    'pagina1': 'PICO',
-    'pagina2': 'PICOC',
-    'pagina3': 'PICOTT',
-    'pagina4': 'SPICE'
+    'PICO': 'PICO',
+    'PICOC': 'PICOC',
+    'PICOTT': 'PICOTT',
+    'SPICE': 'SPICE'
   };
 
   // Nombre de la metodología existente (si la hay)
   existingMethodologyName: string | null = null;
 
-  paginaSeleccionada: string = 'pagina1';
+  paginaSeleccionada: string = 'PICO';
   // PICO
   picoP = '';
   picoI = '';
@@ -96,6 +97,8 @@ export class PlanificacionComponent implements OnInit {
   spiceC = '';
   spiceE = '';
 
+  questions: Question[] = [];
+
   cadenaBusqueda: string = '';
 
   // Para ingresar criterios de exclusión
@@ -114,6 +117,7 @@ export class PlanificacionComponent implements OnInit {
   limitScore1: number = 0; // Puntuación límite
   isLargeScreen: boolean = true;
   showButton = false;
+
 
   constructor(
     private route: ActivatedRoute,
@@ -291,6 +295,30 @@ export class PlanificacionComponent implements OnInit {
     this.charCount = value.length;
   }
 
+  // Método para limpiar el textarea
+  clearObjetivo() {
+    this.objetivo = '';
+  }
+
+  // Guardar objetivo en la base de datos
+  async saveObjective() {
+    try {
+      const { data, error } = await this.authService.updateReviewObjective(this.reviewId, this.objetivo);
+      if (error) {
+        console.error('Error al actualizar el objetivo:', error);
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Objetivo guardado',
+          text: 'El objetivo se ha guardado correctamente.',
+          timer: 2500
+        });
+      }
+    } catch (err) {
+      console.error('Error al guardar el objetivo:', err);
+    }
+  }
+
   // Obtener sugerencia de la IA
   getIaSuggestion() {
     Swal.fire({
@@ -332,30 +360,6 @@ export class PlanificacionComponent implements OnInit {
         console.error('Error en la llamada a la API de ChatGPT:', error);
       }
     });
-  }
-
-  // Método para limpiar el textarea
-  clearObjetivo() {
-    this.objetivo = '';
-  }
-
-  // Guardar objetivo en la base de datos
-  async saveObjective() {
-    try {
-      const { data, error } = await this.authService.updateReviewObjective(this.reviewId, this.objetivo);
-      if (error) {
-        console.error('Error al actualizar el objetivo:', error);
-      } else {
-        Swal.fire({
-          icon: 'success',
-          title: 'Objetivo guardado',
-          text: 'El objetivo se ha guardado correctamente.',
-          timer: 2500
-        });
-      }
-    } catch (err) {
-      console.error('Error al guardar el objetivo:', err);
-    }
   }
 
   async guardarMetodologiaPICO() {
@@ -620,7 +624,83 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-  questions: Question[] = [];
+  generateMethodologyStructure() {
+    // Verifica que se hayan ingresado todos los datos necesarios
+    if (!this.titulo_revision || !this.paginaSeleccionada || !this.objetivo) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Datos faltantes',
+        text: 'Por favor, completa el título, la metodología y el objetivo.'
+      });
+      return;
+    }
+
+    // Muestra un SweetAlert de carga
+    Swal.fire({
+      title: 'Generando estructura...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+
+    // Llamada a la API
+    this.openAiService.getMethodologyStructure(
+      this.titulo_revision,
+      this.paginaSeleccionada,
+      this.objetivo
+    ).subscribe({
+      next: (response) => {
+        // Según la metodología, asigna los valores generados a las variables correspondientes
+        const methodologyKey = this.paginaSeleccionada.toUpperCase();
+        if (methodologyKey === 'PICO') {
+          this.picoP = response.picoP || '';
+          this.picoI = response.picoI || '';
+          this.picoC = response.picoC || '';
+          this.picoO = response.picoO || '';
+        } else if (methodologyKey === 'PICOC') {
+          this.picocP = response.picocP || '';
+          this.picocI = response.picocI || '';
+          this.picocC = response.picocC || '';
+          this.picocO = response.picocO || '';
+          this.picocContext = response.picocContext || '';
+        } else if (methodologyKey === 'PICOTT') {
+          this.picottP = response.picottP || '';
+          this.picottI = response.picottI || '';
+          this.picottC = response.picottC || '';
+          this.picottO = response.picottO || '';
+          this.picottT = response.picottT || '';
+          this.picottT2 = response.picottT2 || '';
+        } else if (methodologyKey === 'SPICE') {
+          this.spiceS = response.spiceS || '';
+          this.spiceP = response.spiceP || '';
+          this.spiceI = response.spiceI || '';
+          this.spiceC = response.spiceC || '';
+          this.spiceE = response.spiceE || '';
+        }
+        console.log('Estructura generada:', response);
+        // Cierra el SweetAlert de carga
+        Swal.close();
+        // Muestra mensaje de éxito
+        Swal.fire({
+          icon: 'success',
+          title: 'Estructura generada',
+          text: 'La IA ha generado la estructura de la metodología.',
+          timer: 2500
+        });
+      },
+      error: (error) => {
+        console.error('Error generando la estructura metodológica:', error);
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo generar la estructura. Inténtalo nuevamente.'
+        });
+      }
+    });
+  }
 
   addQuestion() {
     this.questions.push({ id: Date.now(), value: '', id_detalles_revision: this.reviewId || undefined, isSaved: false });
@@ -666,6 +746,7 @@ export class PlanificacionComponent implements OnInit {
           text: 'Pregunta guardada exitosamente.',
         });
       }
+      question.isSaved = true;
     } catch (error) {
       console.error('Error al guardar la pregunta:', error);
       await Swal.fire({
@@ -709,6 +790,11 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
+  // Método para editar: habilitar el input nuevamente
+  editQuestion(question: Question) {
+    question.isSaved = false;
+  }
+
   async loadQuestions() {
     if (this.reviewId) {
       const { data, error } = await this.authService.getResearchQuestionsByRevision(this.reviewId);
@@ -731,7 +817,6 @@ export class PlanificacionComponent implements OnInit {
       }
     }
   }
-
 
   async deleteQuestion(questionId: number) {
     const result = await Swal.fire({
@@ -771,6 +856,79 @@ export class PlanificacionComponent implements OnInit {
         });
       }
     }
+  }
+
+  // Función para generar preguntas de investigación a través de la API
+  generateResearchQuestions() {
+    Swal.fire({
+      title: 'Número de Preguntas',
+      text: '¿Cuántas preguntas desea generar?',
+      icon: 'question',
+      input: 'number',
+      inputLabel: 'Número de preguntas',
+      inputPlaceholder: 'Ingrese un número',
+      showCancelButton: true,
+      confirmButtonText: 'Generar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value || isNaN(Number(value)) || Number(value) <= 0) {
+          return 'Por favor, ingrese un número válido';
+        }
+        return null;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const numQuestions = Number(result.value);
+        console.log('Generar', numQuestions, 'preguntas');
+        // Muestra un SweetAlert de carga
+        Swal.fire({
+          title: 'Generando preguntas...',
+          text: 'Por favor, espera un momento.',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading(Swal.getConfirmButton());
+          }
+        });
+
+        // Llamada al servicio OpenAiService para generar las preguntas
+        this.openAiService.getResearchQuestions(
+          this.titulo_revision,    // o el título que uses en tu componente
+          this.paginaSeleccionada,      // o la metodología (ajusta según tu lógica)
+          this.objetivo,        // o el objetivo, etc.
+          numQuestions
+        ).subscribe(
+          (response) => {
+            // Cierra el alert de carga
+            Swal.close();
+
+            // Suponemos que la respuesta tiene la propiedad "questions" como arreglo de strings.
+            const generatedQuestions: string[] = response.questions || [];
+            // Mapea cada string a un objeto Question
+            this.questions = generatedQuestions.map(q => ({
+              id: Date.now() + Math.floor(Math.random() * 1000),
+              value: q,
+              id_detalles_revision: this.reviewId,
+              isSaved: false
+            }));
+            Swal.fire({
+              icon: 'success',
+              title: 'Preguntas Generadas',
+              text: `Se han generado ${this.questions.length} preguntas de investigación.`,
+              timer: 1500
+            });
+          },
+          (error) => {
+            console.error('Error al generar preguntas:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'No se pudieron generar las preguntas.',
+              timer: 1500
+            });
+          }
+        );
+      }
+    });
   }
 
   /**
@@ -854,10 +1012,12 @@ export class PlanificacionComponent implements OnInit {
       }
 
       row.isEditing = false; // Termina modo edición
+      //window.location.reload();
       await Swal.fire({
         icon: 'success',
         title: '¡Guardado!',
         text: 'La palabra clave se ha insertado correctamente.',
+        timer: 1500
       });
     } catch (err) {
       console.error('Error inesperado al guardar:', err);
@@ -865,6 +1025,7 @@ export class PlanificacionComponent implements OnInit {
         icon: 'error',
         title: 'Error inesperado',
         text: 'Ocurrió un problema al guardar la palabra clave.',
+        timer: 1500
       });
     }
   }
@@ -982,6 +1143,68 @@ export class PlanificacionComponent implements OnInit {
     // row.synonyms = row.synonyms.trim().toLowerCase();
   }
 
+  buildMethodologyData(): any {
+    switch (this.paginaSeleccionada.toUpperCase()) {
+      case 'PICO':
+        return { P: this.picoP, I: this.picoI, C: this.picoC, O: this.picoO };
+      case 'PICOC':
+        return { P: this.picocP, I: this.picocI, C: this.picocC, O: this.picocO, Context: this.picocContext };
+      case 'PICOTT':
+        return { P: this.picottP, I: this.picottI, C: this.picottC, O: this.picottO, T: this.picottT, T2: this.picottT2 };
+      case 'SPICE':
+        return { S: this.spiceS, P: this.spiceP, I: this.spiceI, C: this.spiceC, E: this.spiceE };
+      default:
+        return {};
+    }
+  }
+
+  generateKeywords(): void {
+    const methodologyData = this.buildMethodologyData();
+  
+    Swal.fire({
+      title: 'Generando sugerencia...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+  
+    this.openAiService.generateKeywords(methodologyData).subscribe(
+      (response) => {
+        if (response && response.keywords) {
+          // Aquí se asigna id_palabras_clave como null para marcar el registro como nuevo,
+          // y se establece isEditing a true para mostrar el botón "Guardar".
+          this.tableData = response.keywords.map((item: any) => ({
+            id_palabras_clave: null,  // No se asigna un ID, por lo que se considera nuevo.
+            keyword: item.palabra_clave,
+            related: item.metodologia,
+            synonyms: Array.isArray(item.sinonimos) ? item.sinonimos.join(', ') : item.sinonimos,
+            isEditing: true
+          }));
+        } else {
+          console.error('La respuesta no contiene la propiedad "keywords"');
+        }
+        Swal.close();
+        Swal.fire({
+          icon: 'success',
+          title: 'Sugerencia generada',
+          text: 'La IA ha generado una sugerencia para las palabras clave.',
+          timer: 2500
+        });
+      },
+      (error) => {
+        console.error("Error generando palabras clave:", error);
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo generar la sugerencia.'
+        });
+      }
+    );
+  }
+
   // Método para limpiar el textarea
   clearCadena() {
     this.cadenaBusqueda = '';
@@ -1062,6 +1285,50 @@ export class PlanificacionComponent implements OnInit {
       // No hay ninguna cadena guardada
       this.cadenaBusqueda = '';
     }
+  }
+
+  generateSearchString() {
+    // Mostrar alerta de carga
+    Swal.fire({
+      title: 'Generando cadena...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+  
+    // Llamar a la API para generar la cadena de búsqueda
+    console.log('Generando cadena de búsqueda con:', this.tableData);
+    this.openAiService.getSearchString(this.tableData).subscribe(
+      (response) => {
+        // Suponemos que la respuesta tiene la propiedad "searchString"
+        if (response && response.searchString) {
+          this.cadenaBusqueda = response.searchString;
+        } else {
+          this.cadenaBusqueda = '';
+          console.warn('La respuesta de la API no contiene "searchString".');
+        }
+        // Cerrar la alerta de carga
+        Swal.close();
+        // Mostrar alerta de éxito
+        Swal.fire({
+          icon: 'success',
+          title: 'Cadena Generada',
+          text: 'Se ha generado la cadena de búsqueda.',
+          timer: 1500
+        });
+      },
+      (error) => {
+        console.error('Error al generar la cadena de búsqueda', error);
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo generar la cadena de búsqueda.'
+        });
+      }
+    );
   }
 
   /**
@@ -1261,29 +1528,61 @@ export class PlanificacionComponent implements OnInit {
    */
   async updateExclusion(index: number) {
     const crit = this.exclusions[index];
-    if (!crit.id_criterios) return;
-
-    // Llamamos al servicio para actualizar la descripción
-    const { error } = await this.authService.updateCriterio(
-      crit.id_criterios,
-      crit.descripcion
+    let updateError = null;
+  
+    // Si existe id_criterios, intentamos actualizar
+    if (crit.id_criterios) {
+      const { error } = await this.authService.updateCriterio(
+        crit.id_criterios,
+        crit.descripcion
+      );
+      updateError = error;
+      if (!updateError) {
+        crit.isEditing = false;
+        Swal.fire({
+          icon: 'success',
+          title: 'Actualizado',
+          text: 'El criterio ha sido actualizado.'
+        });
+        return;
+      } else {
+        console.error('Error al actualizar criterio:', updateError);
+      }
+    }
+  
+    // Si no existe id_criterios o la actualización falló, intentamos insertar
+    const { data, error } = await this.authService.insertCriterio(
+      crit.descripcion,
+      'exclusion', // Tipo de criterio
+      this.reviewId // ID de la revisión asociada
     );
-
+  
     if (error) {
-      console.error('Error al actualizar criterio:', error);
+      console.error('Error al insertar criterio:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se pudo actualizar el criterio.',
+        text: 'No se pudo actualizar ni insertar el criterio.'
       });
       return;
     }
-
-    crit.isEditing = false;
+  
+    // Si la inserción fue exitosa, actualizamos el arreglo local
+    if (data && data.length > 0) {
+      const newCriterio: Criterio = {
+        id_criterios: data[0].id_criterios,
+        descripcion: data[0].descripcion,
+        tipo: 'exclusion',
+        isEditing: false
+      };
+      this.exclusions[index] = newCriterio;
+    }
+  
     Swal.fire({
       icon: 'success',
-      title: 'Actualizado',
-      text: 'El criterio ha sido actualizado.',
+      title: 'Agregado',
+      text: 'El criterio se ha agregado a la base de datos.',
+      timer: 1500
     });
   }
 
@@ -1299,30 +1598,140 @@ export class PlanificacionComponent implements OnInit {
    */
   async updateInclusion(index: number) {
     const crit = this.inclusions[index];
-    if (!crit.id_criterios) return;
-
-    const { error } = await this.authService.updateCriterio(
-      crit.id_criterios,
-      crit.descripcion
+    let updateError = null;
+  
+    // Si existe id_criterios, intentamos actualizar
+    if (crit.id_criterios) {
+      const { error } = await this.authService.updateCriterio(
+        crit.id_criterios,
+        crit.descripcion
+      );
+      updateError = error;
+      if (!updateError) {
+        crit.isEditing = false;
+        Swal.fire({
+          icon: 'success',
+          title: 'Actualizado',
+          text: 'El criterio ha sido actualizado.'
+        });
+        return;
+      } else {
+        console.error('Error al actualizar criterio:', updateError);
+      }
+    }
+  
+    // Si no existe id_criterios o si la actualización falló, intentamos insertar
+    const { data, error } = await this.authService.insertCriterio(
+      crit.descripcion,
+      'inclusion',
+      this.reviewId
     );
-
+    
     if (error) {
-      console.error('Error al actualizar criterio:', error);
+      console.error('Error al insertar criterio:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'No se pudo actualizar el criterio.',
+        text: 'No se pudo actualizar ni insertar el criterio.'
       });
       return;
     }
-
-    crit.isEditing = false;
+  
+    // Si la inserción fue exitosa, actualizamos el arreglo local
+    if (data && data.length > 0) {
+      const newCriterio: Criterio = {
+        id_criterios: data[0].id_criterios,
+        descripcion: data[0].descripcion,
+        tipo: 'inclusion',
+        isEditing: false
+      };
+      this.inclusions[index] = newCriterio;
+    }
+  
     Swal.fire({
       icon: 'success',
-      title: 'Actualizado',
-      text: 'El criterio ha sido actualizado.',
+      title: 'Agregado',
+      text: 'El criterio se ha agregado a la base de datos.',
+      timer: 1500
     });
   }
+
+  generateCriteriaFromAI() {
+    if (!this.titulo_revision || !this.objetivo) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Datos faltantes',
+        text: 'Por favor, asegúrate de ingresar el título y el objetivo del estudio.'
+      });
+      return;
+    }
+  
+    // Mostrar alerta de carga
+    Swal.fire({
+      title: 'Generando criterios...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        // Puedes pasar Swal.getConfirmButton() si lo requieres, pero generalmente se usa sin parámetro
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+  
+    this.openAiService.generateCriteria(this.titulo_revision, this.objetivo).subscribe(
+      (response) => {
+        console.log('Respuesta de la IA:', response);
+        // Cerrar la alerta de carga
+        Swal.close();
+  
+        // Se espera que response sea un array de objetos: { criterio, categoria }
+        // Reiniciar arrays de criterios
+        this.exclusions = [];
+        this.inclusions = [];
+  
+        response.forEach((item: any) => {
+          // Convertir la categoría a minúsculas para facilitar la comparación
+          const cat = item.categoria.toLowerCase();
+          // Aquí, asigna la propiedad 'descripcion' tomando el valor de item.criterio
+          const criterioObj: Criterio = {
+            descripcion: item.criterio,  // Asegúrate de que 'item.criterio' contenga la palabra que deseas mostrar
+            isEditing: true,             // Se inicia en modo edición
+            tipo: (cat.includes('excluido') || cat.includes('exclusion')) ? 'exclusion' : 'inclusion'
+          };
+          
+          if (criterioObj.tipo === 'exclusion') {
+            this.exclusions.push(criterioObj);
+          } else {
+            this.inclusions.push(criterioObj);
+          }
+        });
+  
+        // Mostrar alerta de éxito
+        Swal.fire({
+          icon: 'success',
+          title: 'Criterios Generados',
+          text: 'Se ha generado la cadena de búsqueda.',
+          timer: 1500
+        });
+      },
+      (error) => {
+        Swal.close();
+        console.error('Error al generar criterios:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron generar los criterios con IA.'
+        });
+      }
+    );
+  }
+
+
+
+
+
+
+
+
 
   //segunda pagina
 

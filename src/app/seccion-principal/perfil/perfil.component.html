@@ -15,10 +15,10 @@
                     <img *ngIf="imageUrl" [src]="imageUrl" alt="Imagen de perfil" style="height: 160px; width: 160px; border-radius: 50%; object-fit: cover;" />
                     <div class="mt-2">
                       <input type="file" (change)="onFileSelected($event)" id="imageUpload" style="display: none;" />
-                      <label for="imageUpload" class="btn btn-primary btn-sm rounded-circle" style="position: absolute; bottom: 0; right: 0;">
+                      <label for="imageUpload" class="btn btn-info btn-sm rounded-circle" style="position: absolute; bottom: 0; right: 0;">
                         <i class="bi bi-upload"></i>
                       </label>
-                      <button *ngIf="imageFile" class="btn btn-success btn-sm rounded-circle mt-2" (click)="uploadImage(imageFile)">Subir</button>
+                      <button *ngIf="imageFile" class="btn btn-info btn-sm rounded-circle mt-2" (click)="uploadImage(imageFile)">Subir</button>
                     </div>
                   </div>
                 </div>
@@ -56,7 +56,7 @@
                 <input type="text" class="form-control" id="institution" formControlName="institucion">
               </div>
             </div>
-            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+            <button type="submit" class="btn btn-success">Guardar cambios</button>
           </form>
         </div>
       </div>

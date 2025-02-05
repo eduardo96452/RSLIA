@@ -97,7 +97,8 @@
                                                         aria-expanded="false" aria-controls="flush-collapseOne"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="fa-solid fa-pencil"></i>&nbsp;1) Objetivo de la
+                                                            <i class="fa-solid fa-pencil"></i>&nbsp;&nbsp;1.- Objetivo
+                                                            de la
                                                             reseña
                                                         </h5>
                                                     </button>
@@ -110,10 +111,10 @@
                                                         <div class="d-flex justify-content-end">
                                                             <!-- Botón de Sugerencia IA en la fila superior -->
 
-                                                            <button class="btn btn-warning align-self-start"
-                                                                type="button" (click)="getIaSuggestion()"
+                                                            <button class="btn btn-info align-self-start" type="button"
+                                                                (click)="getIaSuggestion()"
                                                                 onclick="event.stopPropagation();">
-                                                                <i class="bi bi-bug-fill"></i>&nbsp; Generar objetivo
+                                                                <i class="bi bi-lightbulb"></i>&nbsp; Generar objetivo
                                                                 con IA
                                                             </button>
                                                         </div>
@@ -141,7 +142,7 @@
                                                                 </div>
                                                                 <div class="col text-end">
                                                                     <!-- Botón para guardar el objetivo -->
-                                                                    <button class="btn btn-primary" type="button"
+                                                                    <button class="btn btn-success" type="button"
                                                                         (click)="saveObjective()">
                                                                         <i class="fa-solid fa-paper-plane"></i> &nbsp;
                                                                         Guardar objetivo
@@ -161,7 +162,8 @@
                                                         aria-expanded="false" aria-controls="flush-collapseTwo"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="fa-solid fa-pencil"></i>&nbsp;2) Selecciona una
+                                                            <i class="bi bi-book-half"></i>&nbsp;&nbsp;3.- Selecciona
+                                                            una
                                                             metodología
                                                         </h5>
                                                     </button>
@@ -172,28 +174,26 @@
                                                         <select class="form-select mb-4" id="paginaSelect"
                                                             [(ngModel)]="paginaSeleccionada"
                                                             (ngModelChange)="onMetodoChange($event)">
-                                                            <option value="pagina1">PICO</option>
-                                                            <option value="pagina2">PICOC</option>
-                                                            <option value="pagina3">PICOTT</option>
-                                                            <option value="pagina4">SPICE</option>
+                                                            <option value="PICO">PICO</option>
+                                                            <option value="PICOC">PICOC</option>
+                                                            <option value="PICOTT">PICOTT</option>
+                                                            <option value="SPICE">SPICE</option>
                                                         </select>
 
 
                                                         <div class="">
                                                             <!-- PICO -->
-                                                            <div class="card p-3"
-                                                                *ngIf="paginaSeleccionada === 'pagina1'">
+                                                            <div class="card p-3" *ngIf="paginaSeleccionada === 'PICO'">
                                                                 <div class="container">
                                                                     <div class="row align-items-start">
                                                                         <div class="col">
                                                                             <h5>PICO</h5>
                                                                         </div>
                                                                         <div class="col text-end">
-                                                                            <button class="btn btn-warning"
-                                                                                type="button">
-                                                                                <i class="bi bi-bug-fill"></i> &nbsp;
-                                                                                Generar PICO con
-                                                                                IA
+                                                                            <button class="btn btn-info" type="button"
+                                                                                (click)="generateMethodologyStructure()">
+                                                                                <i class="bi bi-lightbulb"></i> &nbsp;
+                                                                                Generar {{paginaSeleccionada}} con IA
                                                                             </button>
                                                                         </div>
                                                                     </div>
@@ -201,39 +201,44 @@
                                                                     <div class="row">
                                                                         <div class="col">
                                                                             <form>
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Población
-                                                                                        (P)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picoP"
-                                                                                        name="picoP" />
-                                                                                </div>
-                                                                                <div class="mb-3">
-                                                                                    <label
-                                                                                        class="form-label">Intervención
-                                                                                        (I)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picoI"
-                                                                                        name="picoI" />
-                                                                                </div>
-                                                                                <div class="mb-3">
-                                                                                    <label
-                                                                                        class="form-label">Comparación
-                                                                                        (C)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picoC"
-                                                                                        name="picoC" />
-                                                                                </div>
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Resultado
-                                                                                        (O)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picoO"
-                                                                                        name="picoO" />
+                                                                                <div
+                                                                                    *ngIf="paginaSeleccionada.toUpperCase() === 'PICO'">
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Población
+                                                                                            (P)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picoP"
+                                                                                            name="picoP" />
+                                                                                    </div>
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Intervención
+                                                                                            (I)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picoI"
+                                                                                            name="picoI" />
+                                                                                    </div>
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Comparación
+                                                                                            (C)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picoC"
+                                                                                            name="picoC" />
+                                                                                    </div>
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Resultado
+                                                                                            (O)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picoO"
+                                                                                            name="picoO" />
+                                                                                    </div>
                                                                                 </div>
                                                                             </form>
                                                                         </div>
@@ -241,7 +246,7 @@
                                                                 </div>
 
                                                                 <div class="card-footer text-end">
-                                                                    <button class="btn btn-primary" type="button"
+                                                                    <button class="btn btn-success" type="button"
                                                                         (click)="guardarMetodologiaPICO()">
                                                                         <i class="fa-solid fa-paper-plane"></i> &nbsp;
                                                                         Guardar
@@ -253,17 +258,18 @@
 
                                                             <!-- PICOC -->
                                                             <div class="card p-3"
-                                                                *ngIf="paginaSeleccionada === 'pagina2'">
+                                                                *ngIf="paginaSeleccionada === 'PICOC'">
                                                                 <div class="container">
                                                                     <div class="row align-items-start">
                                                                         <div class="col">
                                                                             <h5>PICOC</h5>
                                                                         </div>
                                                                         <div class="col text-end">
-                                                                            <button class="btn btn-warning"
-                                                                                type="submit">
-                                                                                <i class="bi bi-bug-fill"></i>
-                                                                                &nbsp; Generar PICOC con IA
+                                                                            <button class="btn btn-info" type="button"
+                                                                                (click)="generateMethodologyStructure()">
+                                                                                <i class="bi bi-lightbulb"></i>
+                                                                                &nbsp; Generar {{paginaSeleccionada}}
+                                                                                con IA
                                                                             </button>
                                                                         </div>
                                                                     </div>
@@ -271,50 +277,56 @@
                                                                     <div class="row">
                                                                         <div class="col">
                                                                             <form>
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Población
-                                                                                        (P)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picocP"
-                                                                                        name="picocP" />
-                                                                                </div>
-                                                                                <br />
-                                                                                <div class="mb-3">
-                                                                                    <label
-                                                                                        class="form-label">Intervención
-                                                                                        (I)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picocI"
-                                                                                        name="picocI" />
-                                                                                </div>
-                                                                                <br />
-                                                                                <div class="mb-3">
-                                                                                    <label
-                                                                                        class="form-label">Comparación
-                                                                                        (C)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picocC"
-                                                                                        name="picocC" />
-                                                                                </div>
-                                                                                <br />
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Resultado
-                                                                                        (O)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picocO"
-                                                                                        name="picocO" />
-                                                                                </div>
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Contexto
-                                                                                        (C)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picocContext"
-                                                                                        name="picocContext" />
+                                                                                <div
+                                                                                    *ngIf="paginaSeleccionada.toUpperCase() === 'PICOC'">
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Población
+                                                                                            (P)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picocP"
+                                                                                            name="picocP" />
+                                                                                    </div>
+                                                                                    <br />
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Intervención
+                                                                                            (I)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picocI"
+                                                                                            name="picocI" />
+                                                                                    </div>
+                                                                                    <br />
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Comparación
+                                                                                            (C)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picocC"
+                                                                                            name="picocC" />
+                                                                                    </div>
+                                                                                    <br />
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Resultado
+                                                                                            (O)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picocO"
+                                                                                            name="picocO" />
+                                                                                    </div>
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Contexto
+                                                                                            (C)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picocContext"
+                                                                                            name="picocContext" />
+                                                                                    </div>
                                                                                 </div>
                                                                             </form>
                                                                         </div>
@@ -322,7 +334,7 @@
                                                                 </div>
 
                                                                 <div class="card-footer text-end">
-                                                                    <button class="btn btn-primary" type="button"
+                                                                    <button class="btn btn-success" type="button"
                                                                         (click)="guardarMetodologiaPICOC()">
                                                                         <i class="fa-solid fa-paper-plane"></i> &nbsp;
                                                                         Guardar
@@ -333,17 +345,18 @@
 
                                                             <!-- PICOTT -->
                                                             <div class="card p-3"
-                                                                *ngIf="paginaSeleccionada === 'pagina3'">
+                                                                *ngIf="paginaSeleccionada === 'PICOTT'">
                                                                 <div class="container">
                                                                     <div class="row align-items-start">
                                                                         <div class="col">
                                                                             <h5>PICOTT</h5>
                                                                         </div>
                                                                         <div class="col text-end">
-                                                                            <button class="btn btn-warning"
-                                                                                type="submit">
-                                                                                <i class="bi bi-bug-fill"></i>
-                                                                                &nbsp; Generar PICOTT con IA
+                                                                            <button class="btn btn-info" type="button"
+                                                                                (click)="generateMethodologyStructure()">
+                                                                                <i class="bi bi-lightbulb"></i>
+                                                                                &nbsp; Generar {{paginaSeleccionada}}
+                                                                                con IA
                                                                             </button>
                                                                         </div>
                                                                     </div>
@@ -351,58 +364,65 @@
                                                                     <div class="row">
                                                                         <div class="col">
                                                                             <form>
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Población
-                                                                                        (P)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picottP"
-                                                                                        name="picottP" />
-                                                                                </div>
-                                                                                <br />
-                                                                                <div class="mb-3">
-                                                                                    <label
-                                                                                        class="form-label">Intervención
-                                                                                        (I)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picottI"
-                                                                                        name="picottI" />
-                                                                                </div>
-                                                                                <br />
-                                                                                <div class="mb-3">
-                                                                                    <label
-                                                                                        class="form-label">Comparación
-                                                                                        (C)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picottC"
-                                                                                        name="picottC" />
-                                                                                </div>
-                                                                                <br />
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Resultado
-                                                                                        (O)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picottO"
-                                                                                        name="picottO" />
-                                                                                </div>
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Tipo de
-                                                                                        pregunta (T)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picottT"
-                                                                                        name="picottT" />
-                                                                                </div>
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Tipo de
-                                                                                        articulo (T)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="picottT2"
-                                                                                        name="picottT2" />
+                                                                                <div
+                                                                                    *ngIf="paginaSeleccionada.toUpperCase() === 'PICOTT'">
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Población
+                                                                                            (P)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picottP"
+                                                                                            name="picottP" />
+                                                                                    </div>
+                                                                                    <br />
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Intervención
+                                                                                            (I)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picottI"
+                                                                                            name="picottI" />
+                                                                                    </div>
+                                                                                    <br />
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Comparación
+                                                                                            (C)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picottC"
+                                                                                            name="picottC" />
+                                                                                    </div>
+                                                                                    <br />
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Resultado
+                                                                                            (O)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picottO"
+                                                                                            name="picottO" />
+                                                                                    </div>
+                                                                                    <div class="mb-3">
+                                                                                        <label class="form-label">Tipo
+                                                                                            de
+                                                                                            pregunta (T)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picottT"
+                                                                                            name="picottT" />
+                                                                                    </div>
+                                                                                    <div class="mb-3">
+                                                                                        <label class="form-label">Tipo
+                                                                                            de
+                                                                                            estudio (T)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="picottT2"
+                                                                                            name="picottT2" />
+                                                                                    </div>
                                                                                 </div>
                                                                             </form>
                                                                         </div>
@@ -410,7 +430,7 @@
                                                                 </div>
 
                                                                 <div class="card-footer text-end">
-                                                                    <button class="btn btn-primary" type="button"
+                                                                    <button class="btn btn-success" type="button"
                                                                         (click)="guardarMetodologiaPICOTT()">
                                                                         <i class="fa-solid fa-paper-plane"></i> &nbsp;
                                                                         Guardar
@@ -421,17 +441,18 @@
 
                                                             <!-- SPICE -->
                                                             <div class="card p-3"
-                                                                *ngIf="paginaSeleccionada === 'pagina4'">
+                                                                *ngIf="paginaSeleccionada === 'SPICE'">
                                                                 <div class="container">
                                                                     <div class="row align-items-start">
                                                                         <div class="col">
                                                                             <h5>SPICE</h5>
                                                                         </div>
                                                                         <div class="col text-end">
-                                                                            <button class="btn btn-warning"
-                                                                                type="submit">
-                                                                                <i class="bi bi-bug-fill"></i>
-                                                                                &nbsp; Generar SPICE con IA
+                                                                            <button class="btn btn-info" type="button"
+                                                                                (click)="generateMethodologyStructure()">
+                                                                                <i class="bi bi-lightbulb"></i>
+                                                                                &nbsp; Generar {{paginaSeleccionada}}
+                                                                                con IA
                                                                             </button>
                                                                         </div>
                                                                     </div>
@@ -439,51 +460,56 @@
                                                                     <div class="row">
                                                                         <div class="col">
                                                                             <form>
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Escenario
-                                                                                        (E)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="spiceS"
-                                                                                        name="spiceS" />
-                                                                                </div>
-                                                                                <br />
-                                                                                <div class="mb-3">
-                                                                                    <label
-                                                                                        class="form-label">Perspectiva
-                                                                                        (P)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="spiceP"
-                                                                                        name="spiceP" />
-                                                                                </div>
-                                                                                <br />
-                                                                                <div class="mb-3">
-                                                                                    <label
-                                                                                        class="form-label">Intervención
-                                                                                        (I)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="spiceI"
-                                                                                        name="spiceI" />
-                                                                                </div>
-                                                                                <br />
-                                                                                <div class="mb-3">
-                                                                                    <label
-                                                                                        class="form-label">Comparación
-                                                                                        (C)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="spiceC"
-                                                                                        name="spiceC" />
-                                                                                </div>
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Evaluación
-                                                                                        (E)</label>
-                                                                                    <input type="text"
-                                                                                        class="form-control"
-                                                                                        [(ngModel)]="spiceE"
-                                                                                        name="spiceE" />
+                                                                                <div
+                                                                                    *ngIf="paginaSeleccionada.toUpperCase() === 'SPICE'">
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Escenario
+                                                                                            (E)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="spiceS"
+                                                                                            name="spiceS" />
+                                                                                    </div>
+                                                                                    <br />
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Perspectiva
+                                                                                            (P)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="spiceP"
+                                                                                            name="spiceP" />
+                                                                                    </div>
+                                                                                    <br />
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Intervención
+                                                                                            (I)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="spiceI"
+                                                                                            name="spiceI" />
+                                                                                    </div>
+                                                                                    <br />
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Comparación
+                                                                                            (C)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="spiceC"
+                                                                                            name="spiceC" />
+                                                                                    </div>
+                                                                                    <div class="mb-3">
+                                                                                        <label
+                                                                                            class="form-label">Evaluación
+                                                                                            (E)</label>
+                                                                                        <input type="text"
+                                                                                            class="form-control"
+                                                                                            [(ngModel)]="spiceE"
+                                                                                            name="spiceE" />
+                                                                                    </div>
                                                                                 </div>
                                                                             </form>
                                                                         </div>
@@ -491,7 +517,7 @@
                                                                 </div>
 
                                                                 <div class="card-footer text-end">
-                                                                    <button class="btn btn-primary" type="button"
+                                                                    <button class="btn btn-success" type="button"
                                                                         (click)="guardarMetodologiaSPICE()">
                                                                         <i class="fa-solid fa-paper-plane"></i> &nbsp;
                                                                         Guardar
@@ -512,8 +538,8 @@
                                                         aria-expanded="false" aria-controls="flush-collapseThree"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="bi bi-key-fill"></i>&nbsp;3) Preguntas de
-                                                            investigación
+                                                            <i class="bi bi-question-circle"></i>&nbsp;&nbsp;3.-
+                                                            Preguntas de investigación
                                                         </h5>
                                                     </button>
                                                 </h2>
@@ -522,14 +548,15 @@
                                                     <div class="accordion-body">
                                                         <div class="d-flex justify-content-between">
                                                             <!-- Botón Agregar pregunta alineado a la derecha -->
-                                                            <button class="btn btn-secondary btn-sm"
+                                                            <button class="btn btn-primary btn-sm"
                                                                 (click)="addQuestion()">
                                                                 <i class="bi bi-plus"></i>&nbsp; Agregar pregunta
                                                             </button>
 
                                                             <!-- Botón Sugerencia IA alineado a la izquierda -->
-                                                            <button class="btn btn-warning" type="submit">
-                                                                <i class="bi bi-bug-fill"></i>&nbsp; Generar pregunta
+                                                            <button class="btn btn-info" type="button"
+                                                                (click)="generateResearchQuestions()">
+                                                                <i class="bi bi-lightbulb"></i>&nbsp; Generar pregunta
                                                                 con IA
                                                             </button>
                                                         </div>
@@ -540,21 +567,31 @@
                                                                 <div class="input-group mb-2">
                                                                     <input type="text" class="form-control"
                                                                         [(ngModel)]="question.value"
+                                                                        [disabled]="!!question.isSaved"
                                                                         placeholder="Escriba su pregunta de investigación" />
+                                                                    <!-- Se deshabilita si ya está guardada -->
+                                                                    <!-- Botón Cancelar (opcional, si no se desea, se puede quitar) -->
                                                                     <button *ngIf="!question.isSaved"
-                                                                        class="btn btn-outline-secondary" type="button"
+                                                                        class="btn btn-outline-danger" type="button"
                                                                         (click)="cancelQuestion(question.id)">
                                                                         <i class="bi bi-x"></i>
                                                                     </button>
                                                                 </div>
                                                                 <div class="d-flex justify-content-end gap-2">
+                                                                    <!-- Botón Guardar se muestra cuando la pregunta no está guardada -->
                                                                     <button *ngIf="!question.isSaved"
-                                                                        class="btn btn-outline-primary"
+                                                                        class="btn btn-success"
                                                                         (click)="saveQuestion(question)">
-                                                                        <i class="bi bi-floppy"> Guardar</i>
+                                                                        <i class="bi bi-floppy"></i> Guardar
+                                                                    </button>
+                                                                    <!-- Botón Editar (estilo amarillo) se muestra cuando la pregunta está guardada -->
+                                                                    <button *ngIf="question.isSaved"
+                                                                        class="btn btn-warning"
+                                                                        (click)="editQuestion(question)">
+                                                                        <i class="bi bi-pencil"></i> Editar
                                                                     </button>
                                                                     <button *ngIf="question.isSaved"
-                                                                        class="btn btn-outline-danger"
+                                                                        class="btn btn-danger"
                                                                         (click)="deleteQuestion(question.id)">
                                                                         <i class="bi bi-trash"> Eliminar </i>
                                                                     </button>
@@ -573,8 +610,8 @@
                                                         aria-expanded="false" aria-controls="flush-collapseThree"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="bi bi-key-fill"></i>&nbsp;4) Palabras claves y
-                                                            sinónimos
+                                                            <i class="bi bi-key-fill"></i>&nbsp;&nbsp;4.- Palabras
+                                                            claves y sinónimos
                                                         </h5>
                                                     </button>
                                                 </h2>
@@ -583,15 +620,16 @@
                                                     <div class="accordion-body">
                                                         <div class="d-flex justify-content-between">
                                                             <!-- Botón Agregar palabra clave alineado a la derecha -->
-                                                            <button class="btn btn-secondary" data-bs-toggle="modal"
+                                                            <button class="btn btn-primary" data-bs-toggle="modal"
                                                                 (click)="addRow()" data-bs-target="#staticBackdrop"><i
                                                                     class="bi bi-plus"></i>
                                                                 &nbsp;
                                                                 Añadir palabra clave
                                                             </button>
                                                             <!-- Botón Sugerencia IA alineado a la izquierda -->
-                                                            <button class="btn btn-warning" type="submit">
-                                                                <i class="bi bi-bug-fill"></i>&nbsp; Generar sinonimos
+                                                            <button class="btn btn-info" type="button"
+                                                                (click)="generateKeywords()">
+                                                                <i class="bi bi-lightbulb"></i>&nbsp; Generar sinonimos
                                                                 con IA
                                                             </button>
                                                         </div>
@@ -645,7 +683,7 @@
                                                                         <td>
                                                                             <!-- CASO 1: REGISTRO NUEVO => mostrar Guardar -->
                                                                             <button *ngIf="!row.id_palabras_clave"
-                                                                                class="btn btn-primary btn-sm me-1"
+                                                                                class="btn btn-success btn-sm me-1"
                                                                                 [disabled]="!row.isEditing"
                                                                                 (click)="saveRow(row)">
                                                                                 Guardar
@@ -654,13 +692,13 @@
                                                                             <!-- CASO 2: REGISTRO EXISTENTE => mostrar Editar / Actualizar -->
                                                                             <ng-container *ngIf="row.id_palabras_clave">
                                                                                 <button *ngIf="!row.isEditing"
-                                                                                    class="btn btn-secondary btn-sm me-1"
+                                                                                    class="btn btn-warning btn-sm me-1"
                                                                                     (click)="editRow(i)">
                                                                                     Editar
                                                                                 </button>
 
                                                                                 <button *ngIf="row.isEditing"
-                                                                                    class="btn btn-warning btn-sm me-1"
+                                                                                    class="btn btn-success btn-sm me-1"
                                                                                     (click)="updateRow(row)">
                                                                                     Actualizar
                                                                                 </button>
@@ -688,7 +726,8 @@
                                                         aria-expanded="false" aria-controls="flush-collapseFive"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="bi bi-stack-overflow"></i>&nbsp;5) Cadena de
+                                                            <i class="bi bi-stack-overflow"></i>&nbsp;&nbsp;5.- Cadena
+                                                            de
                                                             búsqueda
                                                         </h5>
                                                     </button>
@@ -699,8 +738,9 @@
                                                         <!-- Contenedor principal -->
                                                         <div class="d-flex justify-content-end">
                                                             <!-- Botón de Sugerencia IA en la fila superior -->
-                                                            <button class="btn btn-warning" type="button">
-                                                                <i class="bi bi-bug-fill"></i>&nbsp; Generar cadena
+                                                            <button class="btn btn-info" type="button"
+                                                                (click)="generateSearchString()">
+                                                                <i class="bi bi-lightbulb"></i>&nbsp; Generar cadena
                                                                 con IA
                                                             </button>
                                                         </div>
@@ -717,7 +757,7 @@
                                                                     maxlength="100"></textarea>
 
                                                                 <div class="text-end text-muted mt-1">
-                                                                    <small>{{ cadenaBusqueda?.length || 0 }}/100
+                                                                    <small>{{ cadenaBusqueda.length || 0 }}/100
                                                                         caracteres</small>
                                                                 </div>
                                                             </div>
@@ -732,7 +772,7 @@
                                                             </div>
                                                             <div class="col text-end">
                                                                 <!-- Botón para guardar el objetivo -->
-                                                                <button class="btn btn-primary" type="button"
+                                                                <button class="btn btn-success" type="button"
                                                                     (click)="saveCadena()">
                                                                     <i class="fa-solid fa-paper-plane"></i>&nbsp;
                                                                     Guardar
@@ -754,7 +794,8 @@
                                                         aria-expanded="false" aria-controls="flush-collapseSix"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="bi bi-stack"></i>&nbsp;6) Criterios de selección
+                                                            <i class="bi bi-stack"></i>&nbsp;&nbsp;6.- Criterios de
+                                                            selección
                                                         </h5>
                                                     </button>
                                                 </h2>
@@ -764,8 +805,9 @@
                                                         <!-- Contenedor principal -->
                                                         <div class="d-flex justify-content-end">
                                                             <!-- Botón de Sugerencia IA en la fila superior -->
-                                                            <button class="btn btn-warning" type="button">
-                                                                <i class="bi bi-bug-fill"></i>&nbsp; Generar criterios
+                                                            <button class="btn btn-info" type="button"
+                                                                (click)="generateCriteriaFromAI()">
+                                                                <i class="bi bi-lightbulb"></i>&nbsp; Generar criterios
                                                                 con IA
                                                             </button>
                                                         </div>
@@ -783,10 +825,11 @@
                                                                                     [(ngModel)]="exclusionValue"
                                                                                     name="exclusionValue" />
                                                                                 <button type="button"
-                                                                                    class="btn btn-secondary"
+                                                                                    class="btn btn-primary"
                                                                                     (click)="addExclusion()">
-                                                                                    <i class="bi bi-plus"></i>&nbsp;
-                                                                                    Agregar
+                                                                                    <i
+                                                                                        class="bi bi-arrow-bar-down"></i>&nbsp;
+                                                                                    Añadir
                                                                                 </button>
                                                                             </div>
 
@@ -805,7 +848,6 @@
                                                                                                 *ngIf="!crit.isEditing; else editExcl">
                                                                                                 {{ crit.descripcion }}
                                                                                             </div>
-                                                                                            <!-- Template para edición -->
                                                                                             <ng-template #editExcl>
                                                                                                 <input
                                                                                                     class="form-control"
@@ -852,10 +894,11 @@
                                                                                     [(ngModel)]="inclusionValue"
                                                                                     name="inclusionValue" />
                                                                                 <button type="button"
-                                                                                    class="btn btn-secondary"
+                                                                                    class="btn btn-primary"
                                                                                     (click)="addInclusion()">
-                                                                                    <i class="bi bi-plus"></i>&nbsp;
-                                                                                    Agregar
+                                                                                    <i
+                                                                                        class="bi bi-arrow-bar-down"></i>&nbsp;
+                                                                                    Añadir
                                                                                 </button>
                                                                             </div>
 
@@ -893,7 +936,8 @@
                                                                                                 *ngIf="crit.isEditing"
                                                                                                 class="btn btn-sm btn-success me-1"
                                                                                                 (click)="updateInclusion(i)">
-                                                                                                Actualizar
+                                                                                                <i
+                                                                                                    class="bi bi-save"></i>
                                                                                             </button>
 
                                                                                             <!-- Botón Eliminar -->
@@ -917,7 +961,6 @@
                                         </div>
 
                                     </div>
-
 
 
 
@@ -1062,6 +1105,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <!-- Acordeon de puntuacion limite-->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header d-flex align-items-center">
                                                     <button class="accordion-button collapsed" type="button"
@@ -1093,7 +1137,7 @@
                                                                     <input type="number" id="limitScore"
                                                                         class="form-control"
                                                                         [(ngModel)]="limitScore1" />
-                                                                    <button class="btn btn-primary"
+                                                                    <button class="btn btn-success"
                                                                         (click)="saveLimitScore()">
                                                                         Guardar
                                                                     </button>

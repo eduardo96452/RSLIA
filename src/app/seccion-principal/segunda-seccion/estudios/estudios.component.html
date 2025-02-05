@@ -82,7 +82,7 @@
                         <div class="row align-items-center">
                           <!-- Columna para el botón "Importar archivo" -->
                           <div class="col-12 col-md-6 d-flex justify-content-start mb-3 mb-md-0">
-                            <button class="btn btn-primary w-100 w-md-auto" (click)="selectFileType()">
+                            <button class="btn btn-info w-100 w-md-auto" (click)="selectFileType()">
                               <i class="bi bi-box-arrow-in-up"></i>&nbsp;Importar archivo
                             </button>
                           </div>
@@ -356,7 +356,7 @@
                                     <button class="btn btn-success me-2" (click)="saveEvaluation(study)">
                                       Guardar Evaluación
                                     </button>
-                                    <button class="btn btn-secondary" (click)="cancelEvaluation()">
+                                    <button class="btn btn-danger" (click)="cancelEvaluation()">
                                       Cancelar
                                     </button>
                                   </form>
@@ -627,8 +627,8 @@
         </div>
 
         <div class="modal-footer">
-          <button class="btn btn-secondary" (click)="closeEditModal()">Cancelar</button>
-          <button class="btn btn-primary" (click)="saveStudyEdits()">Guardar</button>
+          <button class="btn btn-danger" (click)="closeEditModal()">Cancelar</button>
+          <button class="btn btn-success" (click)="saveStudyEdits()">Guardar</button>
         </div>
       </div>
     </div>
@@ -656,7 +656,7 @@
               <div class="input-group">
                 <input type="text" class="form-control" [(ngModel)]="newStudy.doi" name="doi"
                   placeholder="Ingrese el DOI (ej. 10.1109/ISPSD.2013.6694422)">
-                <button class="btn btn-secondary" type="button" (click)="fetchCrossRefData()">Buscar</button>
+                <button class="btn btn-primary" type="button" (click)="fetchCrossRefData()">Buscar</button>
               </div>
             </div>
 
@@ -734,8 +734,8 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" (click)="closeAddStudyModal()">Cancelar</button>
-          <button class="btn btn-primary" [disabled]="!isFormValid()" (click)="saveNewStudy()">Guardar Estudio</button>
+          <button class="btn btn-danger" (click)="closeAddStudyModal()">Cancelar</button>
+          <button class="btn btn-success" [disabled]="!isFormValid()" (click)="saveNewStudy()">Guardar Estudio</button>
         </div>
       </div>
     </div>
