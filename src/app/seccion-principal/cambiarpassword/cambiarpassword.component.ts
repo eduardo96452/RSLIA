@@ -58,7 +58,6 @@ export class CambiarpasswordComponent implements OnInit {
   buildForm(): void {
     this.changePasswordForm = this.fb.group(
       {
-        currentPassword: ['', [Validators.required]],
         newPassword: ['', [Validators.required]],
         confirmPassword: ['', [Validators.required]]
       },
@@ -99,10 +98,6 @@ export class CambiarpasswordComponent implements OnInit {
     );
   }
 
-  get currentPassword() {
-    return this.changePasswordForm.get('currentPassword')!;
-  }
-
   get newPassword() {
     return this.changePasswordForm.get('newPassword')!;
   }
@@ -114,10 +109,9 @@ export class CambiarpasswordComponent implements OnInit {
   // Dentro de la función onSubmit o similar:
   async onSubmit(): Promise<void> {
     if (this.changePasswordForm.valid && this.allPoliciesMet()) {
-      const currentPassword = this.changePasswordForm.value.currentPassword;
       const newPassword = this.changePasswordForm.value.newPassword;
 
-      const { error } = await this.authService.changePassword(currentPassword, newPassword);
+      const { error } = await this.authService.changePassword(newPassword);
 
       if (error) {
         // Maneja el error, por ejemplo:

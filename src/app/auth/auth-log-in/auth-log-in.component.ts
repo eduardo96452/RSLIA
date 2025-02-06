@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { SignUpWithPasswordCredentials } from '@supabase/supabase-js';
-import { NavbarComponent } from '../../principal/navbar/navbar.component';
 import Swal from 'sweetalert2';
 
 export interface logIn {
@@ -15,7 +14,7 @@ export interface logIn {
 @Component({
   selector: 'app-auth-log-in',
   standalone: true,
-  imports: [RouterLink, FormsModule, CommonModule, NavbarComponent],
+  imports: [RouterLink, FormsModule, CommonModule],
   templateUrl: './auth-log-in.component.html',
   styleUrl: './auth-log-in.component.scss'
 })
@@ -26,6 +25,8 @@ export class AuthLogInComponent {
 
   constructor(private _authService: AuthService, private router: Router) { }
 
+
+  //verificar alerta que sale al iniciar sesion
   async handleEmailLogin() {
     if (this.email && this.password) {
       try {
@@ -68,6 +69,9 @@ export class AuthLogInComponent {
       });
     }
   }
+
+
+
 
   handleGoogleLogin() {
     // TODO: Implement Google authentication

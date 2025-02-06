@@ -35,7 +35,7 @@ export interface Criterio {
   descripcion: string;   // Descripción del criterio
   tipo: 'exclusion' | 'inclusion'; // Tipo del criterio
   isEditing?: boolean;   // Para controlar el modo de edición en la tabla
-  
+
 }
 
 export interface Pregunta {
@@ -231,6 +231,17 @@ export class AuthService {
     return this._supabaseClient.auth.signOut();
   }
 
+  async sendResetEmail(email: string): Promise<{ error: any }> {
+    // Ajusta la URL a la cual Supabase redireccionará luego de hacer clic en el correo
+    const redirectUrl = 'https://rslaia1.web.app/cambiarcontrasena'; // Por ejemplo
+
+    const { data, error } = await this._supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl
+    });
+
+    return { error };
+  }
+
   async addUserToDatabase(id_usuario: string, nombre: string, correo_electronico: string, contrasena: string) {
     const { data, error } = await this._supabaseClient
       .from('usuarios') // Nombre de la tabla en Supabase
@@ -268,10 +279,10 @@ export class AuthService {
   }
 
   async updateUser(uid: string, userData: {
-    nombre: string; 
-    apellido: string; 
-    correo_electronico: string; 
-    institucion: string; 
+    nombre: string;
+    apellido: string;
+    correo_electronico: string;
+    institucion: string;
     nombre_usuario: string;
     ruta_imagen: string;
   }) {
@@ -288,11 +299,11 @@ export class AuthService {
       .eq('id_usuarios', uid)
       // Con este método, Supabase retorna los registros actualizados.
       .select();
-  
+
     if (error) {
       console.error('Error al actualizar los datos del usuario:', error);
     }
-  
+
     return { data, error };
   }
 
@@ -425,7 +436,7 @@ export class AuthService {
 
     return distribution;
   }
-  
+
   async getUserReviews(userId: string) {
     console.log('Fetching reviews for user:', userId);
 
@@ -1209,7 +1220,7 @@ export class AuthService {
       .from('estudios')
       .update({ id_criterio: criterioId })
       .eq('id_estudios', estudioId);
-  
+
     if (error) throw error;
     return data;
   }
@@ -1233,25 +1244,25 @@ export class AuthService {
     }
   }
 
-  async changePassword(currentPassword: string, newPassword: string): Promise<{ error: any }> {
+  async changePassword(newPassword: string): Promise<{ error: any }> {
     // 1. Validar que haya un uid en localStorage
     const uid = localStorage.getItem('user_id');
     if (!uid) {
       return { error: 'No se encontró un UID en localStorage' };
     }
-  
+
     // 2. Actualizar la contraseña en Supabase Auth
     //    Esto cambia la contraseña del "User" en la autenticación interna de Supabase.
     //    No se necesita currentPassword aquí, siempre que la sesión sea válida.
     const { data: updatedUser, error: errorAuth } = await this._supabaseClient.auth.updateUser({
       password: newPassword
     });
-  
+
     if (errorAuth) {
       console.error('Error al actualizar contraseña en Supabase Auth:', errorAuth);
       return { error: errorAuth };
     }
-  
+
     // 3. Actualizar la columna "contrasena" en la tabla "usuarios" usando el uid
     //    Se asume que tu columna primaria o de referencia es "id_usuarios"
     //    Ajusta si tu tabla tiene otro nombre de columna para el ID.
@@ -1260,14 +1271,14 @@ export class AuthService {
       .update({ contrasena: newPassword })
       .eq('id_usuarios', uid)
       .select(); // <-- Si deseas el registro actualizado
-  
+
     if (errorDb) {
       console.error('Error al actualizar la tabla "usuarios":', errorDb);
       return { error: errorDb };
     }
-  
+
     console.log('Contraseña actualizada con éxito. Registro en DB:', dbData);
     return { error: null };  // Indica que no hubo error
   }
-  
+
 }
