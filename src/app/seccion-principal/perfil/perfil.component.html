@@ -1,88 +1,165 @@
-<div class="d-flex">
-  <div class="container mt-5">
-    <!-- Card for user information -->
-    <div class="card shadow-sm p-4" style="background-color: #b3b5b8;">
-      <div class="row">
-        <!-- Left side for user image -->
-        <div class="col-md-3 d-flex justify-content-center align-items-center">
-          <div class="card mb-4">
-            <ul class="list-group list-group-flush">
-              <li>
-                <div class="d-flex justify-content-center align-items-center"
-                  style="height: 200px; width: 200px; background-color: #e9ecef; border-radius: 5px;">
-                  <div class="text-center">
-                    <i *ngIf="!imageUrl" class="bi bi-person" style="font-size: 160px; color: #6c757d;"></i>
-                    <img *ngIf="imageUrl" [src]="imageUrl" alt="Imagen de perfil"
-                      style="height: 160px; width: 160px; border-radius: 50%; object-fit: cover;" />
-                    <div class="mt-2">
-                      <input type="file" (change)="onFileSelected($event)" id="imageUpload" style="display: none;" />
-                      <label for="imageUpload" class="btn btn-info btn-sm rounded-circle"
-                        style="position: absolute; bottom: 0; right: 0;">
-                        <i class="bi bi-upload"></i>
-                      </label>
-                      <button *ngIf="imageFile" class="btn btn-info btn-sm rounded-circle mt-2"
-                        (click)="uploadImage(imageFile)">Subir</button>
+<main>
+  <div>
+    <div [ngClass]="{
+          'px-5': isLargeScreen,
+          'container': !isLargeScreen
+        }">
+        
+      <div class="row ">
+          <div class="col col-sm col-md-2 ">
+            <div class="d-flex">
+              <div class="floating-menu">
+                <!-- Descripción general -->
+                <div class="menu-item active" [routerLink]="['/Perfil']">
+                  Perfil
+                </div>
+
+                <!-- Planificación -->
+                <div class="menu-item " [routerLink]="['/cambiarcontraseña']">
+                  Cambiar contraseña
+                </div>
+              </div>
+            </div>
+            <br />
+          </div>
+          <div class="col col-sm col-md-10">
+            <h4 class="mb-4">Perfil del usuario</h4>
+            <div class="row">
+              <!-- TARJETA IZQUIERDA (Foto, nombre, puesto, estadísticas) -->
+              <div class="col-md-4">
+                <div class="card p-4 shadow-sm text-center">
+                  <!-- Contenedor para la imagen del usuario -->
+                  <div style="
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            border-radius: 50%;
+            overflow: hidden;
+          ">
+                    <ng-container *ngIf="imageUrl; else defaultIcon">
+                      <img [src]="imageUrl" alt="Imagen de perfil"
+                        style="width: 100%; height: 100%; object-fit: cover;" />
+                    </ng-container>
+                    <ng-template #defaultIcon>
+                      <i class="bi bi-person"
+                        style="font-size: 4rem; width: 100%; height: 100%; color: #6c757d; display: flex; align-items: center; justify-content: center;"></i>
+                    </ng-template>
+                  </div>
+
+                  <!-- Botones para subir la imagen -->
+                  <div class="d-flex justify-content-center mt-3">
+                    <!-- Input de archivo oculto -->
+                    <input type="file" id="imageUpload" style="display: none;" (change)="onFileSelected($event)"
+                      accept="image/*" />
+
+                    <!-- Botón para abrir el explorador de archivos -->
+                    <label for="imageUpload" class="btn btn-info btn-sm me-2">
+                      <i class="bi bi-upload"></i>&nbsp;Subir imagen
+                    </label>
+                  </div>
+
+
+                  <!-- Datos generales del usuario (estáticos o dinámicos) -->
+                  <h5 class="mt-3 mb-1">{{user}}</h5>
+                  <p class="text-muted mb-2">Accounts Manager Amix corp</p>
+
+                  <!-- Estadísticas (ejemplo: número de contactos, fotos) -->
+                  <div class="d-flex justify-content-around mt-3">
+                    <div class="text-center">
+                      <i class="bi bi-people-fill me-1"></i>254
+                    </div>
+                    <div class="text-center">
+                      <i class="bi bi-camera-fill me-1"></i>54
                     </div>
                   </div>
                 </div>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Right side for user details form -->
-        <div class="col-md-9">
-
-          <h4 class="mb-4">Información del usuario</h4>
-
-
-          <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-            <div class="row g-3 mb-4">
-              <div class="col-sm-6">
-                <label for="username" class="form-label">Nombre de usuario</label>
-                <input type="text" class="form-control" id="username" formControlName="nombre_usuario"
-                  [disabled]="true">
-              </div>
-              <div class="col-sm-6">
-                <label for="orcid" class="form-label">ORCID</label>
-                <input type="text" class="form-control" id="orcid" formControlName="ORCID">
-              </div>
-              <div class="col-sm-6">
-                <label for="first-name" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="first-name" formControlName="nombre">
-              </div>
-              <div class="col-sm-6">
-                <label for="last-name" class="form-label">Apellido</label>
-                <input type="text" class="form-control" id="last-name" formControlName="apellido">
-              </div>
-              <div class="col-12">
-                <label for="email" class="form-label">Correo electrónico</label>
-                <input type="email" class="form-control" id="email" formControlName="correo_electronico">
-              </div>
-              <div class="col-sm-6">
-                <label for="institution" class="form-label">Institución</label>
-                <input type="text" class="form-control" id="institution" formControlName="institucion">
               </div>
 
-              <!-- country-selector.component.html -->
-              <div class="dropdown" style="position: relative;">
-                <input type="text" class="form-control" placeholder="Buscar país" [(ngModel)]="searchText"
-                  (input)="filterCountries()" (click)="showDropdown()" aria-label="Buscar país" />
-                <!-- El menú se muestra solo si dropdownVisible es true y hay elementos filtrados -->
-                <div class="dropdown-menu show" style="width: 100%;"
-                  *ngIf="dropdownVisible && filteredCountries.length > 0">
-                  <button type="button" class="dropdown-item" *ngFor="let country of filteredCountries"
-                    (click)="selectCountry(country)">
-                    {{ country.name.common }}
-                  </button>
+              <!-- TARJETA DERECHA (Formulario de usuario) -->
+              <div class="col-md-8">
+                <div class="card p-4 shadow-sm">
+
+
+                  <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+                    <div class="row g-3 mb-4">
+
+                      <!-- Nombre -->
+                      <div class="col-sm-6">
+                        <mat-form-field appearance="fill" style="width: 100%;">
+                          <mat-label>Nombre</mat-label>
+                          <input matInput type="text" formControlName="nombre">
+                        </mat-form-field>
+                      </div>
+
+                      <!-- Apellido -->
+                      <div class="col-sm-6">
+                        <mat-form-field appearance="fill" style="width: 100%;">
+                          <mat-label>Apellido</mat-label>
+                          <input matInput type="text" formControlName="apellido">
+                        </mat-form-field>
+                      </div>
+
+                      <!-- Nombre de usuario 
+            <div class="col-sm-6">
+              <mat-form-field appearance="fill" style="width: 100%;">
+                <mat-label>Nombre de usuario</mat-label>
+                <input matInput type="text" formControlName="nombre_usuario" [disabled]="true">
+              </mat-form-field>
+            </div>-->
+
+                      <!-- ORCID -->
+                      <div class="col-sm-6">
+                        <mat-form-field appearance="fill" style="width: 100%;">
+                          <mat-label>ORCID</mat-label>
+                          <input matInput type="text">
+                        </mat-form-field>
+                      </div>
+
+                      <!-- Profesión -->
+                      <div class="col-sm-6">
+                        <mat-form-field appearance="fill" style="width: 100%;">
+                          <mat-label>Profesión</mat-label>
+                          <input matInput type="text">
+                        </mat-form-field>
+                      </div>
+
+                      <!-- Correo electrónico -->
+                      <div class="col-12">
+                        <mat-form-field appearance="fill" style="width: 100%;">
+                          <mat-label>Correo electrónico</mat-label>
+                          <input matInput type="email" formControlName="correo_electronico">
+                        </mat-form-field>
+                      </div>
+
+                      <!-- Institución -->
+                      <div class="col-sm-6">
+                        <mat-form-field appearance="fill" style="width: 100%;">
+                          <mat-label>Institución</mat-label>
+                          <input matInput type="text" formControlName="institucion">
+                        </mat-form-field>
+                      </div>
+
+                      <!-- País (con autocompletado) -->
+                      <div class="col-sm-6">
+                        <mat-form-field appearance="fill" style="width: 100%;">
+                          <mat-label>Buscar país</mat-label>
+                          <input type="text" matInput [formControl]="countryCtrl" [matAutocomplete]="auto"
+                            (focus)="onFocus()">
+                          <mat-autocomplete #auto="matAutocomplete">
+                            <mat-option *ngFor="let country of filteredCountries | async" [value]="country.name.common">
+                              {{ country.name.common }}
+                            </mat-option>
+                          </mat-autocomplete>
+                        </mat-form-field>
+                      </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Guardar cambios</button>
+                  </form>
                 </div>
-              </div>
-
             </div>
-            <button type="submit" class="btn btn-success">Guardar cambios</button>
-          </form>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</main>

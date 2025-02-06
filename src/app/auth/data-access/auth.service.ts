@@ -267,7 +267,14 @@ export class AuthService {
     return null;
   }
 
-  async updateUser(uid: string, userData: { nombre: string; apellido: string; correo_electronico: string; institucion: string; nombre_usuario: string }) {
+  async updateUser(uid: string, userData: {
+    nombre: string; 
+    apellido: string; 
+    correo_electronico: string; 
+    institucion: string; 
+    nombre_usuario: string;
+    ruta_imagen: string;
+  }) {
     const { data, error } = await this._supabaseClient
       .from('usuarios')
       .update({
@@ -276,12 +283,16 @@ export class AuthService {
         correo_electronico: userData.correo_electronico,
         institucion: userData.institucion,
         nombre_usuario: userData.nombre_usuario,
+        ruta_imagen: userData.ruta_imagen,
       })
-      .eq('id_usuarios', uid);
-
+      .eq('id_usuarios', uid)
+      // Con este método, Supabase retorna los registros actualizados.
+      .select();
+  
     if (error) {
       console.error('Error al actualizar los datos del usuario:', error);
     }
+  
     return { data, error };
   }
 
@@ -1220,6 +1231,43 @@ export class AuthService {
       console.error('Error al obtener id_criterios de estudio:', err);
       throw err;
     }
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ error: any }> {
+    // 1. Validar que haya un uid en localStorage
+    const uid = localStorage.getItem('user_id');
+    if (!uid) {
+      return { error: 'No se encontró un UID en localStorage' };
+    }
+  
+    // 2. Actualizar la contraseña en Supabase Auth
+    //    Esto cambia la contraseña del "User" en la autenticación interna de Supabase.
+    //    No se necesita currentPassword aquí, siempre que la sesión sea válida.
+    const { data: updatedUser, error: errorAuth } = await this._supabaseClient.auth.updateUser({
+      password: newPassword
+    });
+  
+    if (errorAuth) {
+      console.error('Error al actualizar contraseña en Supabase Auth:', errorAuth);
+      return { error: errorAuth };
+    }
+  
+    // 3. Actualizar la columna "contrasena" en la tabla "usuarios" usando el uid
+    //    Se asume que tu columna primaria o de referencia es "id_usuarios"
+    //    Ajusta si tu tabla tiene otro nombre de columna para el ID.
+    const { data: dbData, error: errorDb } = await this._supabaseClient
+      .from('usuarios')
+      .update({ contrasena: newPassword })
+      .eq('id_usuarios', uid)
+      .select(); // <-- Si deseas el registro actualizado
+  
+    if (errorDb) {
+      console.error('Error al actualizar la tabla "usuarios":', errorDb);
+      return { error: errorDb };
+    }
+  
+    console.log('Contraseña actualizada con éxito. Registro en DB:', dbData);
+    return { error: null };  // Indica que no hubo error
   }
   
 }

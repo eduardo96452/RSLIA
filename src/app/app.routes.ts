@@ -14,6 +14,7 @@ import { ContactoComponent } from './principal/contacto/contacto.component';
 import { NoAuthGuard } from './conexion/no-auth.guard';
 import { AuthGuard } from './conexion/auth.guard';
 import { InformesComponent } from './seccion-principal/segunda-seccion/informes/informes.component';
+import { CambiarpasswordComponent } from './seccion-principal/cambiarpassword/cambiarpassword.component';
 
 
 export const routes: Routes = [
@@ -63,6 +64,10 @@ export const routes: Routes = [
   },
   {
     path: 'informes', component: InformesComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'cambiarcontraseña', component: CambiarpasswordComponent,
     canActivate: [AuthGuard]
   },
 

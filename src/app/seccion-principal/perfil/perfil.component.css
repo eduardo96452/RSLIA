@@ -5,11 +5,6 @@ img {
   object-fit: cover;
 }
 
-/* Fondo beige para la tarjeta */
-.card {
-  background-color: #626365; /* Color beige */
-}
-
 /* Estilos para el borde negro alrededor de la imagen */
 .border-dark {
   border: 9px solid black;
@@ -50,7 +45,7 @@ ul {
 
 
 
-.dropdown-menu {
-  max-height: 200px;  /* Puedes cambiar a 200px si 20px es muy pequeño */
+::ng-deep .mat-autocomplete-panel {
+  max-height: 80px;
   overflow-y: auto;
 }

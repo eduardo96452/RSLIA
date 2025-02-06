@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -6,11 +6,23 @@ import { AuthService } from '../../auth/data-access/auth.service';
 import { SupabaseService } from '../../conexion/supabase.service';
 import { filter, map, Observable, startWith } from 'rxjs';
 import { CountryService } from '../../conexion/country.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatAutocompleteModule
+  ],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.css'
 })
@@ -18,12 +30,14 @@ export class PerfilComponent implements OnInit {
   userForm: FormGroup;
   imageFile: File | null = null;
   imageUrl: string | null = null;
-
-  searchText: string = '';
+  countryCtrl = new FormControl();
+  filteredCountries: Observable<any[]> = new Observable();
   countries: any[] = [];
-  filteredCountries: any[] = [];
-  dropdownVisible: boolean = false; // Controla la visibilidad del dropdown
+  user: string = '';
+  pendingImageFile: File | null = null;
+  isLargeScreen: boolean = true;
 
+  @ViewChild(MatAutocompleteTrigger) autoTrigger: MatAutocompleteTrigger | undefined;
 
   constructor(
     private fb: FormBuilder,
@@ -41,8 +55,9 @@ export class PerfilComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.loadUserData();
+
 
     // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
     this.router.events
@@ -52,35 +67,43 @@ export class PerfilComponent implements OnInit {
         window.scrollTo(0, 0);
       });
 
-      this.countryService.getCountries().subscribe((data: any[]) => {
-        // Ordena alfabéticamente usando el nombre común
-        this.countries = data.sort((a, b) =>
-          a.name?.common.localeCompare(b.name?.common)
-        );
-        // Inicialmente no mostramos ningún resultado en el dropdown
-        this.filteredCountries = [];
+    this.countryService.getCountries().subscribe((data: any[]) => {
+      // Ordenar alfabeticamente según el nombre común
+      this.countries = data.sort((a, b) => {
+        const nameA = (a.name?.common || '').toLowerCase();
+        const nameB = (b.name?.common || '').toLowerCase();
+        return nameA.localeCompare(nameB);
       });
+
+      // Configurar el filtrado conforme se escribe
+      this.filteredCountries = this.countryCtrl.valueChanges.pipe(
+        startWith(''),
+        map(value => this._filterCountries(value))
+      );
+    });
   }
 
-  // Muestra el dropdown y filtra la lista en función del valor actual
-  showDropdown(): void {
-    this.dropdownVisible = true;
-    this.filterCountries();
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    this.checkScreenSize();
   }
 
-  // Filtra los países según el texto ingresado y los mantiene ordenados
-  filterCountries(): void {
-    const filterValue = this.searchText.toLowerCase();
-    this.filteredCountries = this.countries.filter(country =>
-      country.name?.common.toLowerCase().includes(filterValue)
+  private checkScreenSize(): void {
+    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
+  }
+
+  onFocus() {
+    // Al hacer focus, abrimos el panel del autocompletado
+    if (this.autoTrigger) {
+      this.autoTrigger.openPanel();
+    }
+  }
+
+  private _filterCountries(value: string): any[] {
+    const filterValue = value.toLowerCase();
+    return this.countries.filter(country =>
+      country.name?.common?.toLowerCase().includes(filterValue)
     );
-  }
-
-  // Al seleccionar un país, coloca su nombre en el input y oculta el dropdown
-  selectCountry(country: any): void {
-    this.searchText = country.name.common;
-    this.filteredCountries = [];
-    this.dropdownVisible = false;
   }
 
   async loadUserData() {
@@ -89,8 +112,10 @@ export class PerfilComponent implements OnInit {
 
     if (uid) {
       const userData = await this.authService.getUserDataByUID(uid);
+      this.user = userData?.nombre_usuario || '';
 
       if (userData && Object.keys(userData).length > 0) { // Verificar que userData no sea undefined y tenga datos
+
         this.userForm.patchValue({
           nombre_usuario: userData.nombre_usuario || '', // Default a '' si está undefined
           nombre: userData.nombre || '',
@@ -110,60 +135,99 @@ export class PerfilComponent implements OnInit {
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {
-      this.imageFile = file;
-    }
-  }
+      this.pendingImageFile = file;
 
-  // Esta es la función de tu servicio para subir la imagen
-  async uploadImage(file: File): Promise<string> {
-    const { data, error } = await this.supabase.supabaseClient
-      .storage
-      .from('avatars') // Nombre del bucket
-      .upload(`path/to/file/${file.name}`, file);
-
-    if (error) {
-      console.error('Error uploading file:', error);
-      return '';
-    }
-
-    // Obtén la URL pública del archivo recién subido
-    const publicUrl = this.supabase.supabaseClient
-      .storage
-      .from('avatars')
-      .getPublicUrl(data.path).data.publicUrl; // 'data.path' contiene la ruta del archivo
-
-    return publicUrl || ''; // Devuelve la URL pública
-  }
-
-  async updateUserProfileImage(imageUrl: string) {
-    const uid = localStorage.getItem('user_id');
-
-    if (uid) {
-      const { data, error } = await this.authService.updateUser(uid, {
-        ...this.userForm.value,
-        ruta_imagen: imageUrl
-      });
-      if (data) {
-        alert('Imagen de perfil actualizada');
-      } else {
-        console.error('Error al actualizar imagen:', error);
-      }
+      // Generar una URL de previsualización sin subir aún
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imageUrl = e.target.result; // Se muestra en <img [src]="imageUrl">
+      };
+      reader.readAsDataURL(file);
     }
   }
 
   async onSubmit() {
     if (this.userForm.valid) {
       const uid = localStorage.getItem('user_id');
+      if (!uid) return;
 
-      if (uid) {
-        const userData = this.userForm.getRawValue();
-        const { data, error } = await this.authService.updateUser(uid, userData);
-        if (data) {
-          alert('Datos actualizados correctamente.');
+      let publicUrl = '';
+
+      // Si hay un archivo pendiente de subir, lo subes
+      if (this.pendingImageFile) {
+        const fileExt = this.pendingImageFile.name.split('.').pop();
+        const randomName = `${Date.now()}-${Math.floor(Math.random() * 10000)}.${fileExt}`;
+        const filePath = `path/to/file/${randomName}`;
+
+        publicUrl = await this.uploadImage(this.pendingImageFile, filePath);
+      }
+
+      const userData = this.userForm.getRawValue();
+
+      // Si subimos imagen, actualizamos la ruta_imagen
+      if (publicUrl) {
+        userData.ruta_imagen = publicUrl;
+      }
+
+      // Finalmente, hacemos update en supabase
+      const { data, error } = await this.authService.updateUser(uid, userData);
+
+      if (error) {
+        // Hubo un error real de Supabase
+        console.error('Error al actualizar los datos:', error);
+
+        // Mostrar alerta de error con SweetAlert2
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al actualizar',
+          text: 'No se pudo actualizar la información. Intenta de nuevo.',
+        });
+
+      } else {
+        // No hay error => éxito (incluso si data puede ser un array vacío)
+        if (!data || data.length === 0) {
+          console.warn('No se actualizó ningún registro (posiblemente no exista el usuario con ese uid).');
+
+          // Alerta informativa
+          Swal.fire({
+            icon: 'info',
+            title: 'Usuario no encontrado',
+            text: 'No se encontró registro con el UID proporcionado.',
+          });
         } else {
-          console.error('Error al actualizar los datos:', error);
+          console.log('Datos actualizados:', data);
+
+          // Mostrar alerta de éxito con SweetAlert2
+          Swal.fire({
+            icon: 'success',
+            title: '¡Información actualizada!',
+            text: 'La información se guardó correctamente.',
+          });
         }
       }
     }
   }
+
+  async uploadImage(file: File, filePath: string): Promise<string> {
+    const { data, error } = await this.supabase.supabaseClient
+      .storage
+      .from('avatars')
+      .upload(filePath, file);
+
+    if (error) {
+      console.error('Error uploading file:', error);
+      return '';
+    }
+
+    // Obtener la URL pública
+    const publicUrl = this.supabase.supabaseClient
+      .storage
+      .from('avatars')
+      .getPublicUrl(data.path).data.publicUrl;
+
+    return publicUrl || '';
+  }
+
+
+
 }

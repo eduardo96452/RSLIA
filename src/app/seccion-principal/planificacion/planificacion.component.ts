@@ -1160,7 +1160,7 @@ export class PlanificacionComponent implements OnInit {
 
   generateKeywords(): void {
     const methodologyData = this.buildMethodologyData();
-  
+
     Swal.fire({
       title: 'Generando sugerencia...',
       text: 'Por favor, espera un momento.',
@@ -1169,7 +1169,7 @@ export class PlanificacionComponent implements OnInit {
         Swal.showLoading(Swal.getConfirmButton());
       }
     });
-  
+
     this.openAiService.generateKeywords(methodologyData).subscribe(
       (response) => {
         if (response && response.keywords) {
@@ -1297,7 +1297,7 @@ export class PlanificacionComponent implements OnInit {
         Swal.showLoading(Swal.getConfirmButton());
       }
     });
-  
+
     // Llamar a la API para generar la cadena de búsqueda
     console.log('Generando cadena de búsqueda con:', this.tableData);
     this.openAiService.getSearchString(this.tableData).subscribe(
@@ -1529,7 +1529,7 @@ export class PlanificacionComponent implements OnInit {
   async updateExclusion(index: number) {
     const crit = this.exclusions[index];
     let updateError = null;
-  
+
     // Si existe id_criterios, intentamos actualizar
     if (crit.id_criterios) {
       const { error } = await this.authService.updateCriterio(
@@ -1549,14 +1549,14 @@ export class PlanificacionComponent implements OnInit {
         console.error('Error al actualizar criterio:', updateError);
       }
     }
-  
+
     // Si no existe id_criterios o la actualización falló, intentamos insertar
     const { data, error } = await this.authService.insertCriterio(
       crit.descripcion,
       'exclusion', // Tipo de criterio
       this.reviewId // ID de la revisión asociada
     );
-  
+
     if (error) {
       console.error('Error al insertar criterio:', error);
       Swal.fire({
@@ -1566,7 +1566,7 @@ export class PlanificacionComponent implements OnInit {
       });
       return;
     }
-  
+
     // Si la inserción fue exitosa, actualizamos el arreglo local
     if (data && data.length > 0) {
       const newCriterio: Criterio = {
@@ -1577,7 +1577,7 @@ export class PlanificacionComponent implements OnInit {
       };
       this.exclusions[index] = newCriterio;
     }
-  
+
     Swal.fire({
       icon: 'success',
       title: 'Agregado',
@@ -1599,7 +1599,7 @@ export class PlanificacionComponent implements OnInit {
   async updateInclusion(index: number) {
     const crit = this.inclusions[index];
     let updateError = null;
-  
+
     // Si existe id_criterios, intentamos actualizar
     if (crit.id_criterios) {
       const { error } = await this.authService.updateCriterio(
@@ -1619,14 +1619,14 @@ export class PlanificacionComponent implements OnInit {
         console.error('Error al actualizar criterio:', updateError);
       }
     }
-  
+
     // Si no existe id_criterios o si la actualización falló, intentamos insertar
     const { data, error } = await this.authService.insertCriterio(
       crit.descripcion,
       'inclusion',
       this.reviewId
     );
-    
+
     if (error) {
       console.error('Error al insertar criterio:', error);
       Swal.fire({
@@ -1636,7 +1636,7 @@ export class PlanificacionComponent implements OnInit {
       });
       return;
     }
-  
+
     // Si la inserción fue exitosa, actualizamos el arreglo local
     if (data && data.length > 0) {
       const newCriterio: Criterio = {
@@ -1647,7 +1647,7 @@ export class PlanificacionComponent implements OnInit {
       };
       this.inclusions[index] = newCriterio;
     }
-  
+
     Swal.fire({
       icon: 'success',
       title: 'Agregado',
@@ -1665,7 +1665,7 @@ export class PlanificacionComponent implements OnInit {
       });
       return;
     }
-  
+
     // Mostrar alerta de carga
     Swal.fire({
       title: 'Generando criterios...',
@@ -1676,18 +1676,18 @@ export class PlanificacionComponent implements OnInit {
         Swal.showLoading(Swal.getConfirmButton());
       }
     });
-  
+
     this.openAiService.generateCriteria(this.titulo_revision, this.objetivo).subscribe(
       (response) => {
         console.log('Respuesta de la IA:', response);
         // Cerrar la alerta de carga
         Swal.close();
-  
+
         // Se espera que response sea un array de objetos: { criterio, categoria }
         // Reiniciar arrays de criterios
         this.exclusions = [];
         this.inclusions = [];
-  
+
         response.forEach((item: any) => {
           // Convertir la categoría a minúsculas para facilitar la comparación
           const cat = item.categoria.toLowerCase();
@@ -1697,14 +1697,14 @@ export class PlanificacionComponent implements OnInit {
             isEditing: true,             // Se inicia en modo edición
             tipo: (cat.includes('excluido') || cat.includes('exclusion')) ? 'exclusion' : 'inclusion'
           };
-          
+
           if (criterioObj.tipo === 'exclusion') {
             this.exclusions.push(criterioObj);
           } else {
             this.inclusions.push(criterioObj);
           }
         });
-  
+
         // Mostrar alerta de éxito
         Swal.fire({
           icon: 'success',
