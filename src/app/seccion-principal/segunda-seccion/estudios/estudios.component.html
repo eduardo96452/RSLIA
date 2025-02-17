@@ -38,6 +38,11 @@
                 Revisión de datos
               </div>
 
+              <!-- Extracción de datos -->
+              <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
+                Extracción de datos
+              </div>
+
               <!-- Proyección de informes -->
               <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
                 Proyección de informes
@@ -474,37 +479,29 @@
               <div class="col-sm-6 mb-3">
                 <label class="form-label fw-bold">Selección de criterios</label>
                 <div class="dropdown">
-                  <button
-                    class="btn btn-secondary dropdown-toggle w-100 text-start"
-                    type="button"
-                    id="dropdownMenuButton"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false">
+                  <button class="btn btn-secondary dropdown-toggle w-100 text-start" type="button"
+                    id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                     {{ selectedCriterio || 'Seleccione un criterio' }}
                   </button>
-                
+
                   <ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButton">
                     <li>
                       <h6 class="dropdown-header">Criterios de Inclusión</h6>
                     </li>
                     <li *ngFor="let criterio of inclusionCriterios">
-                      <button 
-                        class="dropdown-item" 
-                        type="button"
-                        data-bs-dismiss="dropdown"
+                      <button class="dropdown-item" type="button" data-bs-dismiss="dropdown"
                         (click)="selectCriterio(criterio.id_criterios, criterio.descripcion)">
                         {{ criterio.descripcion }}
                       </button>
                     </li>
-                    <li><hr class="dropdown-divider" /></li>
+                    <li>
+                      <hr class="dropdown-divider" />
+                    </li>
                     <li>
                       <h6 class="dropdown-header">Criterios de Exclusión</h6>
                     </li>
                     <li *ngFor="let criterio of exclusionCriterios">
-                      <button
-                        class="dropdown-item"
-                        type="button"
-                        data-bs-dismiss="dropdown"
+                      <button class="dropdown-item" type="button" data-bs-dismiss="dropdown"
                         (click)="selectCriterio(criterio.id_criterios, criterio.descripcion)">
                         {{ criterio.descripcion }}
                       </button>

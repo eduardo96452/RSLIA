@@ -6,52 +6,32 @@
         <!-- Contenido Principal -->
         <div class="col-md-12 p-4">
             <h3>Panel principal</h3>
-            <br />
+            <br>
             <div class="row">
-                <!-- Card 1 -->
-                <div class="col-md-4 mb-4">
-                    <div class="card text-white bg-success h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Revisiones creadas</h5>
-                            <p class="card-text display-4 text-center">{{ userReviewCount }}</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- Card 2 -->
-                <div class="col-md-4 mb-4">
-                    <div class="card text-white bg-primary h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Documentos procesados</h5>
-                            <p class="card-text display-4 text-center">{{ userDocumentCount }}</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- Card 3 -->
-                <div class="col-md-4 mb-4">
-                    <div class="card text-white bg-warning h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Informes creados</h5>
-                            <p class="card-text display-4 text-center">0</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Gráficos / Secciones adicionales -->
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <div *ngIf="isLoading" class="loading">Cargando datos...</div>
-
-                            <div *ngIf="errorMessage" class="error">
-                                {{ errorMessage }}
+                <!-- Columna con las tarjetas de Revisiones e Informes -->
+                <div class="col-md-3">
+                    <!-- Card Revisiones creadas -->
+                    <div class="mb-4">
+                        <div class="card text-white bg-success h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Revisiones creadas</h5>
+                                <p class="card-text display-4 text-center">{{ userReviewCount }}</p>
                             </div>
-
-                            <canvas #chartCanvas *ngIf="!isLoading && !errorMessage"></canvas>
+                        </div>
+                    </div>
+                    <!-- Card Informes creados -->
+                    <div class="mb-4">
+                        <div class="card text-white bg-warning h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">Informes creados</h5>
+                                <p class="card-text display-4 text-center">0</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-4">
+
+                <!-- Columna con la tarjeta "Mis revisiones" -->
+                <div class="col-md-9 mb-4">
                     <div class="card">
                         <div class="card-body">
                             <div class="container text-center">
@@ -61,41 +41,60 @@
                                     </div>
                                     <div class="col">
                                         <button type="button" routerLink="/Descripción_General"
-                                            class="btn btn-success p-2">Crear
-                                            una revisión</button>
+                                            class="btn btn-success p-2">
+                                            Crear una revisión
+                                        </button>
                                     </div>
                                     <div>
-                                        <br />
+                                        <br>
                                     </div>
                                     <div style="background-color: #f8f9fa; text-align: center;">
-                                        <br />
-                                        <p class="card-text align-items-center text-center">Aquí se muestran las
-                                            revisiones que están en progreso.</p>
+                                        <br>
+                                        <p class="card-text align-items-center text-center">
+                                            Aquí se muestran las reseñas que están en progreso.
+                                        </p>
                                         <table class="table table-striped">
                                             <thead>
                                                 <tr>
-                                                    <th>#</th>
-                                                    <th>Título de la Revisión</th>
+                                                    <th style="display: none;">#</th>
+                                                    <th>Título de la reseña</th>
+                                                    <!-- Columna invisible si la necesitas ocultar -->
                                                     <th style="display: none;">ID (Invisible)</th>
-                                                    <!-- Columna invisible -->
+                                                    <th>Doc. procesados</th>
+                                                    <th>Fecha de última edición</th>
+                                                    <th>Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr *ngFor="let review of userReviews; let i = index">
-                                                    <td>{{ i + 1 }}</td>
+                                                    <td style="display: none;">{{ i + 1 }}</td>
                                                     <td>
-                                                        <!-- Usamos queryParams en lugar de /detalle_revision/:id -->
                                                         <a [routerLink]="['/detalle_revision']"
                                                             [queryParams]="{ id: review.id_detalles_revision }"
                                                             class="text-primary text-decoration-underline">
-                                                            {{ review.titulo_revision.length > 60 ?
-                                                            (review.titulo_revision | slice: 0:50) + '...' :
-                                                            review.titulo_revision }}
+                                                            {{ review.titulo_revision }}
                                                         </a>
+                                                    </td>
+                                                    <!-- Aquí mostramos la cantidad de documentos de la revisión -->
+                                                    <td class="text-center align-middle">
+                                                        {{ review.docCount }}
+                                                    </td>
+
+                                                    <!-- Nueva columna: Fecha de última edición -->
+                                                    <td class="text-center align-middle">{{ review.fecha_modificacion
+                                                        | date:'short' }}</td>
+
+                                                    <!-- Nueva columna: Acción (tacho de basura) -->
+                                                    <td class="text-center align-middle">
+                                                        <button class="btn btn-outline-danger btn-sm"
+                                                            (click)="eliminarRevision(review.id_detalles_revision)">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
+
                                     </div>
                                 </div>
                             </div>

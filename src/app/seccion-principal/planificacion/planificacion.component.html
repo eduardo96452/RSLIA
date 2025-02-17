@@ -10,7 +10,7 @@
                         <ol class="breadcrumb">
                             <div class="row">
                                 <div>
-                                    <li class="breadcrumb-item active" aria-current="page">
+                                    <li class="breadcrumb-item" aria-current="page">
                                         {{reviewData.titulo_revision}}</li>
                                 </div>
                             </div>
@@ -20,7 +20,7 @@
             </div>
             <br>
             <div class="row">
-                
+
                 <div class="col col-sm col-md-2">
                     <div class="d-flex">
                         <div class="floating-menu">
@@ -39,6 +39,11 @@
                             <!-- Revisión de datos -->
                             <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
                                 Revisión de datos
+                            </div>
+
+                            <!-- Extracción de datos -->
+                            <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
+                                Extracción de datos
                             </div>
 
                             <!-- Proyección de informes -->
@@ -93,14 +98,23 @@
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header d-flex align-items-center">
                                                     <!-- Botón del acordeón con ancho reducido -->
+                                                    <!-- Encabezado del acordeón -->
                                                     <button class="accordion-button collapsed" type="button"
                                                         data-bs-toggle="collapse" data-bs-target="#flush-collapseOne"
                                                         aria-expanded="false" aria-controls="flush-collapseOne"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="fa-solid fa-pencil"></i>&nbsp;&nbsp;1.- Objetivo
-                                                            de la
-                                                            reseña
+                                                            <!-- Mostramos el ícono de lápiz si NO está guardado -->
+                                                            <ng-container *ngIf="!objectiveSaved; else iconCheck">
+                                                                <i class="fa-solid fa-pencil"></i>&nbsp;&nbsp;1.-
+                                                                Objetivo de la reseña
+                                                            </ng-container>
+                                                            <!-- Mostramos el ícono de check verde si SÍ está guardado -->
+                                                            <ng-template #iconCheck>
+                                                                <i class="fa-solid fa-pencil"></i>&nbsp;&nbsp;1.-
+                                                                Objetivo de la reseña&nbsp;&nbsp;&nbsp;<i
+                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                            </ng-template>
                                                         </h5>
                                                     </button>
                                                 </h2>
@@ -141,8 +155,8 @@
                                                                         <i class="fa-solid fa-eraser"></i>&nbsp; Limpiar
                                                                     </button>
                                                                 </div>
-                                                                <div class="col text-end">
-                                                                    <!-- Botón para guardar el objetivo -->
+                                                                <!-- Botón de guardar SOLO aparece si !objectiveSaved -->
+                                                                <div class="col text-end" *ngIf="!objectiveSaved">
                                                                     <button class="btn btn-success" type="button"
                                                                         (click)="saveObjective()">
                                                                         <i class="fa-solid fa-paper-plane"></i> &nbsp;
@@ -163,9 +177,12 @@
                                                         aria-expanded="false" aria-controls="flush-collapseTwo"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="bi bi-book-half"></i>&nbsp;&nbsp;3.- Selecciona
-                                                            una
-                                                            metodología
+                                                            <i class="bi bi-book-half"></i>&nbsp;&nbsp;3.- Selecciona un
+                                                            Framework
+                                                            <ng-container *ngIf="metodologiaGuardada">
+                                                                &nbsp;&nbsp;<i
+                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                            </ng-container>
                                                         </h5>
                                                     </button>
                                                 </h2>
@@ -175,13 +192,11 @@
                                                         <select class="form-select mb-4" id="paginaSelect"
                                                             [(ngModel)]="paginaSeleccionada"
                                                             (ngModelChange)="onMetodoChange($event)">
-                                                            <option value="PICO">PICO</option>
-                                                            <option value="PICOC">PICOC</option>
-                                                            <option value="PICOTT">PICOTT</option>
-                                                            <option value="SPICE">SPICE</option>
+                                                            <option *ngFor="let metodo of metodologias"
+                                                                [value]="metodo.nombre">
+                                                                {{ metodo.nombre }}
+                                                            </option>
                                                         </select>
-
-
                                                         <div class="">
                                                             <!-- PICO -->
                                                             <div class="card p-3" *ngIf="paginaSeleccionada === 'PICO'">
@@ -211,6 +226,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picoP"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picoP" />
                                                                                     </div>
                                                                                     <div class="mb-3">
@@ -220,6 +236,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picoI"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picoI" />
                                                                                     </div>
                                                                                     <div class="mb-3">
@@ -229,6 +246,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picoC"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picoC" />
                                                                                     </div>
                                                                                     <div class="mb-3">
@@ -238,6 +256,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picoO"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picoO" />
                                                                                     </div>
                                                                                 </div>
@@ -245,18 +264,15 @@
                                                                         </div>
                                                                     </div>
                                                                 </div>
-
-                                                                <div class="card-footer text-end">
+                                                                <div class="card-footer text-end"
+                                                                    *ngIf="!metodologiaGuardada">
                                                                     <button class="btn btn-success" type="button"
-                                                                        (click)="guardarMetodologiaPICO()">
+                                                                        (click)="guardarMetodologia()">
                                                                         <i class="fa-solid fa-paper-plane"></i> &nbsp;
-                                                                        Guardar
-                                                                        metodología PICO
+                                                                        Guardar metodología PICO
                                                                     </button>
                                                                 </div>
                                                             </div>
-
-
                                                             <!-- PICOC -->
                                                             <div class="card p-3"
                                                                 *ngIf="paginaSeleccionada === 'PICOC'">
@@ -287,9 +303,9 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picocP"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picocP" />
                                                                                     </div>
-                                                                                    <br />
                                                                                     <div class="mb-3">
                                                                                         <label
                                                                                             class="form-label">Intervención
@@ -297,9 +313,9 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picocI"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picocI" />
                                                                                     </div>
-                                                                                    <br />
                                                                                     <div class="mb-3">
                                                                                         <label
                                                                                             class="form-label">Comparación
@@ -307,9 +323,9 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picocC"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picocC" />
                                                                                     </div>
-                                                                                    <br />
                                                                                     <div class="mb-3">
                                                                                         <label
                                                                                             class="form-label">Resultado
@@ -317,6 +333,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picocO"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picocO" />
                                                                                     </div>
                                                                                     <div class="mb-3">
@@ -326,6 +343,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picocContext"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picocContext" />
                                                                                     </div>
                                                                                 </div>
@@ -333,17 +351,15 @@
                                                                         </div>
                                                                     </div>
                                                                 </div>
-
-                                                                <div class="card-footer text-end">
+                                                                <div class="card-footer text-end"
+                                                                    *ngIf="!metodologiaGuardada">
                                                                     <button class="btn btn-success" type="button"
-                                                                        (click)="guardarMetodologiaPICOC()">
+                                                                        (click)="guardarMetodologia()">
                                                                         <i class="fa-solid fa-paper-plane"></i> &nbsp;
-                                                                        Guardar
-                                                                        metodología PICOC
+                                                                        Guardar metodología PICOC
                                                                     </button>
                                                                 </div>
                                                             </div>
-
                                                             <!-- PICOTT -->
                                                             <div class="card p-3"
                                                                 *ngIf="paginaSeleccionada === 'PICOTT'">
@@ -374,9 +390,9 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picottP"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picottP" />
                                                                                     </div>
-                                                                                    <br />
                                                                                     <div class="mb-3">
                                                                                         <label
                                                                                             class="form-label">Intervención
@@ -384,9 +400,9 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picottI"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picottI" />
                                                                                     </div>
-                                                                                    <br />
                                                                                     <div class="mb-3">
                                                                                         <label
                                                                                             class="form-label">Comparación
@@ -394,9 +410,9 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picottC"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picottC" />
                                                                                     </div>
-                                                                                    <br />
                                                                                     <div class="mb-3">
                                                                                         <label
                                                                                             class="form-label">Resultado
@@ -404,6 +420,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picottO"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picottO" />
                                                                                     </div>
                                                                                     <div class="mb-3">
@@ -413,6 +430,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picottT"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picottT" />
                                                                                     </div>
                                                                                     <div class="mb-3">
@@ -422,6 +440,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="picottT2"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="picottT2" />
                                                                                     </div>
                                                                                 </div>
@@ -429,17 +448,15 @@
                                                                         </div>
                                                                     </div>
                                                                 </div>
-
-                                                                <div class="card-footer text-end">
+                                                                <div class="card-footer text-end"
+                                                                    *ngIf="!metodologiaGuardada">
                                                                     <button class="btn btn-success" type="button"
-                                                                        (click)="guardarMetodologiaPICOTT()">
+                                                                        (click)="guardarMetodologia()">
                                                                         <i class="fa-solid fa-paper-plane"></i> &nbsp;
-                                                                        Guardar
-                                                                        metodología PICOTT
+                                                                        Guardar metodología PICOTT
                                                                     </button>
                                                                 </div>
                                                             </div>
-
                                                             <!-- SPICE -->
                                                             <div class="card p-3"
                                                                 *ngIf="paginaSeleccionada === 'SPICE'">
@@ -470,9 +487,9 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="spiceS"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="spiceS" />
                                                                                     </div>
-                                                                                    <br />
                                                                                     <div class="mb-3">
                                                                                         <label
                                                                                             class="form-label">Perspectiva
@@ -480,9 +497,9 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="spiceP"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="spiceP" />
                                                                                     </div>
-                                                                                    <br />
                                                                                     <div class="mb-3">
                                                                                         <label
                                                                                             class="form-label">Intervención
@@ -490,9 +507,9 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="spiceI"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="spiceI" />
                                                                                     </div>
-                                                                                    <br />
                                                                                     <div class="mb-3">
                                                                                         <label
                                                                                             class="form-label">Comparación
@@ -500,6 +517,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="spiceC"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="spiceC" />
                                                                                     </div>
                                                                                     <div class="mb-3">
@@ -509,6 +527,7 @@
                                                                                         <input type="text"
                                                                                             class="form-control"
                                                                                             [(ngModel)]="spiceE"
+                                                                                            (ngModelChange)="onInputChanged()"
                                                                                             name="spiceE" />
                                                                                     </div>
                                                                                 </div>
@@ -516,13 +535,12 @@
                                                                         </div>
                                                                     </div>
                                                                 </div>
-
-                                                                <div class="card-footer text-end">
+                                                                <div class="card-footer text-end"
+                                                                    *ngIf="!metodologiaGuardada">
                                                                     <button class="btn btn-success" type="button"
-                                                                        (click)="guardarMetodologiaSPICE()">
+                                                                        (click)="guardarMetodologia()">
                                                                         <i class="fa-solid fa-paper-plane"></i> &nbsp;
-                                                                        Guardar
-                                                                        metodología SPICE
+                                                                        Guardar metodología SPICE
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -539,8 +557,12 @@
                                                         aria-expanded="false" aria-controls="flush-collapseThree"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="bi bi-question-circle"></i>&nbsp;&nbsp;3.-
+                                                            <i class="bi bi-question-circle"></i>&nbsp;&nbsp;4.-
                                                             Preguntas de investigación
+                                                            <span *ngIf="questionsUpdated">
+                                                                &nbsp;<i
+                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                            </span>
                                                         </h5>
                                                     </button>
                                                 </h2>
@@ -566,36 +588,51 @@
                                                         <div class="container">
                                                             <div *ngFor="let question of questions" class="mb-3">
                                                                 <div class="input-group mb-2">
-                                                                    <input type="text" class="form-control"
+                                                                    <textarea class="form-control"
                                                                         [(ngModel)]="question.value"
                                                                         [disabled]="!!question.isSaved"
-                                                                        placeholder="Escriba su pregunta de investigación" />
-                                                                    <!-- Se deshabilita si ya está guardada -->
-                                                                    <!-- Botón Cancelar (opcional, si no se desea, se puede quitar) -->
-                                                                    <button *ngIf="!question.isSaved"
+                                                                        placeholder="Escriba su pregunta de investigación">
+</textarea>
+                                                                    <button
+                                                                        *ngIf="!question.isSaved && !question.isEditing"
                                                                         class="btn btn-outline-danger" type="button"
                                                                         (click)="cancelQuestion(question.id)">
                                                                         <i class="bi bi-x"></i>
                                                                     </button>
                                                                 </div>
                                                                 <div class="d-flex justify-content-end gap-2">
-                                                                    <!-- Botón Guardar se muestra cuando la pregunta no está guardada -->
-                                                                    <button *ngIf="!question.isSaved"
+                                                                    <!-- Si la pregunta no está guardada y NO está en modo edición, se muestra "Guardar" -->
+                                                                    <button
+                                                                        *ngIf="!question.isSaved && !question.isEditing"
                                                                         class="btn btn-success"
                                                                         (click)="saveQuestion(question)">
                                                                         <i class="bi bi-floppy"></i> Guardar
                                                                     </button>
-                                                                    <!-- Botón Editar (estilo amarillo) se muestra cuando la pregunta está guardada -->
-                                                                    <button *ngIf="question.isSaved"
+                                                                    <!-- Si la pregunta ya está guardada y NO está en modo edición, se muestran "Editar" y "Eliminar" -->
+                                                                    <button
+                                                                        *ngIf="question.isSaved && !question.isEditing"
                                                                         class="btn btn-warning"
                                                                         (click)="editQuestion(question)">
                                                                         <i class="bi bi-pencil"></i> Editar
                                                                     </button>
-                                                                    <button *ngIf="question.isSaved"
+                                                                    <button *ngIf="question.isEditing"
+                                                                        class="btn btn-success"
+                                                                        (click)="updateQuestion(question)">
+                                                                        <i class="bi bi-check"></i> Actualizar
+                                                                    </button>
+                                                                    <button
+                                                                        *ngIf="question.isSaved && !question.isEditing"
                                                                         class="btn btn-danger"
                                                                         (click)="deleteQuestion(question.id)">
-                                                                        <i class="bi bi-trash"> Eliminar </i>
+                                                                        <i class="bi bi-trash"></i> Eliminar
                                                                     </button>
+                                                                    <button
+                                                                        *ngIf="!question.isSaved && question.isEditing"
+                                                                        class="btn btn-danger"
+                                                                        (click)="deleteQuestion(question.id)">
+                                                                        <i class="bi bi-trash"></i> Eliminar
+                                                                    </button>
+
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -611,7 +648,7 @@
                                                         aria-expanded="false" aria-controls="flush-collapseThree"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="bi bi-key-fill"></i>&nbsp;&nbsp;4.- Palabras
+                                                            <i class="bi bi-key-fill"></i>&nbsp;&nbsp;5.- Palabras
                                                             claves y sinónimos
                                                         </h5>
                                                     </button>
@@ -641,7 +678,7 @@
                                                                     <tr>
                                                                         <th style="display:none;">ID</th>
                                                                         <th>Palabra Clave</th>
-                                                                        <th>Relacionado</th>
+                                                                        <th>Componente</th>
                                                                         <th>Sinónimos</th>
                                                                         <th>Acciones</th>
                                                                     </tr>
@@ -649,9 +686,8 @@
                                                                 <tbody>
                                                                     <tr *ngFor="let row of tableData; let i = index">
                                                                         <!-- Columna oculta para ID -->
-                                                                        <td style="display:none;">
-                                                                            {{ row.id_palabras_clave }}
-                                                                        </td>
+                                                                        <td style="display:none;">{{
+                                                                            row.id_palabras_clave }}</td>
 
                                                                         <!-- Palabra Clave -->
                                                                         <td>
@@ -660,52 +696,63 @@
                                                                                 [readonly]="!row.isEditing" />
                                                                         </td>
 
-                                                                        <!-- Relacionado -->
+                                                                        <!-- Componente (Relacionado) -->
                                                                         <td>
                                                                             <select class="form-select"
                                                                                 [(ngModel)]="row.related"
-                                                                                [disabled]="!row.isEditing">
+                                                                                [disabled]="!row.isEditing"
+                                                                                (ngModelChange)="onRelatedChange($event)">
                                                                                 <option
-                                                                                    *ngFor="let option of methodologies"
-                                                                                    [value]="option">
-                                                                                    {{ option }}
+                                                                                    *ngFor="let option of relatedOptions"
+                                                                                    [ngValue]="option">
+                                                                                    {{ option.nombre }}
                                                                                 </option>
                                                                             </select>
                                                                         </td>
 
                                                                         <!-- Sinónimos -->
                                                                         <td>
-                                                                            <input class="form-control" type="text"
-                                                                                [(ngModel)]="row.synonyms"
-                                                                                [readonly]="!row.isEditing" />
-                                                                        </td>
+                                                                            <!-- Itera sobre el arreglo de sinónimos usando trackBy para conservar el foco -->
+                                                                            <div *ngFor="let synonym of row.synonyms; let j = index; trackBy: trackByIndex" class="d-flex align-items-center">
+                                                                              <input class="form-control mb-1"
+                                                                                     type="text"
+                                                                                     [(ngModel)]="row.synonyms[j]"
+                                                                                     [readonly]="!row.isEditing"
+                                                                                     placeholder="Sinónimo {{ j + 1 }}" />
+                                                                              <!-- Botón para eliminar este sinónimo (solo en modo edición) -->
+                                                                              <button *ngIf="row.isEditing" type="button" class="btn btn-outline-danger btn-sm ms-1"
+                                                                                      (click)="removeSynonym(row, j)">
+                                                                                <i class="bi bi-x"></i>
+                                                                              </button>
+                                                                            </div>
+                                                                            <!-- Botón para añadir un nuevo sinónimo, visible solo en modo edición -->
+                                                                            <button *ngIf="row.isEditing" type="button" class="btn btn-sm btn-primary" (click)="addSynonym(row)">
+                                                                              <i class="bi bi-plus"></i> Añadir sinónimo
+                                                                            </button>
+                                                                          </td>
 
                                                                         <!-- Acciones -->
                                                                         <td>
-                                                                            <!-- CASO 1: REGISTRO NUEVO => mostrar Guardar -->
+                                                                            <!-- Caso: registro nuevo (sin id) -->
                                                                             <button *ngIf="!row.id_palabras_clave"
                                                                                 class="btn btn-success btn-sm me-1"
                                                                                 [disabled]="!row.isEditing"
-                                                                                (click)="saveRow(row)">
+                                                                                (click)="saveSynonymAndKeyword(row)">
                                                                                 Guardar
                                                                             </button>
-
-                                                                            <!-- CASO 2: REGISTRO EXISTENTE => mostrar Editar / Actualizar -->
+                                                                            <!-- Caso: registro existente -->
                                                                             <ng-container *ngIf="row.id_palabras_clave">
                                                                                 <button *ngIf="!row.isEditing"
                                                                                     class="btn btn-warning btn-sm me-1"
                                                                                     (click)="editRow(i)">
                                                                                     Editar
                                                                                 </button>
-
                                                                                 <button *ngIf="row.isEditing"
-                                                                                    class="btn btn-success btn-sm me-1"
-                                                                                    (click)="updateRow(row)">
+                                                                                    class="btn btn-success btn-sm me-1">
                                                                                     Actualizar
                                                                                 </button>
                                                                             </ng-container>
-
-                                                                            <!-- Botón para eliminar, siempre accesible -->
+                                                                            <!-- Botón para eliminar -->
                                                                             <button class="btn btn-danger btn-sm"
                                                                                 (click)="deleteRow(i)">
                                                                                 Eliminar
@@ -714,6 +761,7 @@
                                                                     </tr>
                                                                 </tbody>
                                                             </table>
+
                                                         </div>
                                                     </div>
                                                 </div>
@@ -727,9 +775,12 @@
                                                         aria-expanded="false" aria-controls="flush-collapseFive"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="bi bi-stack-overflow"></i>&nbsp;&nbsp;5.- Cadena
-                                                            de
-                                                            búsqueda
+                                                            <i class="bi bi-stack-overflow"></i>&nbsp;&nbsp;6.- Cadena
+                                                            de búsqueda
+                                                            <span *ngIf="cadenaGuardada">
+                                                                &nbsp;<i
+                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                            </span>
                                                         </h5>
                                                     </button>
                                                 </h2>
@@ -739,8 +790,7 @@
                                                         <!-- Contenedor principal -->
                                                         <div class="d-flex justify-content-end">
                                                             <!-- Botón de Sugerencia IA en la fila superior -->
-                                                            <button class="btn btn-info" type="button"
-                                                                (click)="generateSearchString()">
+                                                            <button class="btn btn-info" type="button">
                                                                 <i class="bi bi-lightbulb"></i>&nbsp; Generar cadena
                                                                 con IA
                                                             </button>
@@ -755,7 +805,8 @@
                                                                 <textarea class="form-control" id="cadena" rows="5"
                                                                     [(ngModel)]="cadenaBusqueda" name="cadenaBusqueda"
                                                                     placeholder="Ingrese su cadena de búsqueda (use mayúsculas para AND, OR, comillas dobles, etc.)"
-                                                                    maxlength="100"></textarea>
+                                                                    maxlength="100"
+                                                                    (ngModelChange)="onCadenaEdit()"></textarea>
 
                                                                 <div class="text-end text-muted mt-1">
                                                                     <small>{{ cadenaBusqueda.length || 0 }}/100
@@ -795,7 +846,7 @@
                                                         aria-expanded="false" aria-controls="flush-collapseSix"
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
-                                                            <i class="bi bi-stack"></i>&nbsp;&nbsp;6.- Criterios de
+                                                            <i class="bi bi-stack"></i>&nbsp;&nbsp;7.- Criterios de
                                                             selección
                                                         </h5>
                                                     </button>

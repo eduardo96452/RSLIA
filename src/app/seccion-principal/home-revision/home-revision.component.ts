@@ -65,6 +65,7 @@ export class HomeRevisionComponent implements OnInit  {
       tipo_revision: this.tipoRevision,
       descripcion: this.description,
       fecha_creacion: new Date().toISOString(),
+      fecha_modificacion: new Date().toISOString(),
     };
   
     const { insertData, error } = await this.authService.createReview(reviewData);

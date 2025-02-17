@@ -15,7 +15,6 @@ import { NoAuthGuard } from './conexion/no-auth.guard';
 import { AuthGuard } from './conexion/auth.guard';
 import { InformesComponent } from './seccion-principal/segunda-seccion/informes/informes.component';
 import { CambiarpasswordComponent } from './seccion-principal/cambiarpassword/cambiarpassword.component';
-import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 
 
@@ -26,10 +25,6 @@ export const routes: Routes = [
   },
   {
     path: 'sign-up', component: AuthSignUpComponent,
-    canActivate: [NoAuthGuard]
-  },
-  {
-    path: 'reset-password', component: ResetPasswordComponent,
     canActivate: [NoAuthGuard]
   },
   {

@@ -14,20 +14,54 @@ export interface DetallesRevision {
   fecha_creacion: string;
 }
 
+export interface Metodologia {
+  id_metodologia: number;
+  nombre: string;
+  descripcion: string;
+}
+
+interface Componente {
+  id_componente: number;
+  nombre: string;
+  sigla: string;
+  descripcion: string;
+  id_metodologia: number;
+}
+
+interface ComponenteRevision {
+  id_revision: number;
+  id_componente: number;
+  palabra_clave: string;
+  // otros campos si tu tabla los tiene
+}
+
+interface ComponenteData {
+  sigla: string;
+  id_metodologia: number;
+}
+
+interface ComponenteRevisionData {
+  id_revision: number;
+  id_componente: number;
+  palabra_clave: string;
+  // componente es un array:
+  componente: ComponenteData[];
+}
+
 export interface Question {
   id: number;
-  id_estudios?: string | null;
   id_detalles_revision?: string;
   value: string;
   isSaved?: boolean;
+  isEditing?: boolean;
 }
 
 export interface KeywordRow {
   id_palabras_clave?: number;
-  keyword: string;      // palabra_clave
-  related: string;      // seccion_metodologia
-  synonyms: string;     // sinónimos separados por comas
-  isEditing?: boolean;  // control de edición local
+  keyword: string;
+  related: string;
+  synonyms: string[]; // Arreglo de sinónimos
+  isEditing: boolean;
 }
 
 export interface Criterio {
@@ -259,7 +293,7 @@ export class AuthService {
   async getUserDataByUID(uid: string) {
     const { data, error } = await this._supabaseClient
       .from('usuarios')
-      .select('id_usuarios, nombre_usuario, correo_electronico, nombre, apellido, institucion, ruta_imagen') // Selecciona las columnas que necesitas
+      .select('id_usuarios, nombre_usuario, correo_electronico, nombre, apellido, institucion, ruta_imagen, orcid, profesion, pais') // Selecciona las columnas que necesitas
       .eq('id_usuarios', uid)
       .single();
 
@@ -285,6 +319,9 @@ export class AuthService {
     institucion: string;
     nombre_usuario: string;
     ruta_imagen: string;
+    orcid: string;
+    profesion: string;
+    pais: string
   }) {
     const { data, error } = await this._supabaseClient
       .from('usuarios')
@@ -295,6 +332,9 @@ export class AuthService {
         institucion: userData.institucion,
         nombre_usuario: userData.nombre_usuario,
         ruta_imagen: userData.ruta_imagen,
+        orcid: userData.orcid,
+        profesion: userData.profesion,
+        pais: userData.pais
       })
       .eq('id_usuarios', uid)
       // Con este método, Supabase retorna los registros actualizados.
@@ -393,6 +433,44 @@ export class AuthService {
     }
   }
 
+  async countUserDocumentsByRevision(userId: string, revisionId: string): Promise<number> {
+    try {
+      // 1) Verificar que la revisión pertenezca al usuario
+      const { data: revision, error: revisionError } = await this._supabaseClient
+        .from('detalles_revision')
+        .select('id_detalles_revision')
+        .eq('id_usuarios', userId)
+        .eq('id_detalles_revision', revisionId)
+        .single();
+
+      if (revisionError) {
+        console.error('Error al obtener la revisión:', revisionError);
+        return 0;
+      }
+
+      if (!revision) {
+        console.warn('No se encontró esa revisión para este usuario.');
+        return 0;
+      }
+
+      // 2) Contar documentos en "estudios" para ese id_detalles_revision
+      const { count, error: countError } = await this._supabaseClient
+        .from('estudios')
+        .select('*', { count: 'exact', head: true })
+        .eq('id_detalles_revision', revisionId);
+
+      if (countError) {
+        console.error('Error al contar documentos:', countError);
+        return 0;
+      }
+
+      return count || 0;
+    } catch (err) {
+      console.error('Error inesperado:', err);
+      return 0;
+    }
+  }
+
   async getEstudiosDistributionByDatabase(): Promise<{ [key: string]: number }> {
     const userId = localStorage.getItem('user_id');
     if (!userId) {
@@ -442,7 +520,7 @@ export class AuthService {
 
     const { data, error } = await this._supabaseClient
       .from('detalles_revision')
-      .select('id_detalles_revision, titulo_revision')
+      .select('id_detalles_revision, titulo_revision, fecha_modificacion')
       .eq('id_usuarios', userId);
 
     if (error) {
@@ -496,56 +574,202 @@ export class AuthService {
     return { data };
   }
 
-  async insertMetodologia(data: {
-    id_detalles_revision: number | string;
-    nombre_metodologia: string;
-    s?: string;
-    p?: string;
-    i?: string;
-    c?: string;
-    e?: string;
-    o?: string;
-    c2?: string;
-    t?: string;
-    t2?: string;
-  }) {
-    const { data: insertData, error } = await this._supabaseClient
-      .from('metodologias')
-      .insert([data]);
+  async getMetodologias(): Promise<Metodologia[]> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('metodologias')
+        .select('*'); // Ajusta si solo quieres columnas específicas
 
-    if (error) {
-      console.error('Error al insertar metodología:', error);
-      throw error;
+      if (error) {
+        console.error('Error al obtener metodologías:', error);
+        return [];
+      }
+
+      return data as Metodologia[];
+    } catch (err) {
+      console.error('Error inesperado al obtener metodologías:', err);
+      return [];
     }
-    return insertData;
   }
 
-  async getMetodologiaByRevisionId(revisionId: number | string) {
-    const { data, error } = await this._supabaseClient
-      .from('metodologias')
-      .select('*')
-      .eq('id_detalles_revision', revisionId)
-      .single(); // asumes que solo guardas una metodología por revisión
+  async getMetodologiaByName(nombre: string): Promise<Metodologia | null> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('metodologias')
+        .select('*')
+        .eq('nombre', nombre)
+        .single(); // .single() asumes que solo habrá un registro único
 
-    if (error && error.code !== 'PGRST116') {
-      // PGRST116 = Row not found
-      console.error('Error al consultar metodología:', error);
-      throw error;
+      if (error) {
+        console.error('Error al obtener metodología por nombre:', error);
+        return null;
+      }
+
+      return data ? (data as Metodologia) : null;
+    } catch (err) {
+      console.error('Error inesperado al obtener la metodología:', err);
+      return null;
     }
-    return data; // data será undefined/null si no existe
   }
 
-  async deleteMetodologiaByRevisionId(revisionId: number | string) {
-    const { data, error } = await this._supabaseClient
-      .from('metodologias')
-      .delete()
-      .eq('id_detalles_revision', revisionId);
+  async getComponentesByMetodologiaId(idMetodologia: number): Promise<Componente[]> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('componente')
+        .select('*')
+        .eq('id_metodologia', idMetodologia);
 
-    if (error) {
-      console.error('Error al eliminar metodología:', error);
-      throw error;
+      if (error) {
+        console.error('Error al obtener componentes:', error);
+        return [];
+      }
+
+      return data as Componente[];
+    } catch (err) {
+      console.error('Error inesperado al obtener componentes:', err);
+      return [];
     }
-    return data;
+  }
+
+  async getMetodologiaByRevisionId(reviewId: string): Promise<Metodologia | null> {
+    try {
+      // 1. Buscar si la revisión tiene componentes asociados
+      const { data: compRevData, error: compRevError } = await this._supabaseClient
+        .from('componente_revision')
+        .select('id_componente')
+        .eq('id_revision', reviewId);
+
+      if (compRevError) {
+        console.error('Error al obtener componente_revision:', compRevError);
+        return null;
+      }
+
+      // Si no hay registros, asumimos que no hay metodología asociada
+      if (!compRevData || compRevData.length === 0) {
+        return null;
+      }
+
+      // Tomamos el primer componente (asumiendo que todos pertenecen a la misma metodología)
+      const idComponente = compRevData[0].id_componente;
+
+      // 2. Obtenemos el componente para saber su id_metodologia
+      const { data: compData, error: compError } = await this._supabaseClient
+        .from('componente')
+        .select('id_metodologia')
+        .eq('id_componente', idComponente)
+        .single();
+
+      if (compError) {
+        console.error('Error al obtener componente:', compError);
+        return null;
+      }
+      if (!compData) {
+        return null;
+      }
+
+      // 3. Ahora con el id_metodologia, vamos a la tabla metodologias
+      const idMetodologia = compData.id_metodologia;
+
+      const { data: metodologiaData, error: metodologiaError } = await this._supabaseClient
+        .from('metodologias')
+        .select('*')
+        .eq('id_metodologia', idMetodologia)
+        .single();
+
+      if (metodologiaError) {
+        console.error('Error al obtener la metodología:', metodologiaError);
+        return null;
+      }
+
+      if (!metodologiaData) {
+        return null;
+      }
+
+      // Retornamos la metodología
+      return metodologiaData as Metodologia;
+    } catch (err) {
+      console.error('Error inesperado al obtener metodología por revisión:', err);
+      return null;
+    }
+  }
+
+  async deleteMetodologiaByRevisionId(reviewId: string): Promise<boolean> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('componente_revision')
+        .delete()
+        .eq('id_revision', reviewId);
+
+      if (error) {
+        console.error('Error al borrar metodología para la revisión:', error);
+        return false;
+      }
+
+      // data contiene los registros eliminados, si necesitas validarlos
+      return true;
+    } catch (err) {
+      console.error('Error inesperado al borrar la metodología:', err);
+      return false;
+    }
+  }
+
+  async insertComponenteRevision(
+    idRevision: string,
+    idComponente: number,
+    palabraClave: string
+  ): Promise<boolean> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('componente_revision')
+        .insert([{
+          id_revision: idRevision,
+          id_componente: idComponente,
+          palabra_clave: palabraClave
+        }]);
+
+      if (error) {
+        console.error('Error al insertar componente_revision:', error);
+        return false;
+      }
+
+      // data retornará el nuevo registro insertado si lo deseas manipular
+      return true;
+    } catch (err) {
+      console.error('Error inesperado al insertar componente_revision:', err);
+      return false;
+    }
+  }
+
+  async getComponentesRevisionByReviewId(reviewId: string): Promise<ComponenteRevisionData[]> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('componente_revision')
+        // Ojo a la sintaxis: 
+        // Seleccionas la subcolumna "componente" como un array de { sigla, id_metodologia }
+        .select(`
+          id_revision,
+          id_componente,
+          palabra_clave,
+          componente:componente (
+            sigla,
+            id_metodologia
+          )
+        `)
+        .eq('id_revision', reviewId);
+
+      if (error) {
+        console.error('Error al obtener componente_revision:', error);
+        return [];
+      }
+
+      // Aquí verás la forma exacta en que Supabase te devuelve el resultado
+
+      // Retornamos el array tipado
+      return data as ComponenteRevisionData[];
+    } catch (err) {
+      console.error('Error inesperado al obtener componente_revision:', err);
+      return [];
+    }
   }
 
   async saveResearchQuestion(question: Question): Promise<any> {
@@ -553,7 +777,6 @@ export class AuthService {
       .from('preguntas_investigacion') // Nombre de la tabla
       .insert([
         {
-          id_estudios: question.id_estudios || null, // Opcional: depende si tienes ID del estudio
           pregunta: question.value,
           id_detalles_revision: question.id_detalles_revision || null, // Asociado a una revisión
         }
@@ -588,6 +811,212 @@ export class AuthService {
     }
     return { data, error };
   }
+
+  async updateQuestion(question: Question): Promise<{ error?: any }> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('preguntas_investigacion')
+        .update({ pregunta: question.value })
+        .eq('id_preguntas_investigacion', question.id);
+
+      if (error) {
+        console.error('Error al actualizar la pregunta en la BD:', error.message || error);
+        return { error };
+      }
+
+      return {};
+    } catch (err) {
+      console.error('Error inesperado al actualizar la pregunta:', err);
+      return { error: err };
+    }
+  }
+
+  async getComponentsByMethodologyName(metodologiaNombre: string): Promise<{ id: number; nombre: string }[]> {
+    try {
+      // 1. Obtener id_metodologia según el nombre
+      const { data: metodologiaData, error: metodologiaError } = await this._supabaseClient
+        .from('metodologias')
+        .select('id_metodologia')
+        .eq('nombre', metodologiaNombre)
+        .single();
+  
+      if (metodologiaError) {
+        console.error('Error al obtener la metodología:', metodologiaError);
+        return [];
+      }
+      if (!metodologiaData) {
+        console.warn('No se encontró metodología con el nombre:', metodologiaNombre);
+        return [];
+      }
+  
+      const idMetodologia = metodologiaData.id_metodologia;
+  
+      // 2. Con el id_metodologia, consultar la tabla "componente"
+      const { data: componentesData, error: componentesError } = await this._supabaseClient
+        .from('componente')
+        .select('id_componente, nombre')
+        .eq('id_metodologia', idMetodologia);
+  
+      if (componentesError) {
+        console.error('Error al obtener los componentes:', componentesError);
+        return [];
+      }
+  
+      // Retornamos un array de objetos { id, nombre }
+      return (componentesData || []).map((comp: any) => ({
+        id: comp.id_componente,
+        nombre: comp.nombre
+      }));
+    } catch (err) {
+      console.error('Error inesperado en getComponentsByMethodologyName:', err);
+      return [];
+    }
+  }
+  
+  async registerSynonymThenKeyword(
+    sinonimo: string,
+    palabraClave: string,
+    idDetallesRevision: string,
+    idseccioncomponente: string, // ID que usarás para buscar en componente_revision
+    seccionMetodologia: string,
+    fechaIngreso?: string
+  ): Promise<{ data?: any; error?: any }> {
+    try {
+      // ===========================
+      // 0) Buscar el id_componente_revision 
+      //    usando el idseccionMetodologia que recibes
+      // ===========================
+      const { data: compRevData, error: compRevError } = await this._supabaseClient
+        .from('componente_revision')
+        .select('id_componente_revision') // Ajusta si necesitas más columnas
+        .eq('id_componente', idseccioncomponente)
+        .single();
+  
+      if (compRevError) {
+        console.error('Error al buscar componente_revision:', compRevError);
+        return { error: compRevError };
+      }
+  
+      if (!compRevData) {
+        return {
+          error: new Error(`No se encontró un componente_revision con el ID`)
+        };
+      }
+  
+      const foundCompRevId = compRevData.id_componente_revision;
+  
+      console.log(foundCompRevId);
+
+      // ===========================
+      // 1) Insertar primero el sinónimo en la tabla "sinonimos",
+      //    usando el foundCompRevId como id_componente_revision
+      // ===========================
+      const { data: synData, error: synError } = await this._supabaseClient
+        .from('sinonimos')
+        .insert([
+          {
+            id_componente_revision: foundCompRevId,
+            sinonimo: sinonimo
+          }
+        ])
+        .select(); // Para retornar el registro insertado (Supabase >= 2.0)
+  
+      if (synError) {
+        console.error('Error al insertar sinónimo:', synError);
+        return { error: synError };
+      }
+  
+      if (!synData || synData.length === 0) {
+        // No se devolvió nada, algo falló
+        return { error: new Error('No se pudo insertar el sinónimo.') };
+      }
+  
+      // Se toma el primer sinónimo insertado
+      const newSynonym = synData[0];
+      const newSynonymId = newSynonym.id_sinonimos;
+  
+      // ===========================
+      // 2) Insertar ahora la palabra clave en la tabla "palabras_clave"
+      //    Usando el id_sinonimos recién obtenido
+      // ===========================
+      const { data: kwData, error: kwError } = await this._supabaseClient
+        .from('palabras_clave')
+        .insert([
+          {
+            palabra_clave: palabraClave,
+            fecha_ingreso: fechaIngreso || new Date().toISOString(),
+            id_detalles_revision: idDetallesRevision,
+            seccion_metodologia: seccionMetodologia,
+            id_sinonimos: newSynonymId // Vincula este sinónimo en la palabra clave
+          }
+        ])
+        .select(); // Para obtener el registro creado
+  
+      if (kwError) {
+        console.error('Error al insertar en palabras_clave:', kwError);
+        return { error: kwError };
+      }
+  
+      if (!kwData || kwData.length === 0) {
+        return { error: new Error('No se pudo insertar la palabra clave.') };
+      }
+  
+      // Retorna ambos registros (sinónimo y palabra clave) si lo deseas
+      return {
+        data: {
+          synonym: newSynonym,
+          keyword: kwData[0]
+        }
+      };
+    } catch (err) {
+      console.error('Error inesperado al registrar sinónimo y palabra clave:', err);
+      return { error: err };
+    }
+  }
+  
+  async getKeywordsAndSynonyms(reviewId: string): Promise<any[]> {
+    try {
+      // Ejemplo usando un JOIN (ajusta según tu estructura y relaciones en Supabase):
+      const { data, error } = await this._supabaseClient
+        .from('palabras_clave')
+        .select(`
+          *,
+          sinonimos:sinonimos!inner(sinonimo)
+        `)
+        .eq('id_detalles_revision', reviewId);
+  
+      if (error) {
+        console.error('Error al cargar palabras clave y sinónimos:', error);
+        return [];
+      }
+  
+      // data es un array donde, para cada palabra clave, el campo "sinonimos" es un array de registros
+      return data;
+    } catch (err) {
+      console.error('Error inesperado al cargar palabras clave y sinónimos:', err);
+      return [];
+    }
+  }
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
 
   async saveKeyword(
     palabraClave: string,
@@ -681,6 +1110,13 @@ export class AuthService {
     }
     return { data, error };
   }
+
+
+
+
+
+
+
 
   async insertarCadenaBusqueda(cadenaBusqueda: string, idDetallesRevision: string) {
     // La columna "fecha_creacion" puede ser un default en la BD

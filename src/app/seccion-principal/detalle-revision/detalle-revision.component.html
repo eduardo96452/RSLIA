@@ -10,7 +10,7 @@
             <ol class="breadcrumb">
               <div class="row">
                 <div >
-                  <li class="breadcrumb-item active" aria-current="page">{{reviewData.titulo_revision}}</li>
+                  <li class="breadcrumb-item" aria-current="page">{{reviewData.titulo_revision}}</li>
                 </div>
                 
               </div>
@@ -36,6 +36,11 @@
               <!-- Revisión de datos -->
               <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
                 Revisión de datos
+              </div>
+
+              <!-- Revisión de datos -->
+               <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
+                Extracción de datos
               </div>
 
               <!-- Proyección de informes -->

@@ -5,6 +5,7 @@ import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/rout
 import { AuthService } from '../../auth/data-access/auth.service';
 import { Chart } from 'chart.js/auto';
 import { filter } from 'rxjs';
+import Swal from 'sweetalert2';
 
 
 @Component({
@@ -14,7 +15,7 @@ import { filter } from 'rxjs';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements OnInit, AfterViewInit {
+export class DashboardComponent implements OnInit {
 
   userReviewCount: number = 0;
   userReviews: any[] = [];
@@ -80,6 +81,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
 
     this.userReviews = await this.authService.getUserReviews(userId);
+
+    // 2. Para cada revisión, obten la cantidad de documentos y guárdala en la propiedad docCount
+    for (const review of this.userReviews) {
+      review.docCount = await this.authService.countUserDocumentsByRevision( userId, review.id_detalles_revision);
+    }
   }
 
   slugify(title: string): string {
@@ -115,90 +121,26 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit() {
-    console.log('AfterViewInit - Canvas disponible:', !!this.chartCanvas?.nativeElement); // Debug
-    
-    // Verificar periódicamente si los datos y el canvas están listos
-    this.checkInterval = setInterval(() => {
-      if (this.distributionData && this.chartCanvas?.nativeElement) {
-        this.createChart(this.distributionData);
-        clearInterval(this.checkInterval);
-      }
-    }, 100);
-  }
-
-  private createChart(distribution: { [key: string]: number }) {
-    try {
-      console.log('Creando gráfico con datos:', distribution); // Debug
-      
-      if (this.chart) {
-        this.chart.destroy();
-      }
-
-      const ctx = this.chartCanvas.nativeElement.getContext('2d');
-      if (!ctx) {
-        throw new Error('No se pudo obtener el contexto 2D del canvas');
-      }
-
-      this.chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: Object.keys(distribution),
-          datasets: [{
-            label: 'Estudios por base de datos',
-            data: Object.values(distribution),
-            backgroundColor: [
-              'rgba(54, 162, 235, 0.5)',
-              'rgba(255, 99, 132, 0.5)',
-              'rgba(75, 192, 192, 0.5)',
-              'rgba(255, 206, 86, 0.5)',
-              'rgba(153, 102, 255, 0.5)',
-              'rgba(255, 159, 64, 0.5)'
-            ],
-            borderColor: [
-              'rgba(54, 162, 235, 1)',
-              'rgba(255, 99, 132, 1)',
-              'rgba(75, 192, 192, 1)',
-              'rgba(255, 206, 86, 1)',
-              'rgba(153, 102, 255, 1)',
-              'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top'
-            }
-          }
+  async eliminarRevision(idRevision: number) {
+    // Mostramos un cuadro de confirmación
+    Swal.fire({
+      title: '¿Estás seguro de eliminar esta revisión?',
+      text: 'Esta acción no se puede revertir.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          Swal.fire('Revisión eliminada', 'La revisión se eliminó correctamente.', 'success');
+          console.log('Eliminando revisión con ID:', idRevision);
+        } catch (err) {
+          console.error('Error inesperado:', err);
+          Swal.fire('Error', 'Hubo un problema al eliminar la revisión.', 'error');
         }
-      });
-      
-      console.log('Gráfico creado exitosamente'); // Debug
-    } catch (error) {
-      console.error('Error al crear el gráfico:', error); // Debug
-      this.errorMessage = 'Error al crear el gráfico: ' + (error as Error).message;
-    }
+      }
+    });
   }
 
-  ngOnDestroy() {
-    if (this.chart) {
-      this.chart.destroy();
-    }
-    if (this.checkInterval) {
-      clearInterval(this.checkInterval);
-    }
-  }
 }

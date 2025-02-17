@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
-import { AuthService, KeywordRow, Respuesta } from '../../auth/data-access/auth.service';
+import { AuthService, KeywordRow, Metodologia, Respuesta } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
 import Swal from 'sweetalert2';
 import { HttpClientModule } from '@angular/common/http';
@@ -21,35 +21,18 @@ import { filter } from 'rxjs';
 })
 export class PlanificacionComponent implements OnInit {
   description: string = '';
-  // Datos iniciales de la tabla
-  tableData: KeywordRow[] = []; // Almacena las palabras clave
-
-  // Este array define tus metodologías (puedes ajustar el formato).
-  // Observa que en paréntesis está la letra clave.
-  methodologies: string[] = [
-    'Escenario (S)',
-    'Población (P)',
-    'Intervención (I)',
-    'Comparación (C)',
-    'Resultado (O)',
-    'Contexto (C)',
-    'Tipo de pregunta (T)',
-    'Tipo de articulo (T)',
-    'Escenario (E)',
-    'Perspectiva (P)',
-    'Evaluación (E)'
-  ];
+  tableData: KeywordRow[] = [];
 
   userData: any = null;
   reviewData: any = {};
   reviewId!: string;
-  objetivo: string = ''; // Campo para guardar el objetivo traído de la BD
-  charCount: number = 0; // Contador de caracteres (opcional)
-
-  // Datos de la reseña
+  objetivo: string = '';
+  objectiveSaved: boolean = false;
+  charCount: number = 0;
   titulo_revision = '';
   tipo_revision = '';
   descripcion = '';
+  metodologias: Metodologia[] = [];
 
   metodoToPagina: { [key: string]: string } = {
     'PICO': 'PICO',
@@ -59,10 +42,10 @@ export class PlanificacionComponent implements OnInit {
   };
 
   paginaToMetodo: { [key: string]: string } = {
-    'PICO': 'PICO',
-    'PICOC': 'PICOC',
-    'PICOTT': 'PICOTT',
-    'SPICE': 'SPICE'
+    'PICO': 'Metodología PICO',
+    'PICOC': 'Metodología PICOC',
+    'PICOTT': 'Metodología PICOTT',
+    'SPICE': 'Metodología SPICE'
   };
 
   // Nombre de la metodología existente (si la hay)
@@ -97,9 +80,27 @@ export class PlanificacionComponent implements OnInit {
   spiceC = '';
   spiceE = '';
 
+  metodologiaGuardada = false;
+
   questions: Question[] = [];
 
+  questionsUpdated = false;
+
+  relatedOptions: { id: number; nombre: string }[] = [];
+
+  idmetodologiaSeleccionada: number | null = null;
+  metodologiaNombreSeleccionada: string | null = null;
+
+  sinonimo: string = '';
+  palabraClave: string = '';
+  metodologiaName: string = '';
+  metodologiaSeleccionada: string = '';
+
   cadenaBusqueda: string = '';
+
+  cadenaGuardada: boolean = false;
+
+
 
   // Para ingresar criterios de exclusión
   exclusionValue: string = '';
@@ -117,6 +118,7 @@ export class PlanificacionComponent implements OnInit {
   limitScore1: number = 0; // Puntuación límite
   isLargeScreen: boolean = true;
   showButton = false;
+
 
 
   constructor(
@@ -137,19 +139,17 @@ export class PlanificacionComponent implements OnInit {
 
     this.loadUserData();
 
-    this.route.queryParams.subscribe(params => {
-      this.reviewId = params['id'];
-      console.log('Revision ID:', this.reviewId);
-      if (this.reviewId) {
-        // 2. Cargar metodología existente
-        this.loadExistingMethodology();
-      }
-    });
+    this.loadMetodologias();
+
+    this.loadSavedMetodologia();
 
     // Obtener preguntas asociadas a la revisión
     await this.loadQuestions();
 
-    this.loadKeywords();
+    this.loadComponentsForSelect();
+
+    await this.loadKeywordsAndSynonyms()
+
 
     this.loadCadena();
 
@@ -185,7 +185,7 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-  // Cargar datos de la base de datos
+
   async loadReviewData() {
     try {
       const reviewData = await this.authService.getReviewById(this.reviewId);
@@ -196,111 +196,30 @@ export class PlanificacionComponent implements OnInit {
         this.descripcion = reviewData.descripcion || '';
         this.objetivo = reviewData.objetivo || '';
         this.charCount = this.objetivo.length;
+
+        // Si existe contenido en la BD, marcamos como "guardado"
+        // con trim() aseguramos no contar espacios en blanco
+        this.objectiveSaved = !!this.objetivo.trim();
       }
     } catch (error) {
       console.error('Error al cargar la reseña:', error);
     }
   }
 
-  async loadExistingMethodology() {
-    try {
-      const metodologia = await this.authService.getMetodologiaByRevisionId(this.reviewId);
-      if (metodologia) {
-        // Guardamos el nombre para saber que sí existe
-        this.existingMethodologyName = metodologia.nombre_metodologia;
-
-        // Ajustamos la página del select
-        const pagina = this.metodoToPagina[metodologia.nombre_metodologia];
-        if (pagina) {
-          this.paginaSeleccionada = pagina;
-        }
-
-        // Rellenar campos según sea PICO, PICOC, PICOTT, SPICE
-        if (metodologia.nombre_metodologia === 'PICO') {
-          this.picoP = metodologia.p || '';
-          this.picoI = metodologia.i || '';
-          this.picoC = metodologia.c || '';
-          this.picoO = metodologia.o || '';
-        } else if (metodologia.nombre_metodologia === 'PICOC') {
-          this.picocP = metodologia.p || '';
-          this.picocI = metodologia.i || '';
-          this.picocC = metodologia.c || '';
-          this.picocO = metodologia.o || '';
-          this.picocContext = metodologia.c2 || '';
-        } else if (metodologia.nombre_metodologia === 'PICOTT') {
-          this.picottP = metodologia.p || '';
-          this.picottI = metodologia.i || '';
-          this.picottC = metodologia.c || '';
-          this.picottO = metodologia.o || '';
-          this.picottT = metodologia.t || '';
-          this.picottT2 = metodologia.t2 || '';
-        } else if (metodologia.nombre_metodologia === 'SPICE') {
-          this.spiceS = metodologia.s || '';
-          this.spiceP = metodologia.p || '';
-          this.spiceI = metodologia.i || '';
-          this.spiceC = metodologia.c || '';
-          this.spiceE = metodologia.e || '';
-        }
-      } else {
-        // No hay metodología previa
-        this.existingMethodologyName = null;
-      }
-    } catch (error) {
-      console.error('Error al cargar metodología existente:', error);
-    }
-  }
-
-  onMetodoChange(nuevaPagina: string) {
-    // Si no hay ninguna metodología guardada, simplemente cambiamos la página
-    if (!this.existingMethodologyName) {
-      this.paginaSeleccionada = nuevaPagina;
-      console.log('Cambiando a', nuevaPagina);
-      return;
-    }
-
-    // Si la hay, verificamos si el usuario está cambiando a una distinta a la actual
-    const metodoActual = this.existingMethodologyName;  // p.ej. "PICO"
-    const paginaActual = this.metodoToPagina[metodoActual]; // p.ej. 'pagina1'
-
-    if (paginaActual === nuevaPagina) {
-      // El usuario está seleccionando la misma metodología que ya está guardada,
-      // no pasa nada especial: se queda en la misma.
-      this.paginaSeleccionada = nuevaPagina;
-      return;
-    }
-
-    // Aquí, la metodología en la BD es distinta a la que usuario seleccionó
-    // => Mostrar SweetAlert2 para avisar
-    Swal.fire({
-      title: '¿Cambiar de metodología?',
-      text: `Actualmente tienes guardada la metodología "${metodoActual}". 
-¿Quieres ver la sección de "${this.paginaToMetodo[nuevaPagina]}"? 
-(No se modificará lo guardado, solo cambiará la vista.)`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, cambiar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Usuario confirma => solo cambiamos la vista (no tocamos la BD)
-        this.paginaSeleccionada = nuevaPagina;
-      } else {
-        // Usuario cancela => volver a la página anterior
-        this.paginaSeleccionada = paginaActual;
-      }
-    });
+  onInputChanged() {
+    this.metodologiaGuardada = false;
   }
 
   onTextChange(value: string) {
     this.charCount = value.length;
+    this.objectiveSaved = false;
   }
 
-  // Método para limpiar el textarea
   clearObjetivo() {
     this.objetivo = '';
+    this.objectiveSaved = false;
   }
 
-  // Guardar objetivo en la base de datos
   async saveObjective() {
     try {
       const { data, error } = await this.authService.updateReviewObjective(this.reviewId, this.objetivo);
@@ -317,9 +236,9 @@ export class PlanificacionComponent implements OnInit {
     } catch (err) {
       console.error('Error al guardar el objetivo:', err);
     }
+    this.objectiveSaved = true;
   }
 
-  // Obtener sugerencia de la IA
   getIaSuggestion() {
     Swal.fire({
       title: 'Generando sugerencia...',
@@ -349,6 +268,7 @@ export class PlanificacionComponent implements OnInit {
           text: 'La IA ha generado una sugerencia para el objetivo.',
           timer: 2500
         });
+        this.metodologiaGuardada = false;
       },
       error: (error) => {
         Swal.close();
@@ -362,7 +282,11 @@ export class PlanificacionComponent implements OnInit {
     });
   }
 
-  async guardarMetodologiaPICO() {
+  async loadMetodologias(): Promise<void> {
+    this.metodologias = await this.authService.getMetodologias();
+  }
+
+  async guardarMetodologia() {
     if (!this.reviewId) {
       Swal.fire({
         icon: 'error',
@@ -379,8 +303,8 @@ export class PlanificacionComponent implements OnInit {
       if (existing) {
         // 2. El usuario confirma si desea sobrescribir
         const result = await Swal.fire({
-          title: 'Reemplazar metodología',
-          text: 'Ya existe una metodología guardada para esta revisión. ¿Deseas reemplazarla?',
+          title: 'Reemplazar Framework',
+          text: 'Ya existe un Framework guardado para esta revisión. ¿Deseas reemplazarla?',
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#3085d6',
@@ -398,230 +322,281 @@ export class PlanificacionComponent implements OnInit {
         await this.authService.deleteMetodologiaByRevisionId(this.reviewId);
       }
 
-      // 4. Insertar la nueva metodología
-      const data = {
-        id_detalles_revision: this.reviewId,
-        nombre_metodologia: 'PICO',
-        p: this.picoP,
-        i: this.picoI,
-        c: this.picoC,
-        o: this.picoO
-      };
+      // 4. Obtener el id_metodologia según la página seleccionada (PICO, PICOC, PICOTT, SPICE, etc.)
+      const metodologia = await this.authService.getMetodologiaByName(this.paginaSeleccionada);
+      if (!metodologia) {
+        // Si no se encuentra en la tabla "metodologias", avisar y terminar
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: `No se encontró la Framework "${this.paginaSeleccionada}" en la base de datos.`
+        });
+        return;
+      }
 
-      await this.authService.insertMetodologia(data);
+      // 5. Obtener los componentes (P, I, C, O, etc.) asociados a esa metodología
+      const componentes = await this.authService.getComponentesByMetodologiaId(metodologia.id_metodologia);
+      if (!componentes || componentes.length === 0) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: `No se encontraron componentes para el Framework "${this.paginaSeleccionada}".`
+        });
+        return;
+      }
 
-      // 5. Notificar éxito
+      let subcomponentValues: { [key: string]: string } = {};
+
+      switch (this.paginaSeleccionada.toUpperCase()) {
+        case 'PICO':
+          subcomponentValues = {
+            'P': this.picoP,
+            'I': this.picoI,
+            'C': this.picoC,
+            'O': this.picoO
+          };
+          break;
+
+        case 'PICOC':
+          subcomponentValues = {
+            'P': this.picocP,
+            'I': this.picocI,
+            'C': this.picocC,
+            'O': this.picocO,
+            'CONTEXT': this.picocContext
+          };
+          break;
+
+        case 'PICOTT':
+          subcomponentValues = {
+            'P': this.picottP,
+            'I': this.picottI,
+            'C': this.picottC,
+            'O': this.picottO,
+            'TIPO1': this.picottT,
+            'TIPO2': this.picottT2
+          };
+          break;
+
+        case 'SPICE':
+          subcomponentValues = {
+            'S': this.spiceS,
+            'P': this.spiceP,
+            'I': this.spiceI,
+            'C': this.spiceC,
+            'E': this.spiceE
+          };
+          break;
+
+        default:
+          Swal.fire({
+            icon: 'error',
+            title: 'Framework desconocido',
+            text: `El Framework "${this.paginaSeleccionada}" no está contemplada en el switch.`
+          });
+          return;
+      }
+
+      for (const comp of componentes) {
+        const valor = subcomponentValues[comp.sigla.toUpperCase()] || '';
+        if (valor.trim() !== '') {
+          await this.authService.insertComponenteRevision(this.reviewId, comp.id_componente, valor);
+          this.metodologiaGuardada = true;
+        }
+      }
+
       Swal.fire({
         icon: 'success',
         title: 'Guardado',
-        text: 'La metodología PICO se guardó correctamente.'
+        text: `El Framework "${this.paginaSeleccionada}" se guardó correctamente.`
       });
 
     } catch (error) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Ocurrió un error al guardar la metodología.'
+        text: 'Ocurrió un error al guardar el Framework.'
       });
-      console.error('Error al guardar la metodología PICO:', error);
+      console.error('Error al guardar la metodología:', error);
     }
   }
 
-  async guardarMetodologiaPICOC() {
-    if (!this.reviewId) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se encontró la ID de la revisión en la URL.'
-      });
-      return;
-    }
-
+  async loadSavedMetodologia() {
     try {
-      // 1. Verificar si ya existe metodología para esta revisión
-      const existing = await this.authService.getMetodologiaByRevisionId(this.reviewId);
+      // 1. Revisar qué metodología está asociada a la revisión
+      const metodologia = await this.authService.getMetodologiaByRevisionId(this.reviewId);
+      if (!metodologia) {
+        // No hay metodología guardada
+        this.metodologiaGuardada = false;
+        return;
+      }
 
-      if (existing) {
-        // 2. El usuario confirma si desea sobrescribir
-        const result = await Swal.fire({
-          title: 'Reemplazar metodología',
-          text: 'Ya existe una metodología guardada para esta revisión. ¿Deseas reemplazarla?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'Sí, reemplazar',
-          cancelButtonText: 'Cancelar'
-        });
+      this.metodologiaGuardada = true;
+      // 2. Saber cuál es el nombre o ID de esa metodología
+      this.paginaSeleccionada = metodologia.nombre; // Ej: "PICO", "PICOC", etc.
 
-        if (!result.isConfirmed) {
-          // El usuario canceló la acción
-          return;
+      // 3. Obtener los componentes con sus valores
+      const componentesRevision = await this.authService.getComponentesRevisionByReviewId(this.reviewId);
+
+      // 4. Asignar cada valor al input correspondiente según la sigla
+      componentesRevision.forEach(cr => {
+        // Verificar si "componente" es un array y extraer el primer objeto
+        let comp: { sigla: string; id_metodologia: number } | undefined;
+        if (Array.isArray(cr.componente)) {
+          if (cr.componente.length > 0) {
+            comp = cr.componente[0];
+          }
+        } else {
+          comp = cr.componente;
         }
 
-        // 3. Eliminar la metodología anterior
-        await this.authService.deleteMetodologiaByRevisionId(this.reviewId);
-      }
-      // 4. Insertar la nueva metodología
-      const data = {
-        id_detalles_revision: this.reviewId,
-        nombre_metodologia: 'PICOC',
-        p: this.picocP,
-        i: this.picocI,
-        c: this.picocC,
-        o: this.picocO,
-        c2: this.picocContext
-        // s, e, t, t2 quedan en null
+        if (!comp) return; // Si no existe el componente, salimos de la iteración
 
-      };
-      await this.authService.insertMetodologia(data);
+        const sigla = comp.sigla.toUpperCase();
+        const valor = cr.palabra_clave;
 
-      // 5. Notificar éxito
-      Swal.fire({
-        icon: 'success',
-        title: 'Guardado',
-        text: 'La metodología PICOC se guardó correctamente.'
+        // Según la metodología guardada, asignar a las variables correspondientes
+        const metodologiaActual = this.paginaSeleccionada.toUpperCase();
+
+        if (metodologiaActual === 'PICO') {
+          switch (sigla) {
+            case 'P':
+              this.picoP = valor;
+              break;
+            case 'I':
+              this.picoI = valor;
+              break;
+            case 'C':
+              this.picoC = valor;
+              break;
+            case 'O':
+              this.picoO = valor;
+              break;
+            default:
+              console.warn(`Sigla ${sigla} no reconocida para PICO`);
+              break;
+          }
+        } else if (metodologiaActual === 'PICOC') {
+          switch (sigla) {
+            case 'P':
+              this.picocP = valor;
+              break;
+            case 'I':
+              this.picocI = valor;
+              break;
+            case 'C':
+              this.picocC = valor;
+              break;
+            case 'O':
+              this.picocO = valor;
+              break;
+            // Suponiendo que la sigla para "Contexto" sea "CONTEXT"
+            case 'CONTEXT':
+              this.picocContext = valor;
+              break;
+            default:
+              console.warn(`Sigla ${sigla} no reconocida para PICOC`);
+              break;
+          }
+        } else if (metodologiaActual === 'PICOTT') {
+          switch (sigla) {
+            case 'P':
+              this.picottP = valor;
+              break;
+            case 'I':
+              this.picottI = valor;
+              break;
+            case 'C':
+              this.picottC = valor;
+              break;
+            case 'O':
+              this.picottO = valor;
+              break;
+            case 'TIPO1':
+              this.picottT = valor;
+              break;
+            case 'TIPO2':
+              this.picottT2 = valor;
+              break;
+            default:
+              console.warn(`Sigla ${sigla} no reconocida para PICOTT`);
+              break;
+          }
+        } else if (metodologiaActual === 'SPICE') {
+          switch (sigla) {
+            case 'S':
+              this.spiceS = valor;
+              break;
+            case 'P':
+              this.spiceP = valor;
+              break;
+            case 'I':
+              this.spiceI = valor;
+              break;
+            case 'C':
+              this.spiceC = valor;
+              break;
+            case 'E':
+              this.spiceE = valor;
+              break;
+            default:
+              console.warn(`Sigla ${sigla} no reconocida para SPICE`);
+              break;
+          }
+        } else {
+          console.warn(`Metodología ${this.paginaSeleccionada} no contemplada en el asignador de valores.`);
+        }
       });
 
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Ocurrió un error al guardar la metodología.'
-      });
-      console.error('Error al guardar la metodología PICOC:', error);
+      console.error('Error al cargar el Framework existente:', error);
     }
+
+    this.metodologiaGuardada = true;
   }
 
-  async guardarMetodologiaPICOTT() {
-    if (!this.reviewId) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se encontró la ID de la revisión en la URL.'
-      });
+  async onMetodoChange(nuevaPagina: string) {
+    // Consultar la metodología guardada para la revisión
+    const savedMethodology = await this.authService.getMetodologiaByRevisionId(this.reviewId);
+    const savedMethodologyName = savedMethodology ? savedMethodology.nombre : null;
+
+    // Si hay una metodología guardada, actualizamos la variable para ocultar el botón
+    this.metodologiaGuardada = false;
+
+    // Si no hay metodología guardada, se cambia la vista sin confirmar
+    if (!savedMethodologyName) {
+      this.paginaSeleccionada = nuevaPagina;
       return;
     }
 
-    try {
-      // 1. Verificar si ya existe metodología para esta revisión
-      const existing = await this.authService.getMetodologiaByRevisionId(this.reviewId);
+    // Determinar la página actual a partir de la metodología guardada
+    const paginaActual = this.metodoToPagina[savedMethodologyName]; // Ej.: "pagina1"
 
-      if (existing) {
-        // 2. El usuario confirma si desea sobrescribir
-        const result = await Swal.fire({
-          title: 'Reemplazar metodología',
-          text: 'Ya existe una metodología guardada para esta revisión. ¿Deseas reemplazarla?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'Sí, reemplazar',
-          cancelButtonText: 'Cancelar'
-        });
-
-        if (!result.isConfirmed) {
-          // El usuario canceló la acción
-          return;
-        }
-
-        // 3. Eliminar la metodología anterior
-        await this.authService.deleteMetodologiaByRevisionId(this.reviewId);
-      }
-
-      // 4. Insertar la nueva metodología
-      const data = {
-        id_detalles_revision: this.reviewId,
-        nombre_metodologia: 'PICOTT',
-        p: this.picottP,
-        i: this.picottI,
-        c: this.picottC,
-        o: this.picottO,
-        t: this.picottT,
-        t2: this.picottT2
-      };
-      await this.authService.insertMetodologia(data);
-
-      // 5. Notificar éxito
-      Swal.fire({
-        icon: 'success',
-        title: 'Guardado',
-        text: 'La metodología PICOTT se guardó correctamente.'
-      });
-
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Ocurrió un error al guardar la metodología.'
-      });
-      console.error('Error al guardar la metodología PICOTT:', error);
-    }
-  }
-
-  async guardarMetodologiaSPICE() {
-    if (!this.reviewId) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'No se encontró la ID de la revisión en la URL.'
-      });
+    // Si la nueva página es la misma que la actual, no se hace nada
+    if (paginaActual === nuevaPagina) {
+      this.paginaSeleccionada = nuevaPagina;
       return;
     }
 
-    try {
-      // 1. Verificar si ya existe metodología para esta revisión
-      const existing = await this.authService.getMetodologiaByRevisionId(this.reviewId);
-
-      if (existing) {
-        // 2. El usuario confirma si desea sobrescribir
-        const result = await Swal.fire({
-          title: 'Reemplazar metodología',
-          text: 'Ya existe una metodología guardada para esta revisión. ¿Deseas reemplazarla?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'Sí, reemplazar',
-          cancelButtonText: 'Cancelar'
-        });
-
-        if (!result.isConfirmed) {
-          // El usuario canceló la acción
-          return;
-        }
-
-        // 3. Eliminar la metodología anterior
-        await this.authService.deleteMetodologiaByRevisionId(this.reviewId);
+    // Mostrar confirmación para cambiar de vista (solo la vista cambia, la BD se mantiene)
+    Swal.fire({
+      title: '¿Cambiar de Framework?',
+      text: `Actualmente tienes guardada el Framework "${savedMethodologyName}". 
+  ¿Quieres ver la sección de "${this.paginaToMetodo[nuevaPagina]}"? 
+  (No se modificará lo guardado, solo cambiará la vista.)`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cambiar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Si confirma, cambiamos la vista a la nueva página
+        this.paginaSeleccionada = nuevaPagina;
+      } else {
+        // Si cancela, se mantiene la vista en la metodología guardada
+        this.paginaSeleccionada = paginaActual;
       }
-
-      // 4. Insertar la nueva metodología
-      const data = {
-        id_detalles_revision: this.reviewId,
-        nombre_metodologia: 'SPICE',
-        s: this.spiceS,
-        p: this.spiceP,
-        i: this.spiceI,
-        c: this.spiceC,
-        e: this.spiceE
-      };
-      await this.authService.insertMetodologia(data);
-
-      // 5. Notificar éxito
-      Swal.fire({
-        icon: 'success',
-        title: 'Guardado',
-        text: 'La metodología SPICE se guardó correctamente.'
-      });
-
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Ocurrió un error al guardar la metodología.'
-      });
-      console.error('Error al guardar la metodología SPICE:', error);
-    }
+    });
   }
 
   generateMethodologyStructure() {
@@ -679,19 +654,19 @@ export class PlanificacionComponent implements OnInit {
           this.spiceC = response.spiceC || '';
           this.spiceE = response.spiceE || '';
         }
-        console.log('Estructura generada:', response);
         // Cierra el SweetAlert de carga
         Swal.close();
         // Muestra mensaje de éxito
         Swal.fire({
           icon: 'success',
           title: 'Estructura generada',
-          text: 'La IA ha generado la estructura de la metodología.',
+          text: 'La IA ha generado la estructura del Framework.',
           timer: 2500
         });
+        this.metodologiaGuardada = false;
       },
       error: (error) => {
-        console.error('Error generando la estructura metodológica:', error);
+        console.error('Error generando la estructura de la Framework:', error);
         Swal.close();
         Swal.fire({
           icon: 'error',
@@ -704,6 +679,7 @@ export class PlanificacionComponent implements OnInit {
 
   addQuestion() {
     this.questions.push({ id: Date.now(), value: '', id_detalles_revision: this.reviewId || undefined, isSaved: false });
+    this.questionsUpdated = false;
   }
 
   async saveQuestion(question: Question) {
@@ -728,9 +704,11 @@ export class PlanificacionComponent implements OnInit {
     try {
       const { data, error } = await this.authService.saveResearchQuestion({
         ...question,
-        id_estudios: null, // O asigna el ID del estudio asociado si está disponible
         id_detalles_revision: this.reviewId,
+
       });
+      question.isSaved = true;
+      question.isEditing = false;
 
       if (error) {
         await Swal.fire({
@@ -739,14 +717,14 @@ export class PlanificacionComponent implements OnInit {
           text: 'Por favor, intenta nuevamente.',
         });
       } else {
-        console.log('Pregunta guardada exitosamente:', data);
         await Swal.fire({
           icon: 'success',
           title: '¡Guardado!',
           text: 'Pregunta guardada exitosamente.',
         });
+        this.questionsUpdated = true;
       }
-      question.isSaved = true;
+
     } catch (error) {
       console.error('Error al guardar la pregunta:', error);
       await Swal.fire({
@@ -755,18 +733,6 @@ export class PlanificacionComponent implements OnInit {
         text: 'Ocurrió un error inesperado.',
       });
     }
-  }
-
-
-  async saveAllQuestions() {
-    for (const question of this.questions) {
-      await this.saveQuestion(question);
-    }
-    await Swal.fire({
-      icon: 'success',
-      title: '¡Todo guardado!',
-      text: 'Todas las preguntas se han guardado.',
-    });
   }
 
 
@@ -790,9 +756,10 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-  // Método para editar: habilitar el input nuevamente
   editQuestion(question: Question) {
     question.isSaved = false;
+    question.isEditing = true;
+    this.questionsUpdated = false;
   }
 
   async loadQuestions() {
@@ -809,12 +776,49 @@ export class PlanificacionComponent implements OnInit {
         this.questions = data.map((q: any) => ({
           id: q.id_preguntas_investigacion,
           value: q.pregunta,
-          id_estudios: q.id_estudios,
           id_detalles_revision: q.id_detalles_revision,
           isSaved: true,
         }));
-        console.log('Preguntas cargadas:', this.questions);
+
+        // Si se han cargado preguntas guardadas, mostramos el icono de verificación
+        this.questionsUpdated = this.questions.length > 0;
       }
+    }
+  }
+
+  async updateQuestion(question: Question) {
+    try {
+      // Llamada al servicio para actualizar la pregunta en la base de datos.
+      // Se asume que el método updateQuestion recibe un objeto con la pregunta y su ID.
+      const result = await this.authService.updateQuestion(question);
+
+      if (result.error) {
+        // Manejar el error, por ejemplo, mostrar una alerta.
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Ocurrió un error al actualizar la pregunta.'
+        });
+        return;
+      }
+
+      // Si la actualización fue exitosa, se actualizan los estados locales
+      question.isSaved = true;
+      question.isEditing = false;
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Actualizado',
+        text: 'La pregunta se actualizó correctamente.'
+      });
+      this.questionsUpdated = true;
+    } catch (error) {
+      console.error('Error al actualizar la pregunta:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un error al actualizar la pregunta.'
+      });
     }
   }
 
@@ -846,6 +850,7 @@ export class PlanificacionComponent implements OnInit {
             title: 'Eliminada',
             text: 'La pregunta ha sido eliminada exitosamente.',
           });
+          this.questionsUpdated = false;
         }
       } catch (error) {
         console.error('Error al eliminar la pregunta:', error);
@@ -858,7 +863,6 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-  // Función para generar preguntas de investigación a través de la API
   generateResearchQuestions() {
     Swal.fire({
       title: 'Número de Preguntas',
@@ -879,7 +883,6 @@ export class PlanificacionComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed && result.value) {
         const numQuestions = Number(result.value);
-        console.log('Generar', numQuestions, 'preguntas');
         // Muestra un SweetAlert de carga
         Swal.fire({
           title: 'Generando preguntas...',
@@ -916,6 +919,7 @@ export class PlanificacionComponent implements OnInit {
               text: `Se han generado ${this.questions.length} preguntas de investigación.`,
               timer: 1500
             });
+            this.questionsUpdated = false;
           },
           (error) => {
             console.error('Error al generar preguntas:', error);
@@ -931,154 +935,181 @@ export class PlanificacionComponent implements OnInit {
     });
   }
 
-  /**
-     * Método para “entrar en modo edición” en una fila que ya existe en BD.
-     * Se deshabilita el botón de Guardar (porque ya no es un registro nuevo)
-     * y se mostrará en su lugar el botón Actualizar.
-     */
+
+
+
+
+  async loadComponentsForSelect() {
+
+
+    const metodologyrevision = await this.authService.getMetodologiaByRevisionId(this.reviewId);
+
+    if (metodologyrevision?.nombre) {
+      this.relatedOptions = await this.authService.getComponentsByMethodologyName(metodologyrevision.nombre);
+    } else {
+      this.relatedOptions = [];
+    }
+  }
+
+  onRelatedChange(selectedOption: any) {
+    // selectedOption es el objeto completo, con id y nombre
+    this.idmetodologiaSeleccionada = selectedOption.id;
+    this.metodologiaNombreSeleccionada = selectedOption.nombre; // Si necesitas guardar el nombre
+  }
+
+  removeSynonym(row: KeywordRow, index: number): void {
+    // Elimina el sinónimo en la posición "index"
+    row.synonyms.splice(index, 1);
+  }
+
+  async saveSynonymAndKeyword(row: KeywordRow) {
+    if (!row.synonyms) {
+      row.synonyms = [];
+    }
+    row.synonyms.push('');
+
+    try {
+      const fechaIngreso = new Date().toISOString();
+
+      // Si deseas insertar un solo sinónimo, por ejemplo el primero del arreglo:
+      const sinonimoToInsert = row.synonyms
+        .filter(s => s.trim() !== '') // Opcional: descartar sinónimos vacíos
+        .join(', ');
+
+      // Si deseas que la palabra clave sea la que tienes en row.keyword:
+      const palabraClaveToInsert = row.keyword;
+
+      // row.related es el ID del componente seleccionado (asegúrate de convertirlo a número si es necesario)
+      const componenteId = this.idmetodologiaSeleccionada;
+
+      // Supongamos que this.metodologiaSeleccionada ya contiene, por ejemplo, "PICO", "PICOC", etc.
+      const metodologia = this.metodologiaNombreSeleccionada;
+
+      if (!componenteId) {
+        throw new Error('No se ha seleccionado ningún componente.');
+      }
+
+      // Llamar al servicio
+      const { data, error } = await this.authService.registerSynonymThenKeyword(
+        sinonimoToInsert,             // Usamos el sinónimo extraído de row.synonyms
+        palabraClaveToInsert,         // La palabra clave de row.keyword
+        this.reviewId,                // ID de detalles de revisión
+        componenteId.toString(),      // ID del componente (extraído de row.related) convertido a string
+        metodologia || '',            // Por ejemplo, "PICO", "PICOC", etc.
+        fechaIngreso                // Fecha de ingreso
+      );
+
+      if (error) {
+        console.error('Error al registrar sinónimo y palabra clave:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo registrar el sinónimo y la palabra clave.'
+        });
+        return;
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: '¡Guardado!',
+        text: 'Se registró la palabra clave y el sinónimo satisfactoriamente.'
+      });
+
+    } catch (err) {
+      console.error('Error inesperado:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error inesperado',
+        text: 'Ocurrió un problema al registrar el sinónimo y la palabra clave.'
+      });
+    }
+  }
+
   editRow(index: number) {
     const row = this.tableData[index];
     row.isEditing = true; // Activa el modo edición
   }
 
-  // Cargar palabras clave de la base
-  async loadKeywords() {
-    const { data, error } = await this.authService.getKeywordsByRevision(this.reviewId);
-    if (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error al cargar',
-        text: 'No se pudieron cargar las palabras clave.',
-      });
-      return;
-    }
-    // Mapea los datos a tu estructura local
-    this.tableData = (data || []).map((item: any) => ({
-      id_palabras_clave: item.id_palabras_clave,
-      keyword: item.palabra_clave,
-      related: item.seccion_metodologia || '',
-      // Combina los sinónimos en un solo string separado por comas
-      synonyms: [
-        item.sinonimo1,
-        item.sinonimo2,
-        item.sinonimo3,
-        item.sinonimo4,
-        item.sinonimo5,
-      ].filter(Boolean).join(', '),
-      isEditing: false,
-    }));
-  }
-
-  // Agregar una nueva fila a la tabla
   addRow() {
     this.tableData.push({
       keyword: '',
       related: '',
-      synonyms: '',
+      synonyms: [], // Arreglo vacío para sinónimos
       isEditing: true
     });
   }
 
-  /**
-   * Inserta un NUEVO registro en la BD (sólo se usa si NO tiene id_palabras_clave).
-   */
-  async saveRow(row: KeywordRow) {
-    const synonymsArray = row.synonyms
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s !== '');
-
-    try {
-      const { data, error } = await this.authService.saveKeyword(
-        row.keyword,
-        row.related,
-        synonymsArray,
-        this.reviewId
-      );
-
-      if (error) {
-        console.error('Error al guardar (insertar):', error);
-        await Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: error.message || 'No se pudo guardar la palabra clave.',
-        });
-        return;
-      }
-
-      // Si se insertó correctamente, data[0] debería traer el nuevo ID
-      if (data && data.length > 0) {
-        row.id_palabras_clave = data[0].id_palabras_clave;
-      }
-
-      row.isEditing = false; // Termina modo edición
-      //window.location.reload();
-      await Swal.fire({
-        icon: 'success',
-        title: '¡Guardado!',
-        text: 'La palabra clave se ha insertado correctamente.',
-        timer: 1500
-      });
-    } catch (err) {
-      console.error('Error inesperado al guardar:', err);
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error inesperado',
-        text: 'Ocurrió un problema al guardar la palabra clave.',
-        timer: 1500
-      });
-    }
+  trackByIndex(index: number, item: any): number {
+    return index;
   }
 
-  /**
-   * Actualiza un registro EXISTENTE en la BD (cuando sí tiene id_palabras_clave).
-   */
-  async updateRow(row: KeywordRow) {
-    const synonymsArray = row.synonyms
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s !== '');
-
-    // Verifica que tengamos un ID
-    if (!row.id_palabras_clave) {
-      console.warn('No existe un id_palabras_clave, no se puede actualizar.');
-      return;
+  addSynonym(row: KeywordRow) {
+    // Verifica que synonyms sea un arreglo y agrega un string vacío
+    if (!row.synonyms || !Array.isArray(row.synonyms)) {
+      row.synonyms = [];
     }
+    row.synonyms.push(''); // Agrega un nuevo sinónimo vacío, lo que generará un nuevo input
+  }
 
+  async loadKeywordsAndSynonyms() {
     try {
-      const { data, error } = await this.authService.updateKeyword(
-        row.id_palabras_clave,
-        row.keyword,
-        row.related,
-        synonymsArray,
-        this.reviewId
-      );
+      const data = await this.authService.getKeywordsAndSynonyms(this.reviewId);
+      
+      this.tableData = data.map((item: any) => {
+        let synonymsArray: string[] = [];
+  
+        // Si 'item.sinonimos' viene como objeto (por ejemplo: { id_sinonimos: '12', id_componente_revision: '36', sinonimo: 'computadora, maquina, intel' })
+        if (typeof item.sinonimos === 'object' && item.sinonimos !== null) {
+          if (typeof item.sinonimos.sinonimo === 'string') {
+            // Separamos la cadena de sinónimos por comas
+            synonymsArray = item.sinonimos.sinonimo
+              .split(',')
+              .map((s: string) => s.trim())
+              .filter((s: string) => s !== '');
+          }
+        } 
+        // Si ya viene como cadena directamente
+        else if (typeof item.sinonimos === 'string') {
+          synonymsArray = item.sinonimos
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter((s: string) => s !== '');
+        }
 
-      if (error) {
-        console.error('Error al actualizar:', error);
-        await Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: error.message || 'No se pudo actualizar la palabra clave.',
-        });
-        return;
-      }
-
-      row.isEditing = false; // Termina modo edición
-      await Swal.fire({
-        icon: 'success',
-        title: '¡Actualizado!',
-        text: 'La palabra clave se ha actualizado correctamente.',
+        console.log("este es el related: ", item.seccion_metodologia);
+        
+        // Si no se obtuvieron sinónimos, se deja el arreglo vacío (o puedes inicializar con un valor vacío)
+        return {
+          id_palabras_clave: item.id_palabras_clave,
+          keyword: item.palabra_clave,
+          related: item.seccion_metodologia || '',
+          synonyms: synonymsArray,  // Todos los sinónimos en un arreglo
+          isEditing: false
+        } as KeywordRow;
       });
     } catch (err) {
-      console.error('Error inesperado al actualizar:', err);
-      await Swal.fire({
-        icon: 'error',
-        title: 'Error inesperado',
-        text: 'Ocurrió un problema al actualizar la palabra clave.',
-      });
+      console.error('Error al cargar las palabras clave:', err);
     }
   }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+
+
+  
+
+
+
+
 
   async deleteRow(index: number) {
     const row = this.tableData[index];
@@ -1205,17 +1236,30 @@ export class PlanificacionComponent implements OnInit {
     );
   }
 
-  // Método para limpiar el textarea
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   clearCadena() {
     this.cadenaBusqueda = '';
+    this.cadenaGuardada = false;
   }
 
-  /**
-   * Guarda la cadena en la base de datos (INSERT).
-   * Si sólo existe una cadena por revisión, luego de guardarla,
-   * podrías recargar para mostrar en la BD, o simplemente asumir
-   * que el valor es el que acabamos de guardar.
-   */
   async saveCadena() {
     if (!this.cadenaBusqueda.trim()) {
       Swal.fire({
@@ -1248,6 +1292,8 @@ export class PlanificacionComponent implements OnInit {
         text: 'La cadena de búsqueda se ha guardado correctamente.',
       });
 
+      this.cadenaGuardada = true;
+
       // Opcional: recargar para asegurar que reflejas lo que está en BD
       // this.loadCadena();
     } catch (err) {
@@ -1260,10 +1306,6 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-  /**
-   * Carga la cadena de búsqueda desde la BD (si existe)
-   * y la muestra en el textarea.
-   */
   async loadCadena() {
     const { data, error } = await this.authService.getCadenaBusqueda(this.reviewId);
 
@@ -1274,6 +1316,7 @@ export class PlanificacionComponent implements OnInit {
         title: 'Error al cargar',
         text: 'No se pudo obtener la cadena de búsqueda.',
       });
+      this.cadenaGuardada = false;
       return;
     }
 
@@ -1281,13 +1324,19 @@ export class PlanificacionComponent implements OnInit {
     if (data && data.length > 0) {
       // Toma la primera
       this.cadenaBusqueda = data[0].cadena_busqueda;
+      this.cadenaGuardada = true;
     } else {
       // No hay ninguna cadena guardada
       this.cadenaBusqueda = '';
+      this.cadenaGuardada = false;
     }
   }
 
-  generateSearchString() {
+  onCadenaEdit() {
+    this.cadenaGuardada = false;
+  }
+
+  /*generateSearchString() {
     // Mostrar alerta de carga
     Swal.fire({
       title: 'Generando cadena...',
@@ -1299,7 +1348,6 @@ export class PlanificacionComponent implements OnInit {
     });
 
     // Llamar a la API para generar la cadena de búsqueda
-    console.log('Generando cadena de búsqueda con:', this.tableData);
     this.openAiService.getSearchString(this.tableData).subscribe(
       (response) => {
         // Suponemos que la respuesta tiene la propiedad "searchString"
@@ -1318,6 +1366,7 @@ export class PlanificacionComponent implements OnInit {
           text: 'Se ha generado la cadena de búsqueda.',
           timer: 1500
         });
+        this.cadenaGuardada = true;
       },
       (error) => {
         console.error('Error al generar la cadena de búsqueda', error);
@@ -1329,7 +1378,14 @@ export class PlanificacionComponent implements OnInit {
         });
       }
     );
-  }
+  }*/
+
+
+
+
+
+
+
 
   /**
    * Carga los criterios desde la BD y los separa en exclusiones/inclusiones.
@@ -1679,7 +1735,6 @@ export class PlanificacionComponent implements OnInit {
 
     this.openAiService.generateCriteria(this.titulo_revision, this.objetivo).subscribe(
       (response) => {
-        console.log('Respuesta de la IA:', response);
         // Cerrar la alerta de carga
         Swal.close();
 

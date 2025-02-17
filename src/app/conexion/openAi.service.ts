@@ -45,7 +45,7 @@ export class OpenAiService {
     return this.http.post<any>(this.generateKeywordsUrl, { methodologyData });
   }
 
-  getSearchString(keywords: KeywordRow[]): Observable<any> {
+  /*getSearchString(keywords: KeywordRow[]): Observable<any> {
     const transformedKeywords = keywords.map(item => {
       const metodologiaLimpia = item.related.replace(/\s*\(.*?\)/, "").trim();
       return {
@@ -56,7 +56,7 @@ export class OpenAiService {
     });
   
     return this.http.post<any>(this.searchStringUrl, { keywords: transformedKeywords });
-  }
+  }*/
 
   generateCriteria(title: string, objective: string): Observable<any> {
     

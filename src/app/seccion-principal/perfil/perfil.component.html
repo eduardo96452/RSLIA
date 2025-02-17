@@ -4,158 +4,143 @@
           'px-5': isLargeScreen,
           'container': !isLargeScreen
         }">
-        
-      <div class="row ">
-          <div class="col col-sm col-md-2 ">
-            <div class="d-flex">
-              <div class="floating-menu">
-                <!-- Descripción general -->
-                <div class="menu-item active" [routerLink]="['/Perfil']">
-                  Perfil
-                </div>
 
-                <!-- Planificación -->
-                <div class="menu-item " [routerLink]="['/cambiarcontrasena']">
-                  Cambiar contraseña
-                </div>
+      <div class="row ">
+        <div class="col col-sm col-md-2 ">
+          <div class="d-flex">
+            <div class="floating-menu">
+              <!-- Descripción general -->
+              <div class="menu-item active" [routerLink]="['/Perfil']">
+                Perfil
+              </div>
+
+              <!-- Planificación -->
+              <div class="menu-item " [routerLink]="['/cambiarcontrasena']">
+                Cambiar contraseña
               </div>
             </div>
-            <br />
           </div>
-          <div class="col col-sm col-md-10">
-            <h4 class="mb-4">Perfil del usuario</h4>
-            <div class="row">
-              <!-- TARJETA IZQUIERDA (Foto, nombre, puesto, estadísticas) -->
-              <div class="col-md-4">
-                <div class="card p-4 shadow-sm text-center">
-                  <!-- Contenedor para la imagen del usuario -->
-                  <div style="
+          <br />
+        </div>
+        <div class="col col-sm col-md-10">
+          <h4 class="mb-4">Perfil del usuario</h4>
+          <div class="row">
+            <!-- TARJETA IZQUIERDA (Foto, nombre, puesto, estadísticas) -->
+            <div class="col-md-4">
+              <div class="card p-4 shadow-sm text-center">
+                <!-- Contenedor para la imagen del usuario -->
+                <div style="
             width: 120px;
             height: 120px;
             margin: 0 auto;
             border-radius: 50%;
             overflow: hidden;
           ">
-                    <ng-container *ngIf="imageUrl; else defaultIcon">
-                      <img [src]="imageUrl" alt="Imagen de perfil"
-                        style="width: 100%; height: 100%; object-fit: cover;" />
-                    </ng-container>
-                    <ng-template #defaultIcon>
-                      <i class="bi bi-person"
-                        style="font-size: 4rem; width: 100%; height: 100%; color: #6c757d; display: flex; align-items: center; justify-content: center;"></i>
-                    </ng-template>
-                  </div>
-
-                  <!-- Botones para subir la imagen -->
-                  <div class="d-flex justify-content-center mt-3">
-                    <!-- Input de archivo oculto -->
-                    <input type="file" id="imageUpload" style="display: none;" (change)="onFileSelected($event)"
-                      accept="image/*" />
-
-                    <!-- Botón para abrir el explorador de archivos -->
-                    <label for="imageUpload" class="btn btn-info btn-sm me-2">
-                      <i class="bi bi-upload"></i>&nbsp;Subir imagen
-                    </label>
-                  </div>
-
-
-                  <!-- Datos generales del usuario (estáticos o dinámicos) -->
-                  <h5 class="mt-3 mb-1">{{user}}</h5>
-                  <p class="text-muted mb-2">Accounts Manager Amix corp</p>
-
-                  <!-- Estadísticas (ejemplo: número de contactos, fotos) -->
-                  <div class="d-flex justify-content-around mt-3">
-                    <div class="text-center">
-                      <i class="bi bi-people-fill me-1"></i>254
-                    </div>
-                    <div class="text-center">
-                      <i class="bi bi-camera-fill me-1"></i>54
-                    </div>
-                  </div>
+                  <ng-container *ngIf="imageUrl; else defaultIcon">
+                    <img [src]="imageUrl" alt="Imagen de perfil"
+                      style="width: 100%; height: 100%; object-fit: cover;" />
+                  </ng-container>
+                  <ng-template #defaultIcon>
+                    <i class="bi bi-person"
+                      style="font-size: 4rem; width: 100%; height: 100%; color: #6c757d; display: flex; align-items: center; justify-content: center;"></i>
+                  </ng-template>
                 </div>
+
+                <!-- Botones para subir la imagen -->
+                <div class="d-flex justify-content-center mt-3">
+                  <!-- Input de archivo oculto -->
+                  <input type="file" id="imageUpload" style="display: none;" (change)="onFileSelected($event)"
+                    accept="image/*" />
+
+                  <!-- Botón para abrir el explorador de archivos -->
+                  <label for="imageUpload" class="btn btn-info btn-sm me-2">
+                    <i class="bi bi-upload"></i>&nbsp;Subir imagen
+                  </label>
+                </div>
+
+
+                <!-- Datos generales del usuario (estáticos o dinámicos) -->
+                <h5 class="mt-3 mb-1">{{user}}</h5>
+                <p class="text-muted mb-2">{{profesion}}</p>
+
               </div>
+            </div>
 
-              <!-- TARJETA DERECHA (Formulario de usuario) -->
-              <div class="col-md-8">
-                <div class="card p-4 shadow-sm">
+            <!-- TARJETA DERECHA (Formulario de usuario) -->
+            <div class="col-md-8">
+              <div class="card p-4 shadow-sm">
 
 
-                  <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
-                    <div class="row g-3 mb-4">
+                <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+                  <div class="row g-3 mb-4">
 
-                      <!-- Nombre -->
-                      <div class="col-sm-6">
-                        <mat-form-field appearance="fill" style="width: 100%;">
-                          <mat-label>Nombre</mat-label>
-                          <input matInput type="text" formControlName="nombre">
-                        </mat-form-field>
-                      </div>
-
-                      <!-- Apellido -->
-                      <div class="col-sm-6">
-                        <mat-form-field appearance="fill" style="width: 100%;">
-                          <mat-label>Apellido</mat-label>
-                          <input matInput type="text" formControlName="apellido">
-                        </mat-form-field>
-                      </div>
-
-                      <!-- Nombre de usuario 
-            <div class="col-sm-6">
-              <mat-form-field appearance="fill" style="width: 100%;">
-                <mat-label>Nombre de usuario</mat-label>
-                <input matInput type="text" formControlName="nombre_usuario" [disabled]="true">
-              </mat-form-field>
-            </div>-->
-
-                      <!-- ORCID -->
-                      <div class="col-sm-6">
-                        <mat-form-field appearance="fill" style="width: 100%;">
-                          <mat-label>ORCID</mat-label>
-                          <input matInput type="text">
-                        </mat-form-field>
-                      </div>
-
-                      <!-- Profesión -->
-                      <div class="col-sm-6">
-                        <mat-form-field appearance="fill" style="width: 100%;">
-                          <mat-label>Profesión</mat-label>
-                          <input matInput type="text">
-                        </mat-form-field>
-                      </div>
-
-                      <!-- Correo electrónico -->
-                      <div class="col-12">
-                        <mat-form-field appearance="fill" style="width: 100%;">
-                          <mat-label>Correo electrónico</mat-label>
-                          <input matInput type="email" formControlName="correo_electronico">
-                        </mat-form-field>
-                      </div>
-
-                      <!-- Institución -->
-                      <div class="col-sm-6">
-                        <mat-form-field appearance="fill" style="width: 100%;">
-                          <mat-label>Institución</mat-label>
-                          <input matInput type="text" formControlName="institucion">
-                        </mat-form-field>
-                      </div>
-
-                      <!-- País (con autocompletado) -->
-                      <div class="col-sm-6">
-                        <mat-form-field appearance="fill" style="width: 100%;">
-                          <mat-label>Buscar país</mat-label>
-                          <input type="text" matInput [formControl]="countryCtrl" [matAutocomplete]="auto"
-                            (focus)="onFocus()">
-                          <mat-autocomplete #auto="matAutocomplete">
-                            <mat-option *ngFor="let country of filteredCountries | async" [value]="country.name.common">
-                              {{ country.name.common }}
-                            </mat-option>
-                          </mat-autocomplete>
-                        </mat-form-field>
-                      </div>
+                    <!-- Nombre -->
+                    <div class="col-sm-6">
+                      <mat-form-field appearance="fill" style="width: 100%;">
+                        <mat-label>Nombre</mat-label>
+                        <input matInput type="text" formControlName="nombre">
+                      </mat-form-field>
                     </div>
-                    <button type="submit" class="btn btn-success">Guardar cambios</button>
-                  </form>
-                </div>
+
+                    <!-- Apellido -->
+                    <div class="col-sm-6">
+                      <mat-form-field appearance="fill" style="width: 100%;">
+                        <mat-label>Apellido</mat-label>
+                        <input matInput type="text" formControlName="apellido">
+                      </mat-form-field>
+                    </div>
+
+                    <!-- ORCID -->
+                    <div class="col-sm-6">
+                      <mat-form-field appearance="fill" style="width: 100%;">
+                        <mat-label>ORCID</mat-label>
+                        <input matInput type="text" formControlName="orcid">
+                      </mat-form-field>
+                    </div>
+
+                    <!-- Profesión -->
+                    <div class="col-sm-6">
+                      <mat-form-field appearance="fill" style="width: 100%;">
+                        <mat-label>Profesión</mat-label>
+                        <input matInput type="text" formControlName="profesion">
+                      </mat-form-field>
+                    </div>
+
+                    <!-- Correo electrónico -->
+                    <div class="col-12">
+                      <mat-form-field appearance="fill" style="width: 100%;">
+                        <mat-label>Correo electrónico</mat-label>
+                        <input matInput type="email" formControlName="correo_electronico">
+                      </mat-form-field>
+                    </div>
+
+                    <!-- Institución -->
+                    <div class="col-sm-6">
+                      <mat-form-field appearance="fill" style="width: 100%;">
+                        <mat-label>Institución</mat-label>
+                        <input matInput type="text" formControlName="institucion">
+                      </mat-form-field>
+                    </div>
+
+                    <!-- País (con autocompletado) -->
+                    <div class="col-sm-6">
+                      <mat-form-field appearance="fill" style="width: 100%;">
+                        <mat-label>Buscar país</mat-label>
+                        <input type="text" matInput formControlName="pais" [formControl]="countryCtrl"
+                          [matAutocomplete]="auto" (focus)="onFocus()">
+                        <mat-autocomplete #auto="matAutocomplete">
+                          <mat-option *ngFor="let country of filteredCountries | async" [value]="country.name.common">
+                            {{ country.name.common }}
+                          </mat-option>
+                        </mat-autocomplete>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <button *ngIf="userForm.dirty || pendingImageFile" type="submit" class="btn btn-success">
+                    Guardar cambios
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>

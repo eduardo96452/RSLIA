@@ -6,10 +6,8 @@ import { AuthService } from '../../auth/data-access/auth.service';
 import { SupabaseService } from '../../conexion/supabase.service';
 import { filter, map, Observable, startWith } from 'rxjs';
 import { CountryService } from '../../conexion/country.service';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -34,6 +32,7 @@ export class PerfilComponent implements OnInit {
   filteredCountries: Observable<any[]> = new Observable();
   countries: any[] = [];
   user: string = '';
+  profesion: string = '';
   pendingImageFile: File | null = null;
   isLargeScreen: boolean = true;
 
@@ -51,6 +50,9 @@ export class PerfilComponent implements OnInit {
       nombre: [''],
       apellido: [''],
       correo_electronico: [''],
+      orcid: [''],
+      profesion: [''],
+      pais: [''],
       institucion: ['']
     });
   }
@@ -80,6 +82,12 @@ export class PerfilComponent implements OnInit {
         startWith(''),
         map(value => this._filterCountries(value))
       );
+    });
+
+    // 3) Suscribirte a los cambios del countryCtrl para actualizar "pais" en userForm
+    this.countryCtrl.valueChanges.subscribe((valorSeleccionado: string) => {
+      // Asigna al campo 'pais' el valor que el usuario haya tecleado o seleccionado
+      this.userForm.patchValue({ pais: valorSeleccionado });
     });
   }
 
@@ -113,6 +121,7 @@ export class PerfilComponent implements OnInit {
     if (uid) {
       const userData = await this.authService.getUserDataByUID(uid);
       this.user = userData?.nombre_usuario || '';
+      this.profesion = userData?.profesion;
 
       if (userData && Object.keys(userData).length > 0) { // Verificar que userData no sea undefined y tenga datos
 
@@ -121,7 +130,10 @@ export class PerfilComponent implements OnInit {
           nombre: userData.nombre || '',
           apellido: userData.apellido || '',
           correo_electronico: userData.correo_electronico || '',
-          institucion: userData.institucion || ''
+          institucion: userData.institucion || '',
+          orcid: userData.orcid || '',
+          profesion: userData.profesion || '',
+          pais: userData.pais || ''
         });
         this.imageUrl = userData.ruta_imagen;
       } else {
@@ -147,6 +159,9 @@ export class PerfilComponent implements OnInit {
   }
 
   async onSubmit() {
+    // Aquí "copias" lo que haya en countryCtrl al formulario
+    this.userForm.patchValue({ pais: this.countryCtrl.value });
+
     if (this.userForm.valid) {
       const uid = localStorage.getItem('user_id');
       if (!uid) return;

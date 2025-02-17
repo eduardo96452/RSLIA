@@ -46,6 +46,11 @@
                         Revisión de datos
                      </div>
 
+                     <!-- Extracción de datos -->
+                     <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
+                        Extracción de datos
+                     </div>
+
                      <!-- Proyección de informes -->
                      <div class="menu-item active" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
                         Proyección de informes
@@ -104,7 +109,8 @@
                   <div class="accordion-item">
                      <h2 class="accordion-header" id="headingOne">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                           data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne" (click)="centerAndUnlock()">
+                           data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne"
+                           (click)="centerAndUnlock()">
                            <strong>Diagrama de Flujo PRISMA</strong>
                         </button>
                      </h2>

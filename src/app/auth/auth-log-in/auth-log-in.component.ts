@@ -26,32 +26,39 @@ export class AuthLogInComponent {
   constructor(private _authService: AuthService, private router: Router) { }
 
 
-  //verificar alerta que sale al iniciar sesion
   async handleEmailLogin() {
     if (this.email && this.password) {
       try {
         this._authService.logIn({ email: this.email, password: this.password })
-          .then(response => {
-            // Manejar respuesta sin mostrar datos
-            // Por ejemplo, redirigir al usuario sin mostrar el contenido del response
+          .then(({ data, error }) => {
+            // Verificar si Supabase retorna error en la respuesta
+            if (error) {
+              // Manejar la presencia de error
+              Swal.fire({
+                icon: 'error',
+                title: 'Error en el inicio de sesión',
+                text: error.message,
+              });
+              return; 
+            }
+            
+            // Si no hay error, significa que el login fue exitoso
             Swal.fire({
               icon: 'success',
               title: '¡Inicio de sesión exitoso!',
               text: 'Bienvenido a tu panel principal.',
             }).then(() => {
-              // Redirige a la página deseada
               this.router.navigate(['/panel_principal']);
             });
           })
           .catch(error => {
-            // Manejar errores sin mostrar datos sensibles
+            // Este catch se ejecutará si ocurre un error inesperado en la comunicación
             console.error('Error en el inicio de sesión:', error.message);
             Swal.fire({
               icon: 'error',
               title: 'Error en el inicio de sesión',
               text: error.message,
             });
-            return; // O muestra un mensaje amigable
           });
       } catch (error) {
         console.error('Error en el inicio de sesión:', error);
@@ -69,7 +76,7 @@ export class AuthLogInComponent {
       });
     }
   }
-
+  
 
 
 

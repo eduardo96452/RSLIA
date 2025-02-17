@@ -31,6 +31,7 @@
           <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="invalid-feedback">
             Se requiere contraseña.
           </div>
+          <br>
           <a routerLink="/forgot-password">Olvidé mi contraseña</a>
         </div>
         <button type="submit" [disabled]="loginForm.form.invalid" class="btn btn-primary w-100">
