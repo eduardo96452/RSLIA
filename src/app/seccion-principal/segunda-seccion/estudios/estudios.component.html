@@ -109,7 +109,10 @@
                         </div>
                       </div>
                       <br>
-                      <p>Estudios seleccionados: {{ selectedStudiesCount }}</p>
+                      <p>
+                        <strong>Estudios seleccionados:</strong> {{ selectedStudiesCount }} / {{ displayedStudies.length }}
+                      </p>
+                      
 
                       <!-- Select para filtrar los estados -->
                       <div class="mb-3 d-flex align-items-center">
@@ -120,6 +123,17 @@
                           <option value="Aceptado">Preseleccionado</option>
                           <option value="Duplicado">Duplicado</option>
                           <option value="Rechazado">Descartado</option>
+                        </select>
+                      </div>
+
+                      <!-- NUEVO: Filtro por base bibliográfica -->
+                      <div class="mb-3 d-flex align-items-center">
+                        <label class="me-2 fw-bold">Filtrar por base bibliográfica</label>
+                        <select class="form-select w-auto" [(ngModel)]="filterDatabase" (change)="applyFilter()">
+                          <option value="allDb">Todas</option>
+                          <option *ngFor="let base of basesList" [value]="base.nombre">
+                            {{ base.nombre }}
+                          </option>
                         </select>
                       </div>
 
@@ -156,7 +170,7 @@
                               </th>
 
                               <th (click)="sortStudies('status')" style="cursor: pointer;">
-                                Acción
+                                Estado
                                 <i *ngIf="sortColumn === 'status'" class="bi" [ngClass]="{
                                     'bi-arrow-up': sortOrder === 'asc',
                                     'bi-arrow-down': sortOrder === 'desc'
@@ -267,7 +281,7 @@
                               </td>
 
                               <td [ngClass]="{
-          'cell-gray': study.status === 'Sin clasificar',
+                                  'cell-gray': study.status === 'Sin clasificar',
           'cell-green': study.status === 'Aceptado',
           'cell-yellow': study.status === 'Duplicado',
           'cell-red': study.status === 'Rechazado'
@@ -387,7 +401,7 @@
                   <!-- Contenido Página 3 -->
                   <div class="tab-pane fade" id="pagina3" role="tabpanel" aria-labelledby="tab3">
                     <div class="containes">
-                      
+
                     </div>
                   </div>
 
@@ -489,8 +503,12 @@
             <div class="row">
               <div class="col-sm-6 mb-3">
                 <label class="form-label fw-bold">Base bibliográfica</label>
-                <input class="form-control" type="text" [(ngModel)]="selectedStudy.database"
-                  name="fuente_bibliografica" />
+                <select class="form-select" [(ngModel)]="selectedStudy.database" name="fuente_bibliografica">
+                  <option [ngValue]="null" disabled>-- Seleccionar base --</option>
+                  <option *ngFor="let base of basesList" [ngValue]="base.nombre">
+                    {{ base.nombre }}
+                  </option>
+                </select>
               </div>
               <!-- Sección para Selección de criterios -->
               <div class="col-sm-6 mb-3">
@@ -677,8 +695,12 @@
             <!-- Base de Datos -->
             <div class="mb-3">
               <label class="form-label fw-bold">Base bibliográfica</label>
-              <input type="text" class="form-control" placeholder="Ej. IEEE, Springer" [(ngModel)]="newStudy.database"
-                name="database" />
+              <select class="form-select" [(ngModel)]="newStudy.database" name="database">
+                <option [ngValue]="null" disabled>-- Seleccionar base --</option>
+                <option *ngFor="let base of basesList" [ngValue]="base.nombre">
+                  {{ base.nombre }}
+                </option>
+              </select>
             </div>
 
             <!-- Título -->

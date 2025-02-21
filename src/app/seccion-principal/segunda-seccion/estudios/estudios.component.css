@@ -92,3 +92,13 @@
   }
 }
 
+
+.my-custom-select {
+  background-color: #f8f9fa;
+  color: #333;
+  /* Cualquier otro estilo que quieras aplicar */
+  font-size: 16px;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}

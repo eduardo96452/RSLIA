@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
-import { AuthService, Criterio, Estudio } from '../../../auth/data-access/auth.service';
+import { AuthService, BaseBibliografica, Criterio, Estudio } from '../../../auth/data-access/auth.service';
 import { OpenAiService } from '../../../conexion/openAi.service';
 import { Study } from '../../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
@@ -37,6 +37,7 @@ export class EstudiosComponent implements OnInit {
   allSelected = false;
   duplicatedCount: number = 0;
   filterStatus: string = 'all';
+  filterDatabase: string = 'allDb';
   pdfFile: File | null = null; // variable para almacenar el archivo seleccionado
   originalStudy: any = null;
   showAddStudyModal = false; // Control del modal 2
@@ -54,7 +55,8 @@ export class EstudiosComponent implements OnInit {
   selectedCriterioId: number | null = null;
   selectedCriterio: string | null = null;
   selectedEstudioId!: number;
-  
+
+  basesList: BaseBibliografica[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -84,6 +86,8 @@ export class EstudiosComponent implements OnInit {
         window.scrollTo(0, 0);
       });
     await this.loadCriterios();
+
+    this.basesList = await this.authService.loadBasesBibliograficas(this.reviewId);
   }
 
   @HostListener('window:resize', ['$event'])
@@ -161,29 +165,56 @@ export class EstudiosComponent implements OnInit {
    */
   async askForDatabaseName(fileType: string) {
     try {
+      // 1) Asegúrate de tener la lista de bases
+      // Si no la tienes, podrías cargarla aquí:
+      // this.basesList = await this.authService.loadBasesBibliograficas(this.reviewId);
+
+      // 2) Construir el objeto inputOptions para el select
+      const inputOptions = this.basesList.reduce((obj, base) => {
+        // la clave (key) será el id_base_bibliografica
+        // el valor (value) será el nombre
+        obj[base.id_base_bibliografica!] = base.nombre;
+        return obj;
+      }, {} as any);
+
+      // 3) Mostrar SweetAlert2 con input tipo select
       const result = await Swal.fire({
         title: `Archivo ${fileType.toUpperCase()}`,
         text: '¿De qué base bibliográfica procede?',
         icon: 'question',
-        input: 'text',
-        inputPlaceholder: 'Ej. Scopus, Web of Science...',
+        input: 'select',
+        inputOptions: inputOptions,
+        inputPlaceholder: 'Seleccionar base bibliográfica',
         showCancelButton: true,
         confirmButtonText: 'Siguiente',
         cancelButtonText: 'Cancelar',
+        // Aquí aplicamos una clase personalizada al input (tu select)
+        customClass: {
+          input: 'my-custom-select'
+        },
         inputValidator: (value) => {
-          if (!value || !value.trim()) {
-            return '¡El nombre de la base no puede estar vacío!';
+          // value es la key del objeto inputOptions: id_base_bibliografica
+          if (!value) {
+            return 'Debes seleccionar una opción.';
           }
           return null;
         }
       });
 
+      // 4) Si el usuario confirma y elige una base
       if (result.isConfirmed && result.value) {
-        const dbName = result.value.trim();
-        this.uploadFile(fileType, dbName);
+        const selectedId = Number(result.value);
+        // Buscar la base seleccionada en el arreglo
+        const selectedBase = this.basesList.find(b => b.id_base_bibliografica === selectedId);
+
+        if (selectedBase) {
+          // Puedes pasar el nombre (o la id, o ambos) a tu método uploadFile
+          this.uploadFile(fileType, selectedBase.nombre);
+          // O si prefieres: this.uploadFile(fileType, selectedBase.id_base_bibliografica + '');
+        }
       }
     } catch (err) {
-      console.error('Error al obtener nombre de la base:', err);
+      console.error('Error al obtener base bibliográfica:', err);
     }
   }
 
@@ -617,6 +648,8 @@ export class EstudiosComponent implements OnInit {
     this.selectedStudiesCount = this.importedStudies.filter(s => s.isSelected).length;
   }
 
+  
+
   async saveImportedStudy(study: Study) {
     // Verifica si el estudio con el mismo título ya existe
     const { data: existingStudies, error: findError } = await this.authService.findStudyByTitleInRevision(
@@ -775,15 +808,22 @@ export class EstudiosComponent implements OnInit {
 
   // Este getter devuelve la lista de estudios según el filtro
   get displayedStudies(): Study[] {
-    if (this.filterStatus === 'all') {
-      return this.importedStudies;
-    } else {
-      return this.importedStudies.filter(study => study.status === this.filterStatus);
+    // Paso 1: Filtrar por estado
+    let filtered = (this.filterStatus === 'all')
+      ? this.importedStudies
+      : this.importedStudies.filter(study => study.status === this.filterStatus);
+
+    // Paso 2: Filtrar por base bibliográfica
+    if (this.filterDatabase !== 'allDb') {
+      filtered = filtered.filter(study => study.database === this.filterDatabase);
     }
+
+    return filtered;
   }
 
   applyFilter() {
-    // Podrías hacer lógica adicional, 
+    // Podrías hacer lógica adicional
+
     // pero con el getter, no necesitas nada aquí realmente.
     console.log('Filtro aplicado:', this.filterStatus);
   }
@@ -1286,7 +1326,7 @@ export class EstudiosComponent implements OnInit {
 
       // 3. Buscar en los arrays de criterios para encontrar la descripción
       const found = this.inclusionCriterios.find(c => c.id_criterios === idCriterio)
-                 || this.exclusionCriterios.find(c => c.id_criterios === idCriterio);
+        || this.exclusionCriterios.find(c => c.id_criterios === idCriterio);
 
       // 4. Si encontramos la descripción, mostrarla, si no, "Seleccione un criterio"
       if (found) {
@@ -1334,5 +1374,5 @@ export class EstudiosComponent implements OnInit {
     }
   }
 
-  
+
 }
