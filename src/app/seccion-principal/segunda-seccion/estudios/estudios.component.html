@@ -110,9 +110,10 @@
                       </div>
                       <br>
                       <p>
-                        <strong>Estudios seleccionados:</strong> {{ selectedStudiesCount }} / {{ displayedStudies.length }}
+                        <strong>Estudios seleccionados:</strong> {{ selectedStudiesCount }} / {{ displayedStudies.length
+                        }}
                       </p>
-                      
+
 
                       <!-- Select para filtrar los estados -->
                       <div class="mb-3 d-flex align-items-center">
@@ -438,28 +439,14 @@
             <!-- Campo oculto para ID del estudio (no visible) -->
             <input type="hidden" [value]="selectedStudy.id_estudios" name="id_estudios" />
 
-            <!-- Estado (campo "estado" en tu interfaz) -->
-            <div class="form-group mb-3">
-              <label class="form-label fw-bold">Estado</label>
-              <select class="form-select" [(ngModel)]="selectedStudy.status" name="estado" [ngClass]="{
-                          'cell-gray': selectedStudy.status === 'Sin clasificar',
-                          'cell-green': selectedStudy.status === 'Aceptado',
-                          'cell-yellow': selectedStudy.status === 'Duplicado',
-                          'cell-red': selectedStudy.status === 'Rechazado'
-                        }">
-                <option value="Sin clasificar" [ngClass]="{ 'cell-gray': true }">
-                  Sin clasificar
-                </option>
-                <option value="Aceptado" [ngClass]="{ 'cell-green': true }">
-                  Aceptado
-                </option>
-                <option value="Duplicado" [ngClass]="{ 'cell-yellow': true }">
-                  Duplicado
-                </option>
-                <option value="Rechazado" [ngClass]="{ 'cell-red': true }">
-                  Rechazado
-                </option>
-              </select>
+            <!-- Muestra el estado como texto, con clases simulando un "select" -->
+            <div class="form-select mb-3" [ngClass]="{
+  'cell-gray': selectedStudy.status === 'Sin clasificar',
+  'cell-green': selectedStudy.status === 'Aceptado',
+  'cell-yellow': selectedStudy.status === 'Duplicado',
+  'cell-red': selectedStudy.status === 'Rechazado'
+}" style="pointer-events: none;">
+              {{ selectedStudy.status }}
             </div>
 
             <!-- Input de subir PDF (aparece sólo si el status es "Aceptado") -->
@@ -500,51 +487,52 @@
 
 
             <!-- Fuente Bibliográfica y Seleccion de criterio -->
-            <div class="row">
-              <div class="col-sm-6 mb-3">
-                <label class="form-label fw-bold">Base bibliográfica</label>
-                <select class="form-select" [(ngModel)]="selectedStudy.database" name="fuente_bibliografica">
-                  <option [ngValue]="null" disabled>-- Seleccionar base --</option>
-                  <option *ngFor="let base of basesList" [ngValue]="base.nombre">
-                    {{ base.nombre }}
-                  </option>
-                </select>
-              </div>
-              <!-- Sección para Selección de criterios -->
-              <div class="col-sm-6 mb-3">
-                <label class="form-label fw-bold">Selección de criterios</label>
-                <div class="dropdown">
-                  <button class="btn btn-secondary dropdown-toggle w-100 text-start" type="button"
-                    id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                    {{ selectedCriterio || 'Seleccione un criterio' }}
-                  </button>
 
-                  <ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButton">
-                    <li>
-                      <h6 class="dropdown-header">Criterios de Inclusión</h6>
-                    </li>
-                    <li *ngFor="let criterio of inclusionCriterios">
-                      <button class="dropdown-item" type="button" data-bs-dismiss="dropdown"
-                        (click)="selectCriterio(criterio.id_criterios, criterio.descripcion)">
-                        {{ criterio.descripcion }}
-                      </button>
-                    </li>
-                    <li>
-                      <hr class="dropdown-divider" />
-                    </li>
-                    <li>
-                      <h6 class="dropdown-header">Criterios de Exclusión</h6>
-                    </li>
-                    <li *ngFor="let criterio of exclusionCriterios">
-                      <button class="dropdown-item" type="button" data-bs-dismiss="dropdown"
-                        (click)="selectCriterio(criterio.id_criterios, criterio.descripcion)">
-                        {{ criterio.descripcion }}
-                      </button>
-                    </li>
-                  </ul>
-                </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Base bibliográfica</label>
+              <select class="form-select" [(ngModel)]="selectedStudy.database" name="fuente_bibliografica">
+                <option [ngValue]="null" disabled>-- Seleccionar base --</option>
+                <option *ngFor="let base of basesList" [ngValue]="base.nombre">
+                  {{ base.nombre }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Sección para Selección de criterios -->
+            <div class="mb-3" *ngIf="selectedStudy.status !== 'Rechazado'">
+              <label class="form-label fw-bold">Selección de criterios</label>
+              <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle w-100 text-start" type="button" id="dropdownMenuButton"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+                  {{ selectedCriterio || 'Seleccione un criterio' }}
+                </button>
+
+                <ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButton">
+                  <li>
+                    <h6 class="dropdown-header">Criterios de Inclusión</h6>
+                  </li>
+                  <li *ngFor="let criterio of inclusionCriterios">
+                    <button class="dropdown-item" type="button" data-bs-dismiss="dropdown"
+                      (click)="selectCriterio(criterio.id_criterios, criterio.descripcion)">
+                      {{ criterio.descripcion }}
+                    </button>
+                  </li>
+                  <li>
+                    <hr class="dropdown-divider" />
+                  </li>
+                  <li>
+                    <h6 class="dropdown-header">Criterios de Exclusión</h6>
+                  </li>
+                  <li *ngFor="let criterio of exclusionCriterios">
+                    <button class="dropdown-item" type="button" data-bs-dismiss="dropdown"
+                      (click)="selectCriterio(criterio.id_criterios, criterio.descripcion)">
+                      {{ criterio.descripcion }}
+                    </button>
+                  </li>
+                </ul>
               </div>
             </div>
+
 
             <!-- Autor(es) (autores) -->
             <div class="mb-3">
