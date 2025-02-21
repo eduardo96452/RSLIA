@@ -39,7 +39,7 @@
               </div>
 
               <!-- Extracción de datos -->
-              <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
+              <div class="menu-item" [routerLink]="['/extraccion_datos']" [queryParams]="{ id: reviewId }">
                 Extracción de datos
               </div>
 
@@ -69,6 +69,14 @@
                   <button class="nav-link" id="tab2" data-bs-toggle="tab" data-bs-target="#pagina2" type="button"
                     role="tab" aria-controls="pagina2" aria-selected="false">
                     Evaluación de calidad
+                  </button>
+                </li>
+
+                <!-- Página 3 -->
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="tab3" data-bs-toggle="tab" data-bs-target="#pagina3" type="button"
+                    role="tab" aria-controls="pagina3" aria-selected="false">
+                    Anexar articulo en PDF
                   </button>
                 </li>
               </ul>
@@ -293,7 +301,6 @@
                   </div>
 
 
-
                   <!-- Contenido Página 2 -->
                   <div class="tab-pane fade" id="pagina2" role="tabpanel" aria-labelledby="tab2">
                     <div class="containes">
@@ -375,6 +382,16 @@
 
 
                   </div>
+
+
+                  <!-- Contenido Página 3 -->
+                  <div class="tab-pane fade" id="pagina3" role="tabpanel" aria-labelledby="tab3">
+                    <div class="containes">
+                      
+                    </div>
+                  </div>
+
+
                 </div>
               </div>
             </div>

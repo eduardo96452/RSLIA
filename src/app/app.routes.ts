@@ -16,6 +16,7 @@ import { AuthGuard } from './conexion/auth.guard';
 import { InformesComponent } from './seccion-principal/segunda-seccion/informes/informes.component';
 import { CambiarpasswordComponent } from './seccion-principal/cambiarpassword/cambiarpassword.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
+import { ExtraccionDatosComponent } from './seccion-principal/segunda-seccion/extraccion-datos/extraccion-datos.component';
 
 
 export const routes: Routes = [
@@ -65,6 +66,10 @@ export const routes: Routes = [
   },
   {
     path: 'estudios', component: EstudiosComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'extraccion_datos', component: ExtraccionDatosComponent,
     canActivate: [AuthGuard]
   },
   {

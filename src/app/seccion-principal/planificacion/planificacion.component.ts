@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
-import { AuthService, DataField, KeywordRow, Metodologia, Respuesta } from '../../auth/data-access/auth.service';
+import { AuthService, BaseBibliografica, DataField, KeywordRow, Metodologia, Respuesta } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
 import Swal from 'sweetalert2';
 import { HttpClientModule } from '@angular/common/http';
@@ -101,6 +101,15 @@ export class PlanificacionComponent implements OnInit {
   cadenaBusqueda: string = '';
   cadenaGuardada: boolean = false;
 
+  bases: BaseBibliografica[] = [];
+  suggestions = [
+    { nombre: 'IEEE Xplore', url: 'https://ieeexplore.ieee.org/' },
+    { nombre: 'Scopus', url: 'https://www.scopus.com/' },
+    { nombre: 'ScienceDirect', url: 'https://www.sciencedirect.com/' },
+    { nombre: 'ACM Digital Library', url: 'https://dl.acm.org/' }
+  ];
+  basesGuardadas: boolean = false;
+
   exclusionValue: string = '';
   exclusions: Criterio[] = [];
   inclusionValue: string = '';
@@ -112,6 +121,7 @@ export class PlanificacionComponent implements OnInit {
   questions1: Pregunta[] = [];
   qualityQuestionsSaved: boolean = false;
 
+
   answers1: Respuesta[] = [];
   respuestasGuardadas: boolean = false;
 
@@ -122,6 +132,8 @@ export class PlanificacionComponent implements OnInit {
   showButton = false;
 
   fields: DataField[] = [];
+
+  dataExtractionQuestions: Array<{ pregunta: string; tipo: string }> = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -154,16 +166,15 @@ export class PlanificacionComponent implements OnInit {
 
     this.loadCadena();
 
+    await this.loadBases();
+
     await this.loadCriterios();
-
-
 
     this.loadQuestions1();
 
     this.loadAnswers1();
 
     this.loadPuntuacion();
-
 
     // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
     this.router.events
@@ -173,7 +184,7 @@ export class PlanificacionComponent implements OnInit {
         window.scrollTo(0, 0);
       });
 
-      await this.loadFields();
+    await this.loadFields();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -1571,6 +1582,178 @@ export class PlanificacionComponent implements OnInit {
     );
   }
 
+  // ---------------- BASE BIBLIOGRAFICAS ----------------
+
+  // Cargar registros desde la BD
+  async loadBases() {
+    this.bases = await this.authService.loadBasesBibliograficas(this.reviewId);
+    this.basesGuardadas = (this.bases.length > 0);
+    console.log(this.bases.length > 0);
+  }
+
+  async showSuggestions() {
+    // Construye un objeto para el "inputOptions" de SweetAlert
+    const inputOptions = this.suggestions.reduce((obj, sug, idx) => {
+      obj[idx] = `${sug.nombre} - ${sug.url}`;
+      return obj;
+    }, {} as any);
+
+    const { value: idxSeleccionado } = await Swal.fire({
+      title: 'Sugerencias de Bases Bibliográficas',
+      input: 'select',
+      inputOptions: inputOptions,
+      inputPlaceholder: 'Selecciona una base',
+      showCancelButton: true,
+      confirmButtonText: 'Autorrellenar'
+    });
+
+    // Si el usuario selecciona una opción y confirma
+    if (idxSeleccionado !== undefined && idxSeleccionado !== null) {
+      const index = Number(idxSeleccionado);
+      this.autofillNewBase(this.suggestions[index].nombre, this.suggestions[index].url);
+
+    }
+  }
+
+  autofillNewBase(nombre: string, url: string): void {
+    // Agregar una nueva base
+    this.bases.push({
+      id_base_bibliografica: undefined,
+      id_revision: this.reviewId, // Asumiendo que lo tienes
+      nombre: nombre,
+      url: url,
+      isEditing: true
+    });
+    this.basesGuardadas = false;
+  }
+
+  // Agregar una nueva base localmente en modo edición
+  addBase(): void {
+    this.bases.push({
+      id_base_bibliografica: undefined,
+      id_revision: this.reviewId,
+      nombre: '',
+      url: '',
+      isEditing: true
+    });
+
+    this.basesGuardadas = false;
+  }
+
+  // Guardar (nuevo o existente)
+  async saveBase(index: number) {
+    const base = this.bases[index];
+    // Validación básica
+    if (!base.nombre.trim() || !base.url.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Debes ingresar el nombre y la URL.'
+      });
+      return;
+    }
+
+    // Nuevo registro
+    if (!base.id_base_bibliografica) {
+      const result = await this.authService.createBaseBibliografica(base);
+      if (result) {
+        this.bases[index] = { ...result, isEditing: false };
+        Swal.fire({
+          icon: 'success',
+          title: 'Base creada',
+          text: 'Se ha guardado correctamente.'
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al crear',
+          text: 'No se pudo crear la base bibliográfica en la BD.'
+        });
+      }
+    } else {
+      // Actualizar registro existente
+      const updated = await this.authService.updateBaseBibliografica(base);
+      if (updated) {
+        this.bases[index] = { ...updated, isEditing: false };
+        Swal.fire({
+          icon: 'success',
+          title: 'Base actualizada',
+          text: 'Los cambios se guardaron correctamente.'
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al actualizar',
+          text: 'No se pudo actualizar la base.'
+        });
+      }
+    }
+    this.basesGuardadas = (this.bases.length > 0);
+  }
+
+  // Cancelar edición
+  cancelEdit1(index: number): void {
+    const base = this.bases[index];
+    // Si es nueva y está vacía, la quitamos de la lista
+    if (!base.id_base_bibliografica && !base.nombre.trim() && !base.url.trim()) {
+      this.bases.splice(index, 1);
+    } else {
+      // Simplemente salir del modo edición
+      base.isEditing = false;
+      // Si deseas descartar cambios en un campo existente, podrías recargar con loadBases()
+      // this.loadBases();
+    }
+    this.basesGuardadas = (this.bases.length > 0);
+  }
+
+  // Editar una base (pasar a modo edición)
+  editBase(index: number): void {
+    this.bases[index].isEditing = true;
+  }
+
+  // Eliminar un registro
+  async removeBase(index: number): Promise<void> {
+    const base = this.bases[index];
+
+    // Si no tiene ID, solo está local y no se guardó en BD
+    if (!base.id_base_bibliografica) {
+      this.bases.splice(index, 1);
+      this.basesGuardadas = (this.bases.length > 0);
+      return;
+    }
+
+    // Confirmar con SweetAlert2
+    const confirmResult = await Swal.fire({
+      title: '¿Eliminar base?',
+      text: `Estás a punto de eliminar la base "${base.nombre}".`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!confirmResult.isConfirmed) {
+      return;
+    }
+
+    const success = await this.authService.deleteBaseBibliografica(base.id_base_bibliografica);
+    if (success) {
+      this.bases.splice(index, 1);
+      Swal.fire({
+        icon: 'success',
+        title: 'Base eliminada',
+        text: 'La base ha sido eliminada correctamente.'
+      });
+      this.basesGuardadas = (this.bases.length > 0);
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al eliminar',
+        text: 'No se pudo eliminar la base bibliográfica.'
+      });
+    }
+  }
+
   // ---------------- CRITERIOS DE EXCLUSION Y INCLUSION ----------------
 
   guardarCriterios() {
@@ -1980,7 +2163,7 @@ export class PlanificacionComponent implements OnInit {
       this.qualityQuestionsSaved = this.questions1.length > 0;
     }
   }
-  
+
   async addQuestion1(): Promise<void> {
     try {
       const result = await Swal.fire({
@@ -1999,11 +2182,11 @@ export class PlanificacionComponent implements OnInit {
           return null;
         }
       });
-  
+
       // Si el usuario hace clic en "Agregar" y se valida el input...
       if (result.isConfirmed && result.value) {
         const nuevaDescripcion = result.value.trim();
-  
+
         const { data, error } = await this.authService.insertPregunta(nuevaDescripcion, this.reviewId);
         if (error) {
           Swal.fire({
@@ -2034,10 +2217,10 @@ export class PlanificacionComponent implements OnInit {
       });
     }
   }
-  
+
   async editQuestion1(index: number): Promise<void> {
     const current = this.questions1[index];
-  
+
     try {
       const result = await Swal.fire({
         title: 'Editar pregunta',
@@ -2055,12 +2238,12 @@ export class PlanificacionComponent implements OnInit {
           return null;
         }
       });
-  
+
       if (result.isConfirmed && result.value) {
         const nuevaDescripcion = result.value.trim();
-  
+
         const { error } = await this.authService.updatePregunta(current.id_pregunta, nuevaDescripcion);
-  
+
         if (error) {
           Swal.fire({
             icon: 'error',
@@ -2070,7 +2253,7 @@ export class PlanificacionComponent implements OnInit {
         } else {
           // Actualiza localmente la descripción
           this.questions1[index].descripcion = nuevaDescripcion;
-  
+
           Swal.fire({
             icon: 'success',
             title: 'Pregunta actualizada',
@@ -2089,7 +2272,7 @@ export class PlanificacionComponent implements OnInit {
       });
     }
   }
-  
+
   async deleteQuestion1(index: number): Promise<void> {
     const current = this.questions1[index];
     const result = await Swal.fire({
@@ -2101,7 +2284,7 @@ export class PlanificacionComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     });
     if (!result.isConfirmed) return;
-  
+
     const { error } = await this.authService.deletePregunta(current.id_pregunta);
     if (error) {
       Swal.fire({
@@ -2284,7 +2467,7 @@ export class PlanificacionComponent implements OnInit {
         // Toma la primera fila
         this.limitScore1 = data[0].puntuacion_limite;
         this.puntuacionesGuardadas = true;
-        
+
       } else {
         console.log('No se encontró puntuación para esta revisión. Se creará una nueva si se guarda.');
         this.puntuacionesGuardadas = false;
@@ -2333,16 +2516,16 @@ export class PlanificacionComponent implements OnInit {
   // ---------------- EXTRACCION DE DATOS ----------------
 
   // Agregar un nuevo campo
-addField(): void {
-  this.fields.push({
-    id_extraction_field: undefined,   // O undefined si aún no existe en la BD
-    id_revision: this.reviewId, // Ajusta según tu lógica para obtener el ID de la revisión
-    descripcion: '',
-    tipo: 'Booleano',         // Valor por defecto, ajusta según tu preferencia
-    orden: this.fields.length, // Ejemplo: lo situamos al final
-    isEditing: true
-  });
-}
+  addField(): void {
+    this.fields.push({
+      id_extraction_field: undefined,   // O undefined si aún no existe en la BD
+      id_revision: this.reviewId, // Ajusta según tu lógica para obtener el ID de la revisión
+      descripcion: '',
+      tipo: 'Booleano',         // Valor por defecto, ajusta según tu preferencia
+      orden: this.fields.length, // Ejemplo: lo situamos al final
+      isEditing: true
+    });
+  }
 
   moveUp(index: number): void {
     if (index > 0) {
@@ -2350,7 +2533,7 @@ addField(): void {
       [this.fields[index - 1], this.fields[index]] = [this.fields[index], this.fields[index - 1]];
     }
   }
-  
+
   moveDown(index: number): void {
     if (index < this.fields.length - 1) {
       // Intercambia el campo actual con el siguiente
@@ -2364,7 +2547,7 @@ addField(): void {
       const field = this.fields[i];
       // Asigna el nuevo valor de 'orden'
       field.orden = i;
-  
+
       // Llama al servicio que hace un UPDATE en la BD
       try {
         //await this.authService.updateFieldOrder(field.id_extraction_field, i);
@@ -2379,7 +2562,7 @@ addField(): void {
   async loadFields() {
     this.fields = await this.authService.loadExtractionFields(this.reviewId);
   }
-  
+
   // Guardar campo (nuevo o existente)
   async saveField(index: number) {
     const field = this.fields[index];
@@ -2493,5 +2676,99 @@ addField(): void {
         text: 'No se pudo eliminar el campo.'
       });
     }
+  }
+
+  onGenerateQuestions(): void {
+    // Validar título y objetivo
+    if (!this.titulo_revision.trim() || !this.objetivo.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Datos incompletos',
+        text: 'Ingrese un título y objetivo del estudio.'
+      });
+      return;
+    }
+
+    // Pedir la cantidad de preguntas mediante SweetAlert
+    Swal.fire({
+      title: 'Número de preguntas',
+      text: '¿Cuántas preguntas deseas generar?',
+      icon: 'question',
+      input: 'number',
+      inputLabel: 'Cantidad de preguntas',
+      inputPlaceholder: 'Ej: 5',
+      showCancelButton: true,
+      confirmButtonText: 'Generar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value || isNaN(Number(value)) || Number(value) <= 0) {
+          return 'Por favor, ingresa un número válido mayor que 0.';
+        }
+        return null;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const numberOfQuestions = Number(result.value);
+
+        // Mostrar otro SweetAlert de carga mientras se llama al servicio
+        Swal.fire({
+          title: 'Generando preguntas...',
+          text: 'Por favor, espera un momento.',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading(Swal.getConfirmButton());
+          }
+        });
+
+        // Llamar al servicio de IA
+        this.openAiService.generateDataExtractionQuestions(
+          this.titulo_revision,
+          this.objetivo,
+          numberOfQuestions
+        ).subscribe({
+          next: (response) => {
+            Swal.close();
+            if (response && response.questions) {
+              // Mapea cada pregunta del array a tu interfaz DataField
+              const newQuestions = response.questions.map((item: any) => {
+                return {
+                  id_extraction_field: undefined, // no existe en la BD
+                  id_revision: this.reviewId,
+                  descripcion: item.pregunta,     // "pregunta" viene de la IA
+                  tipo: item.tipo,                // "tipo" viene de la IA
+                  orden: this.fields.length,      // lo situamos al final
+                  isEditing: true                 // si quieres que aparezca en modo edición
+                };
+              });
+
+              // Agrega estos nuevos campos al final de fields
+              this.fields = [...this.fields, ...newQuestions];
+
+              Swal.fire({
+                icon: 'success',
+                title: 'Preguntas generadas',
+                text: `Se han agregado ${response.questions.length} nuevas preguntas.`,
+                timer: 2000
+              });
+            } else {
+              Swal.fire({
+                icon: 'info',
+                title: 'Sin preguntas',
+                text: 'No se recibió un arreglo de preguntas en la respuesta.'
+              });
+            }
+          },
+          error: (err) => {
+            Swal.close();
+            console.error('Error al generar preguntas:', err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'No se pudo generar las preguntas.'
+            });
+          }
+        });
+      }
+    });
   }
 }

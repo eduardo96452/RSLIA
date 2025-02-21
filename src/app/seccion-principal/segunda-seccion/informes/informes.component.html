@@ -9,14 +9,6 @@
                <nav aria-label="breadcrumb">
                   <ol class="breadcrumb">
                      <div class="row">
-                        <!--<div class="col-4">
-                                   <li class="breadcrumb-item"><a href="/panel_principal">{{ userData?.nombre_usuario
-                                           || 'Usuario' }}</a>
-                                   </li>
-                               </div>
-                               <div class="col-1">
-                                   <p><strong>/</strong></p>
-                               </div>-->
                         <div>
                            <li class="breadcrumb-item active" aria-current="page">
                               {{reviewData.titulo_revision}}</li>
@@ -47,7 +39,7 @@
                      </div>
 
                      <!-- Extracción de datos -->
-                     <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
+                     <div class="menu-item" [routerLink]="['/extraccion_datos']" [queryParams]="{ id: reviewId }">
                         Extracción de datos
                      </div>
 
@@ -67,16 +59,146 @@
                      <h2 class="accordion-header" id="headingTwo">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                            data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                           <strong>Borrador de articulo cientifico</strong>
+                           <strong>Borrador de artículo científico</strong>
                         </button>
                      </h2>
+
                      <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
                         data-bs-parent="#accordionExample">
                         <div class="accordion-body">
                            <div class="container mt-4">
-                              <!-- Botón para gene+¿rar borrador -->
-                              <button class="btn btn-primary mb-3">
-                                 Generar borrador de documento científico
+
+                              <!-- Sección: Introducción -->
+                              <div class="card mb-3">
+                                 <div class="card-header bg-light">
+                                    <strong>Introducción</strong>
+                                 </div>
+                                 <div class="card-body">
+                                    <p class="text-muted">
+                                       Genera un borrador de la Introducción, donde se presenta la motivación
+                                       y el contexto general de la investigación.
+                                    </p>
+                                    <button class="btn btn-primary mb-2" title="Generar introducción con IA">
+                                       Generar texto con IA
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <!-- Sección: Trabajos relacionados -->
+                              <div class="card mb-3">
+                                 <div class="card-header bg-light">
+                                    <strong>Trabajos relacionados</strong>
+                                 </div>
+                                 <div class="card-body">
+                                    <p class="text-muted">
+                                       Genera un borrador de la sección de trabajos relacionados (estado del arte)
+                                       que describa la investigación previa relevante.
+                                    </p>
+                                    <button class="btn btn-primary mb-2" title="Generar trabajos relacionados con IA">
+                                       Generar texto con IA
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <!-- Sección: Metodología -->
+                              <div class="card mb-3">
+                                 <div class="card-header bg-light">
+                                    <strong>Metodología</strong>
+                                 </div>
+                                 <div class="card-body">
+                                    <p class="text-muted">
+                                       Genera un borrador de la Metodología empleada en el estudio,
+                                       detallando los procedimientos, técnicas y herramientas.
+                                    </p>
+                                    <button class="btn btn-primary mb-2" title="Generar metodología con IA">
+                                       Generar texto con IA
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <!-- Sección: Resultados -->
+                              <div class="card mb-3">
+                                 <div class="card-header bg-light">
+                                    <strong>Resultados</strong>
+                                 </div>
+                                 <div class="card-body">
+                                    <p class="text-muted">
+                                       Genera un borrador de la sección de Resultados, presentando y discutiendo
+                                       los hallazgos de la investigación.
+                                    </p>
+                                    <button class="btn btn-primary mb-2" title="Generar resultados con IA">
+                                       Generar texto con IA
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <!-- Sección: Discusión -->
+                              <div class="card mb-3">
+                                 <div class="card-header bg-light">
+                                    <strong>Discusión</strong>
+                                 </div>
+                                 <div class="card-body">
+                                    <p class="text-muted">
+                                       Genera un borrador de la Discusión, analizando e interpretando los resultados
+                                       en profundidad.
+                                    </p>
+                                    <button class="btn btn-primary mb-2" title="Generar discusión con IA">
+                                       Generar texto con IA
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <!-- Sección: Limitaciones -->
+                              <div class="card mb-3">
+                                 <div class="card-header bg-light">
+                                    <strong>Limitaciones</strong>
+                                 </div>
+                                 <div class="card-body">
+                                    <p class="text-muted">
+                                       Genera un borrador de Limitaciones, describiendo los posibles sesgos
+                                       o restricciones del estudio.
+                                    </p>
+                                    <button class="btn btn-primary mb-2" title="Generar limitaciones con IA">
+                                       Generar texto con IA
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <!-- Sección: Conclusión -->
+                              <div class="card mb-3">
+                                 <div class="card-header bg-light">
+                                    <strong>Conclusión</strong>
+                                 </div>
+                                 <div class="card-body">
+                                    <p class="text-muted">
+                                       Genera un borrador de la Conclusión, resumiendo los hallazgos y aportes
+                                       principales del estudio.
+                                    </p>
+                                    <button class="btn btn-primary mb-2" title="Generar conclusión con IA">
+                                       Generar texto con IA
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <!-- Sección: Referencias -->
+                              <div class="card mb-3">
+                                 <div class="card-header bg-light">
+                                    <strong>Referencias</strong>
+                                 </div>
+                                 <div class="card-body">
+                                    <p class="text-muted">
+                                       Genera una lista de referencias bibliográficas para tu artículo, siguiendo
+                                       el formato deseado (APA, IEEE, etc.).
+                                    </p>
+                                    <button class="btn btn-primary mb-2" title="Generar referencias con IA">
+                                       Generar texto con IA
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <!-- Botón para generar todo el borrador completo (opcional) -->
+                              <button class="btn btn-success mb-4" title="Generar todo el borrador">
+                                 Generar documento científico completo
                               </button>
 
                               <!-- Tabla con columnas: Documento científico y Acción -->
@@ -100,10 +222,12 @@
                                     <!-- Agrega más filas aquí según sea necesario -->
                                  </tbody>
                               </table>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
+                           </div> <!-- /container -->
+                        </div> <!-- /accordion-body -->
+                     </div> <!-- /accordion-collapse -->
+                  </div> <!-- /accordion-item -->
+
+
 
                   <!-- Segundo ítem del acordeón -->
                   <div class="accordion-item">

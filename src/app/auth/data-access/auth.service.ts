@@ -66,6 +66,14 @@ export interface KeywordRow {
   // Otras propiedades...
 }
 
+export interface BaseBibliografica {
+  id_base_bibliografica?: number; // PK en BD
+  id_revision: string;            // FK a detalles_revision
+  nombre: string;
+  url: string;
+  isEditing: boolean; // Para controlar el modo edición en el componente
+}
+
 export interface Criterio {
   id_criterios?: number; // ID del criterio (puede ser indefinido al agregar nuevos)
   descripcion: string;   // Descripción del criterio
@@ -162,6 +170,8 @@ export interface DataField {
   orden: number;
   isEditing: boolean;
 }
+
+
 
 @Injectable({
   providedIn: 'root'
@@ -1848,6 +1858,134 @@ export class AuthService {
       return true;
     } catch (err) {
       console.error('Error inesperado al eliminar campo:', err);
+      return false;
+    }
+  }
+
+
+  // ======================================================
+  // 1) Cargar bases bibliográficas por ID de revisión
+  // ======================================================
+  async loadBasesBibliograficas(id_revision: string): Promise<BaseBibliografica[]> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('bases_bibliograficas')
+        .select('*')
+        .eq('id_revision', id_revision);
+
+      if (error) {
+        console.error('Error al cargar bases bibliográficas:', error);
+        return [];
+      }
+
+      return (data || []).map(item => ({
+        id_base_bibliografica: item.id_base_bibliografica,
+        id_revision: item.id_revision.toString(),
+        nombre: item.nombre,
+        url: item.url,
+        isEditing: false
+      } as BaseBibliografica));
+    } catch (err) {
+      console.error('Error inesperado al cargar bases:', err);
+      return [];
+    }
+  }
+
+  // ======================================================
+  // 2) Crear (insertar) una nueva base bibliográfica
+  // ======================================================
+  async createBaseBibliografica(base: BaseBibliografica): Promise<BaseBibliografica | null> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('bases_bibliograficas')
+        .insert([
+          {
+            id_revision: base.id_revision,
+            nombre: base.nombre,
+            url: base.url
+          }
+        ])
+        .select();
+
+      if (error) {
+        console.error('Error al crear base bibliográfica:', error);
+        return null;
+      }
+
+      if (data && data.length > 0) {
+        const newItem = data[0];
+        return {
+          id_base_bibliografica: newItem.id_base_bibliografica,
+          id_revision: newItem.id_revision.toString(),
+          nombre: newItem.nombre,
+          url: newItem.url,
+          isEditing: false
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error('Error inesperado al crear base:', err);
+      return null;
+    }
+  }
+
+  // ======================================================
+  // 3) Actualizar una base bibliográfica
+  // ======================================================
+  async updateBaseBibliografica(base: BaseBibliografica): Promise<BaseBibliografica | null> {
+    if (!base.id_base_bibliografica) {
+      console.warn('No se puede actualizar, falta id_base_bibliografica');
+      return null;
+    }
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('bases_bibliograficas')
+        .update({
+          nombre: base.nombre,
+          url: base.url
+        })
+        .eq('id_base_bibliografica', base.id_base_bibliografica)
+        .select();
+
+      if (error) {
+        console.error('Error al actualizar base bibliográfica:', error);
+        return null;
+      }
+
+      if (data && data.length > 0) {
+        const updatedItem = data[0];
+        return {
+          id_base_bibliografica: updatedItem.id_base_bibliografica,
+          id_revision: updatedItem.id_revision.toString(),
+          nombre: updatedItem.nombre,
+          url: updatedItem.url,
+          isEditing: false
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error('Error inesperado al actualizar base:', err);
+      return null;
+    }
+  }
+
+  // ======================================================
+  // 4) Eliminar una base bibliográfica
+  // ======================================================
+  async deleteBaseBibliografica(id_base_bibliografica: number): Promise<boolean> {
+    try {
+      const { error } = await this._supabaseClient
+        .from('bases_bibliograficas')
+        .delete()
+        .eq('id_base_bibliografica', id_base_bibliografica);
+
+      if (error) {
+        console.error('Error al eliminar base bibliográfica:', error);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error('Error inesperado al eliminar base:', err);
       return false;
     }
   }

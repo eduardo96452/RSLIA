@@ -1,0 +1,94 @@
+.floating-menu {
+    width: 200px;
+  }
+  
+  .menu-item {
+    padding: 10px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  
+  .menu-item.active {
+    background-color: #f8f9fa;
+    border-color: #007bff;
+    font-weight: bold;
+  }
+  
+  .menu-item:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .table thead th {
+    white-space: nowrap;
+    /* Evita que el texto baje de línea */
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  
+  .table thead th,
+  .table tbody td {
+    vertical-align: middle;
+    /* Ajusta la altura de las filas si deseas */
+    /* line-height: 1.2; */
+  }
+  
+  .cell-gray {
+    background-color: #e0e0e0 !important;
+    /* Gris */
+  }
+  
+  .cell-green {
+    background-color: #adebad !important;
+    /* Verde claro */
+  }
+  
+  .cell-yellow {
+    background-color: #fff8b3 !important;
+    /* Amarillo claro */
+  }
+  
+  .cell-red {
+    background-color: #ffcccc !important;
+    /* Rojo claro */
+  }
+  
+  .modal-header {
+    background-color: #f8f9fa;
+    /* Color claro para el fondo */
+    border-bottom: 1px solid #dee2e6;
+    /* Línea de separación */
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+    /* Tamaño del título */
+    letter-spacing: 0.5px;
+    /* Espaciado entre letras */
+  }
+  
+  .btn-close {
+    background-color: transparent;
+    /* Sin fondo adicional */
+    outline: none;
+    /* Elimina el contorno */
+  }
+  
+  .nav-tabs .nav-link {
+    font-size: calc(1.3rem - 0.2vw);
+    /* Reduce el tamaño de la fuente dinámicamente */
+    white-space: nowrap;
+    /* Evita que el texto se divida en varias líneas */
+    text-overflow: ellipsis;
+    /* Si hay un desbordamiento, muestra elipsis */
+    overflow: hidden;
+    /* Oculta el texto que no cabe */
+  }
+  
+  @media (max-width: 576px) {
+    .nav-tabs .nav-link {
+      font-size: 0.86rem;
+      /* Tamaño más pequeño en pantallas muy pequeñas */
+    }
+  }
+  
