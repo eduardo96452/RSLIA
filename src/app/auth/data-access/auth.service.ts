@@ -57,11 +57,13 @@ export interface Question {
 }
 
 export interface KeywordRow {
-  id_palabras_clave?: number;
+  id_palabras_clave: number | null;
   keyword: string;
-  related: string;
-  synonyms: string[]; // Arreglo de sinónimos
+  synonyms: string[];
+  id_sinonimos: number | null;
+  related?: any;
   isEditing: boolean;
+  // Otras propiedades...
 }
 
 export interface Criterio {
@@ -152,6 +154,14 @@ export interface Criterio1 {
   id_detalles_revision: string;
 }
 
+export interface DataField {
+  id_extraction_field?: number; // ID de la BD
+  id_revision: string;          // ID de la revisión
+  descripcion: string;
+  tipo: string;
+  orden: number;
+  isEditing: boolean;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -981,7 +991,7 @@ export class AuthService {
         .from('palabras_clave')
         .select(`
           *,
-          sinonimos:sinonimos!inner(sinonimo)
+          sinonimos:sinonimos!inner(*)
         `)
         .eq('id_detalles_revision', reviewId);
   
@@ -998,107 +1008,141 @@ export class AuthService {
     }
   }
   
-
-
-
-
-
-
-
-
-
-
-
-
+  async getIdComponenteFromSinonimos(id_sinonimos: string): Promise<number | null> {
+    try {
+      // Primera consulta: obtener el id_componente_revision desde la tabla "sinonimos"
+      const { data: sinonimosData, error: sinonimosError } = await this._supabaseClient
+        .from('sinonimos')
+        .select('id_componente_revision')
+        .eq('id_sinonimos', id_sinonimos)
+        .single();
   
-
-
-
-
-
-
-
-  async saveKeyword(
+      if (sinonimosError || !sinonimosData) {
+        console.error('Error al obtener id_componente_revision desde sinonimos:', sinonimosError);
+        return null;
+      }
+  
+      const id_componente_revision = sinonimosData.id_componente_revision;
+  
+      // Segunda consulta: con el id_componente_revision, obtener el id_componente desde "componente_revision"
+      const { data: compRevData, error: compRevError } = await this._supabaseClient
+        .from('componente_revision')
+        .select('id_componente')
+        .eq('id_componente_revision', id_componente_revision)
+        .single();
+  
+      if (compRevError || !compRevData) {
+        console.error('Error al obtener id_componente desde componente_revision:', compRevError);
+        return null;
+      }
+  
+      return compRevData.id_componente;
+    } catch (err) {
+      console.error('Error inesperado en getIdComponenteFromSinonimos:', err);
+      return null;
+    }
+  }
+  
+  async updateSynonymThenKeyword(
+    idSinonimos: string,
+    idPalabrasClave: string,
+    sinonimo: string,
     palabraClave: string,
+    idDetallesRevision: string,
+    idseccioncomponente: string,
     seccionMetodologia: string,
-    sinonimos: string[],
-    idDetallesRevision: string
-  ): Promise<{ data: any; error: any }> {
-    // Mapear sinónimos a cada columna
-    const sinonimo1 = sinonimos[0] ?? null;
-    const sinonimo2 = sinonimos[1] ?? null;
-    const sinonimo3 = sinonimos[2] ?? null;
-    const sinonimo4 = sinonimos[3] ?? null;
-    const sinonimo5 = sinonimos[4] ?? null;
-
-    const { data, error } = await this._supabaseClient
-      .from('palabras_clave')
-      .insert([
-        {
+    fechaIngreso?: string
+  ): Promise<{ data?: any; error?: any }> {
+    try {
+      // ===========================
+      // 0) Buscar el id_componente_revision 
+      //    usando el idseccionMetodologia que recibes
+      // ===========================
+      const { data: compRevData, error: compRevError } = await this._supabaseClient
+        .from('componente_revision')
+        .select('id_componente_revision') // Ajusta si necesitas más columnas
+        .eq('id_componente', idseccioncomponente)
+        .single();
+  
+      if (compRevError) {
+        console.error('Error al buscar componente_revision:', compRevError);
+        return { error: compRevError };
+      }
+  
+      if (!compRevData) {
+        return {
+          error: new Error(`No se encontró un componente_revision con el ID`)
+        };
+      }
+  
+      const foundCompRevId = compRevData.id_componente_revision;
+  
+      console.log("Este es el id de contexto en la base de datos",foundCompRevId);
+      
+      // ===========================
+      // 1) Actualizar el registro en la tabla "sinonimos"
+      // ===========================
+      const { data: synData, error: synError } = await this._supabaseClient
+        .from('sinonimos')
+        .update({
+          sinonimo: sinonimo,
+          // Actualiza también el id_componente_revision si lo requieres:
+          id_componente_revision: foundCompRevId
+        })
+        .eq('id_sinonimos', idSinonimos)
+        .select();
+  
+      if (synError) {
+        console.error('Error al actualizar sinónimo:', synError);
+        return { error: synError };
+      }
+  
+      // ===========================
+      // 2) Actualizar el registro en la tabla "palabras_clave"
+      // ===========================
+      const { data: kwData, error: kwError } = await this._supabaseClient
+        .from('palabras_clave')
+        .update({
           palabra_clave: palabraClave,
-          seccion_metodologia: seccionMetodologia,
+          fecha_ingreso: fechaIngreso || new Date().toISOString(),
           id_detalles_revision: idDetallesRevision,
-          sinonimo1,
-          sinonimo2,
-          sinonimo3,
-          sinonimo4,
-          sinonimo5
-          // fecha_ingreso puede tener default en la BD
+          seccion_metodologia: seccionMetodologia
+          // No es necesario actualizar id_sinonimos si ya está vinculado
+        })
+        .eq('id_palabras_clave', idPalabrasClave)
+        .select();
+  
+      if (kwError) {
+        console.error('Error al actualizar palabra clave:', kwError);
+        return { error: kwError };
+      }
+  
+      return {
+        data: {
+          synonym: synData,
+          keyword: kwData
         }
-      ]);
-
-    if (error) {
-      console.error('Error al insertar palabra clave:', error.message);
+      };
+  
+    } catch (err) {
+      console.error('Error inesperado al actualizar sinónimo y palabra clave:', err);
+      return { error: err };
     }
-    return { data, error };
   }
-
-  async updateKeyword(
-    idPalabrasClave: number,
-    palabraClave: string,
-    seccionMetodologia: string,
-    sinonimos: string[],
-    idDetallesRevision: string
-  ): Promise<{ data: any; error: any }> {
-    // Similar mapeo de sinónimos
-    const sinonimo1 = sinonimos[0] ?? null;
-    const sinonimo2 = sinonimos[1] ?? null;
-    const sinonimo3 = sinonimos[2] ?? null;
-    const sinonimo4 = sinonimos[3] ?? null;
-    const sinonimo5 = sinonimos[4] ?? null;
-
-    const { data, error } = await this._supabaseClient
-      .from('palabras_clave')
-      .update({
-        palabra_clave: palabraClave,
-        seccion_metodologia: seccionMetodologia,
-        id_detalles_revision: idDetallesRevision,
-        sinonimo1,
-        sinonimo2,
-        sinonimo3,
-        sinonimo4,
-        sinonimo5
-      })
-      .eq('id_palabras_clave', idPalabrasClave);
-
-    if (error) {
-      console.error('Error al actualizar palabra clave:', error.message);
+  
+  async deleteSynonym(idSinonimos: string): Promise<{ error?: any }> {
+    try {
+      const { error } = await this._supabaseClient
+        .from('sinonimos')
+        .delete()
+        .eq('id_sinonimos', idSinonimos);
+      return { error };
+    } catch (err) {
+      console.error('Error inesperado al eliminar el sinónimo:', err);
+      return { error: err };
     }
-    return { data, error };
   }
-
-  async getKeywordsByRevision(idRevision: string) {
-    const { data, error } = await this._supabaseClient
-      .from('palabras_clave')
-      .select('*')
-      .eq('id_detalles_revision', idRevision);
-
-    if (error) {
-      console.error('Error al obtener palabras clave:', error.message);
-    }
-    return { data, error };
-  }
-
+  
   async deleteKeyword(idPalabrasClave: number): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
       .from('palabras_clave')
@@ -1110,13 +1154,6 @@ export class AuthService {
     }
     return { data, error };
   }
-
-
-
-
-
-
-
 
   async insertarCadenaBusqueda(cadenaBusqueda: string, idDetallesRevision: string) {
     // La columna "fecha_creacion" puede ser un default en la BD
@@ -1210,10 +1247,8 @@ export class AuthService {
     return { data, error };
   }
 
-
   //pagina 2 de planeacion
 
-  // Obtiene todas las preguntas para una revisión
   async getPreguntasByRevision(idRevision: string) {
     const { data, error } = await this._supabaseClient
       .from('evaluacion_calidad_preguntas')
@@ -1223,7 +1258,6 @@ export class AuthService {
     return { data, error };
   }
 
-  // Inserta una nueva pregunta
   async insertPregunta(descripcion: string, idRevision: string) {
     const { data, error } = await this._supabaseClient
       .from('evaluacion_calidad_preguntas')
@@ -1238,7 +1272,6 @@ export class AuthService {
     return { data, error };
   }
 
-  // Actualiza la descripción de una pregunta
   async updatePregunta(idPregunta: number, nuevaDescripcion: string) {
     const { data, error } = await this._supabaseClient
       .from('evaluacion_calidad_preguntas')
@@ -1249,7 +1282,6 @@ export class AuthService {
     return { data, error };
   }
 
-  // Elimina una pregunta
   async deletePregunta(idPregunta: number) {
     const { data, error } = await this._supabaseClient
       .from('evaluacion_calidad_preguntas')
@@ -1260,7 +1292,6 @@ export class AuthService {
     return { data, error };
   }
 
-  // Obtiene todas las respuestas para una revisión
   async getRespuestasByRevision(idRevision: string) {
     const { data, error } = await this._supabaseClient
       .from('evaluacion_calidad_respuestas')
@@ -1270,7 +1301,6 @@ export class AuthService {
     return { data, error };
   }
 
-  // Inserta una nueva respuesta
   async insertRespuesta(descripcion: string, peso: number, idRevision: string) {
     const { data, error } = await this._supabaseClient
       .from('evaluacion_calidad_respuestas')
@@ -1286,7 +1316,6 @@ export class AuthService {
     return { data, error };
   }
 
-  // Actualiza la descripción y/o peso de una respuesta
   async updateRespuesta(idRespuesta: number, nuevaDescripcion: string, nuevoPeso: number) {
     const { data, error } = await this._supabaseClient
       .from('evaluacion_calidad_respuestas')
@@ -1300,7 +1329,6 @@ export class AuthService {
     return { data, error };
   }
 
-  // Elimina una respuesta
   async deleteRespuesta(idRespuesta: number) {
     const { data, error } = await this._supabaseClient
       .from('evaluacion_calidad_respuestas')
@@ -1365,9 +1393,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * CREATE: Insertar un nuevo registro en la tabla "estudios".
-   */
   async createEstudio(estudio: Estudio): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
       .from('estudios')
@@ -1376,9 +1401,6 @@ export class AuthService {
     return { data, error };
   }
 
-  /**
-   * READ (1): Obtener todos los estudios de la tabla "estudios".
-   */
   async getEstudiosByRevision(
     idDetallesRevision: number
   ): Promise<{ data: Estudio[] | null; error: any }> {
@@ -1390,9 +1412,6 @@ export class AuthService {
     return { data, error };
   }
 
-  /**
-   * READ (2): Obtener un estudio por su ID (id_estudios).
-   */
   async getEstudioById(id: number): Promise<{ data: Estudio | null; error: any }> {
     const { data, error } = await this._supabaseClient
       .from('estudios')
@@ -1403,9 +1422,6 @@ export class AuthService {
     return { data, error };
   }
 
-  /**
-   * UPDATE: Actualizar los campos de un estudio existente.
-   */
   async updateEstudio(
     idEstudios: number,
     changes: Partial<Estudio>
@@ -1419,9 +1435,6 @@ export class AuthService {
     return { data, error };
   }
 
-  /**
-   * DELETE: Eliminar un estudio por su ID.
-   */
   async deleteEstudio(id: number): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
       .from('estudios')
@@ -1445,15 +1458,7 @@ export class AuthService {
     return { data, error };
   }
 
-  // ------------------------------------------------------------------
-  // 1. Subida de PDF al bucket "documentos"
-  // ------------------------------------------------------------------
-  /**
-   * Sube el archivo PDF al bucket "documentos" en Supabase.
-   * @param file Archivo PDF a subir
-   * @param estudioId ID del estudio para construir la ruta dentro del bucket
-   * @returns string con la URL pública del archivo subido
-   */
+
   async uploadPDF(file: File, estudioId: number): Promise<string> {
     try {
       // Construye una ruta (path) única para el archivo en el bucket
@@ -1484,12 +1489,7 @@ export class AuthService {
     }
   }
 
-  // ------------------------------------------------------------------
-  // 2. Actualización de la tabla "estudios"
-  // ------------------------------------------------------------------
-  /**
-   * Actualiza la información de un estudio en la tabla "estudios".
-   */
+
   async updateStudy(estudioData: Partial<Estudio>): Promise<any> {
     try {
       if (!estudioData.id_estudios) {
@@ -1535,9 +1535,7 @@ export class AuthService {
     }
   }
 
-  /**
- * Elimina un archivo PDF del bucket "documentos" en Supabase, dado su filePath.
- */
+
   async removePDF(filePath: string): Promise<void> {
     // filePath sería algo como "estudios/10/mi_archivo.pdf"
     const { data, error } = await this._supabaseClient.storage
@@ -1628,10 +1626,6 @@ export class AuthService {
     return { data, error };
   }
 
-  /**
-   * Inserta una evaluación en la tabla "calidad_estudios",
-   * usando IDs en vez de texto.
-   */
   async createCalidadEstudio(calidadData: any) {
     const { data, error } = await this._supabaseClient
       .from('calidad_estudios')
@@ -1715,6 +1709,147 @@ export class AuthService {
 
     console.log('Contraseña actualizada con éxito. Registro en DB:', dbData);
     return { error: null };  // Indica que no hubo error
+  }
+
+
+
+
+  // =====================================
+  // 1) Cargar campos de extracción por id_revision
+  // =====================================
+  async loadExtractionFields(id_revision: string): Promise<DataField[]> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('campos_extraccion')
+        .select('*')
+        .eq('id_revision', id_revision)
+        .order('orden', { ascending: true }); // Ejemplo: ordenar por 'orden' asc.
+
+      if (error) {
+        console.error('Error al cargar campos de extracción:', error);
+        return [];
+      }
+
+      // Mapear los campos a tu interfaz DataField
+      const fields: DataField[] = (data || []).map((item: any) => ({
+        id_extraction_field: item.id_campo_extraccion,
+        id_revision: item.id_revision.toString(),
+        descripcion: item.descripcion,
+        tipo: item.tipo,
+        orden: item.orden,
+        isEditing: false // Por defecto, en modo vista
+      }));
+      return fields;
+    } catch (err) {
+      console.error('Error inesperado al cargar campos:', err);
+      return [];
+    }
+  }
+
+  // =====================================
+  // 2) Crear (insertar) un nuevo campo
+  // =====================================
+  async createExtractionField(field: DataField): Promise<DataField | null> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('campos_extraccion')
+        .insert([
+          {
+            id_revision: field.id_revision,
+            descripcion: field.descripcion,
+            tipo: field.tipo,
+            orden: field.orden
+          }
+        ])
+        .select();  // Para obtener el registro recién insertado
+
+      if (error) {
+        console.error('Error al crear el campo de extracción:', error);
+        return null;
+      }
+
+      // data[0] es el objeto insertado en la BD
+      if (data && data.length > 0) {
+        const newItem = data[0];
+        // Retorna un objeto en el formato de tu interfaz
+        return {
+          id_extraction_field: newItem.id_campo_extraccion,
+          id_revision: newItem.id_revision.toString(),
+          descripcion: newItem.descripcion,
+          tipo: newItem.tipo,
+          orden: newItem.orden,
+          isEditing: false
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error('Error inesperado al crear campo:', err);
+      return null;
+    }
+  }
+
+  // =====================================
+  // 3) Actualizar un campo existente
+  // =====================================
+  async updateExtractionField(field: DataField): Promise<DataField | null> {
+    if (!field.id_extraction_field) {
+      console.warn('No se puede actualizar un campo sin ID');
+      return null;
+    }
+
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('campos_extraccion')
+        .update({
+          descripcion: field.descripcion,
+          tipo: field.tipo,
+          orden: field.orden
+        })
+        .eq('id_campo_extraccion', field.id_extraction_field)
+        .select();
+
+      if (error) {
+        console.error('Error al actualizar el campo de extracción:', error);
+        return null;
+      }
+
+      if (data && data.length > 0) {
+        const updatedItem = data[0];
+        return {
+          id_extraction_field: updatedItem.id_campo_extraccion,
+          id_revision: updatedItem.id_revision.toString(),
+          descripcion: updatedItem.descripcion,
+          tipo: updatedItem.tipo,
+          orden: updatedItem.orden,
+          isEditing: false
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error('Error inesperado al actualizar campo:', err);
+      return null;
+    }
+  }
+
+  // =====================================
+  // 4) Eliminar un campo
+  // =====================================
+  async deleteExtractionField(id_extraction_field: number): Promise<boolean> {
+    try {
+      const { error } = await this._supabaseClient
+        .from('campos_extraccion')
+        .delete()
+        .eq('id_campo_extraccion', id_extraction_field);
+
+      if (error) {
+        console.error('Error al eliminar el campo de extracción:', error);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error('Error inesperado al eliminar campo:', err);
+      return false;
+    }
   }
 
 }

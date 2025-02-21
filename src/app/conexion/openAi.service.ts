@@ -45,21 +45,25 @@ export class OpenAiService {
     return this.http.post<any>(this.generateKeywordsUrl, { methodologyData });
   }
 
-  /*getSearchString(keywords: KeywordRow[]): Observable<any> {
+  getSearchString(keywords: KeywordRow[]): Observable<any> {
     const transformedKeywords = keywords.map(item => {
-      const metodologiaLimpia = item.related.replace(/\s*\(.*?\)/, "").trim();
+      const metodologiaLimpia = item.related && item.related.nombre 
+        ? item.related.nombre.replace(/\s*\(.*?\)/, "").trim() 
+        : '';
       return {
         palabra_clave: item.keyword,
         metodologia: metodologiaLimpia,
-        sinonimos: item.synonyms.split(',').map(s => s.trim())
+        sinonimos: Array.isArray(item.synonyms) ? item.synonyms.map(s => s.trim()) : []
       };
     });
-  
+    
     return this.http.post<any>(this.searchStringUrl, { keywords: transformedKeywords });
-  }*/
+  }
 
   generateCriteria(title: string, objective: string): Observable<any> {
     
     return this.http.post<any>(this.criteriaUrl, { title, objective });
   }
+
+  
 }

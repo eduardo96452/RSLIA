@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
-import { AuthService, KeywordRow, Metodologia, Respuesta } from '../../auth/data-access/auth.service';
+import { AuthService, DataField, KeywordRow, Metodologia, Respuesta } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
 import Swal from 'sweetalert2';
 import { HttpClientModule } from '@angular/common/http';
@@ -95,31 +95,33 @@ export class PlanificacionComponent implements OnInit {
   palabraClave: string = '';
   metodologiaName: string = '';
   metodologiaSeleccionada: string = '';
+  defaultRelatedOption = { id: null, nombre: 'Elije un componente' };
+  keywordsUpdated: boolean = false;
 
   cadenaBusqueda: string = '';
-
   cadenaGuardada: boolean = false;
 
-
-
-  // Para ingresar criterios de exclusión
   exclusionValue: string = '';
-  // Lista local de criterios de exclusión
   exclusions: Criterio[] = [];
-  // Para ingresar criterios de inclusión
   inclusionValue: string = '';
-  // Lista local de criterios de inclusión
   inclusions: Criterio[] = [];
+  criteriosGuardados: boolean = false;
 
-  showScrollButton: boolean = true; // Controla la visibilidad del botón
+  showScrollButton: boolean = true;
 
-  questions1: Pregunta[] = []; // Lista de preguntas
-  answers1: Respuesta[] = []; // Lista de respuestas
-  limitScore1: number = 0; // Puntuación límite
+  questions1: Pregunta[] = [];
+  qualityQuestionsSaved: boolean = false;
+
+  answers1: Respuesta[] = [];
+  respuestasGuardadas: boolean = false;
+
+  limitScore1: number = 0;
+  puntuacionesGuardadas: boolean = false;
+
   isLargeScreen: boolean = true;
   showButton = false;
 
-
+  fields: DataField[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -150,14 +152,18 @@ export class PlanificacionComponent implements OnInit {
 
     await this.loadKeywordsAndSynonyms()
 
-
     this.loadCadena();
 
     await this.loadCriterios();
 
+
+
     this.loadQuestions1();
+
     this.loadAnswers1();
+
     this.loadPuntuacion();
+
 
     // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
     this.router.events
@@ -166,6 +172,8 @@ export class PlanificacionComponent implements OnInit {
         // Llevamos el scroll al tope
         window.scrollTo(0, 0);
       });
+
+      await this.loadFields();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -184,7 +192,6 @@ export class PlanificacionComponent implements OnInit {
       console.error('Error al cargar los datos del usuario:', error);
     }
   }
-
 
   async loadReviewData() {
     try {
@@ -209,6 +216,8 @@ export class PlanificacionComponent implements OnInit {
   onInputChanged() {
     this.metodologiaGuardada = false;
   }
+
+  // ---------------- OBJETIVO ----------------
 
   onTextChange(value: string) {
     this.charCount = value.length;
@@ -281,6 +290,8 @@ export class PlanificacionComponent implements OnInit {
       }
     });
   }
+
+  // ---------------- FRAMEWORK ----------------
 
   async loadMetodologias(): Promise<void> {
     this.metodologias = await this.authService.getMetodologias();
@@ -677,6 +688,8 @@ export class PlanificacionComponent implements OnInit {
     });
   }
 
+  // ---------------- PREGUNTAS DE INVESTIGACIÓN ----------------
+
   addQuestion() {
     this.questions.push({ id: Date.now(), value: '', id_detalles_revision: this.reviewId || undefined, isSaved: false });
     this.questionsUpdated = false;
@@ -734,7 +747,6 @@ export class PlanificacionComponent implements OnInit {
       });
     }
   }
-
 
   async cancelQuestion(id: number) {
     const result = await Swal.fire({
@@ -863,7 +875,7 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-  generateResearchQuestions() {
+  generateResearchQuestions(): void {
     Swal.fire({
       title: 'Número de Preguntas',
       text: '¿Cuántas preguntas desea generar?',
@@ -883,7 +895,7 @@ export class PlanificacionComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed && result.value) {
         const numQuestions = Number(result.value);
-        // Muestra un SweetAlert de carga
+        // Mostrar alerta de carga
         Swal.fire({
           title: 'Generando preguntas...',
           text: 'Por favor, espera un momento.',
@@ -893,36 +905,44 @@ export class PlanificacionComponent implements OnInit {
           }
         });
 
-        // Llamada al servicio OpenAiService para generar las preguntas
+        // Llamada al servicio para generar las preguntas
         this.openAiService.getResearchQuestions(
-          this.titulo_revision,    // o el título que uses en tu componente
-          this.paginaSeleccionada,      // o la metodología (ajusta según tu lógica)
-          this.objetivo,        // o el objetivo, etc.
+          this.titulo_revision,       // Título o dato que uses en tu componente
+          this.paginaSeleccionada,    // Metodología seleccionada
+          this.objetivo,              // Objetivo, etc.
           numQuestions
         ).subscribe(
           (response) => {
-            // Cierra el alert de carga
             Swal.close();
-
-            // Suponemos que la respuesta tiene la propiedad "questions" como arreglo de strings.
+            // Suponemos que response.questions es un arreglo de strings
             const generatedQuestions: string[] = response.questions || [];
-            // Mapea cada string a un objeto Question
-            this.questions = generatedQuestions.map(q => ({
+
+            // Aquí se mapea cada string a un objeto Question
+            const newQuestions = generatedQuestions.map(q => ({
               id: Date.now() + Math.floor(Math.random() * 1000),
               value: q,
               id_detalles_revision: this.reviewId,
               isSaved: false
             }));
+
+            // Si ya existen registros, se agregan los nuevos al final; de lo contrario, se asignan directamente
+            if (this.questions && this.questions.length > 0) {
+              this.questions = [...this.questions, ...newQuestions];
+            } else {
+              this.questions = newQuestions;
+            }
+
             Swal.fire({
               icon: 'success',
               title: 'Preguntas Generadas',
-              text: `Se han generado ${this.questions.length} preguntas de investigación.`,
+              text: `Se han generado ${newQuestions.length} preguntas de investigación.`,
               timer: 1500
             });
             this.questionsUpdated = false;
           },
           (error) => {
             console.error('Error al generar preguntas:', error);
+            Swal.close();
             Swal.fire({
               icon: 'error',
               title: 'Error',
@@ -935,13 +955,9 @@ export class PlanificacionComponent implements OnInit {
     });
   }
 
-
-
-
+  // ---------------- PALABRAS CLAVES Y SINONIMOS ----------------
 
   async loadComponentsForSelect() {
-
-
     const metodologyrevision = await this.authService.getMetodologiaByRevisionId(this.reviewId);
 
     if (metodologyrevision?.nombre) {
@@ -1028,15 +1044,19 @@ export class PlanificacionComponent implements OnInit {
   editRow(index: number) {
     const row = this.tableData[index];
     row.isEditing = true; // Activa el modo edición
+    this.keywordsUpdated = false;
   }
 
   addRow() {
     this.tableData.push({
+      id_palabras_clave: null,
       keyword: '',
       related: '',
       synonyms: [], // Arreglo vacío para sinónimos
+      id_sinonimos: null,
       isEditing: true
     });
+    this.keywordsUpdated = false;
   }
 
   trackByIndex(index: number, item: any): number {
@@ -1049,75 +1069,203 @@ export class PlanificacionComponent implements OnInit {
       row.synonyms = [];
     }
     row.synonyms.push(''); // Agrega un nuevo sinónimo vacío, lo que generará un nuevo input
+    this.keywordsUpdated = false;
+  }
+
+  preventSpecialChars(event: KeyboardEvent): void {
+    // Definimos una expresión regular que permita solo letras y números.
+    // La expresión /^[A-Za-z0-9]$/ verifica que la tecla sea una letra (mayúscula o minúscula) o un dígito.
+    const allowedRegex = /^[A-Za-z0-9 ]$/;
+
+    // Permitir teclas de control (backspace, arrow keys, etc.)
+    if (event.key.length > 1) {
+      return;
+    }
+
+    if (!allowedRegex.test(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  compareFn(o1: any, o2: any): boolean {
+    return o1 && o2 ? o1.id === o2.id : o1 === o2;
   }
 
   async loadKeywordsAndSynonyms() {
     try {
       const data = await this.authService.getKeywordsAndSynonyms(this.reviewId);
-      
-      this.tableData = data.map((item: any) => {
+
+      // Mapea cada registro de palabras clave
+      this.tableData = await Promise.all(data.map(async (item: any) => {
         let synonymsArray: string[] = [];
-  
-        // Si 'item.sinonimos' viene como objeto (por ejemplo: { id_sinonimos: '12', id_componente_revision: '36', sinonimo: 'computadora, maquina, intel' })
+
         if (typeof item.sinonimos === 'object' && item.sinonimos !== null) {
           if (typeof item.sinonimos.sinonimo === 'string') {
-            // Separamos la cadena de sinónimos por comas
             synonymsArray = item.sinonimos.sinonimo
               .split(',')
               .map((s: string) => s.trim())
               .filter((s: string) => s !== '');
           }
-        } 
-        // Si ya viene como cadena directamente
-        else if (typeof item.sinonimos === 'string') {
+        } else if (typeof item.sinonimos === 'string') {
           synonymsArray = item.sinonimos
             .split(',')
             .map((s: string) => s.trim())
             .filter((s: string) => s !== '');
         }
 
-        console.log("este es el related: ", item.seccion_metodologia);
-        
-        // Si no se obtuvieron sinónimos, se deja el arreglo vacío (o puedes inicializar con un valor vacío)
+        // Obtener el id_componente usando el id_sinonimos
+        let relatedId: number | null = null;
+        if (item.id_sinonimos) {
+          relatedId = await this.authService.getIdComponenteFromSinonimos(item.id_sinonimos);
+        }
+        const relatedIdNum = relatedId !== null ? Number(relatedId) : null;
+
+        let relatedOption: any = null;
+        // Si ya se cargaron las opciones, intenta encontrar la opción que coincida
+        if (relatedIdNum != null && this.relatedOptions && this.relatedOptions.length > 0) {
+          const matchingOption = this.relatedOptions.find((option: any) => option.id === relatedIdNum);
+          console.log("Matching option:", matchingOption);
+          if (matchingOption) {
+            // Reordena el arreglo para que la opción coincidente aparezca primero
+            this.relatedOptions = [
+              matchingOption,
+              ...this.relatedOptions.filter((option: any) => option.id !== relatedIdNum)
+            ];
+            // Asigna el objeto encontrado para que se seleccione en el <select>
+            relatedOption = matchingOption;
+          }
+        }
+
+        // Si no se encontró ninguna opción relacionada, asigna un valor por defecto
+        if (!relatedOption) {
+          if (relatedIdNum != null) {
+            // El id se obtiene de "relatedId" y el nombre de "item.seccion_metodologia"
+            relatedOption = { id: relatedIdNum, nombre: item.seccion_metodologia };
+          } else {
+            // En caso de no tener relatedId, se asigna una opción por defecto estándar
+            relatedOption = { id: null, nombre: 'Elije un componente' };
+          }
+        }
+
+        console.log("estaz", item.seccion_metodologia);
+
         return {
           id_palabras_clave: item.id_palabras_clave,
           keyword: item.palabra_clave,
-          related: item.seccion_metodologia || '',
-          synonyms: synonymsArray,  // Todos los sinónimos en un arreglo
+          related: relatedOption, // Se asigna el objeto por defecto o el encontrado
+          synonyms: synonymsArray,
+          id_sinonimos: item.id_sinonimos,
           isEditing: false
         } as KeywordRow;
-      });
+      }));
+      this.keywordsUpdated = true;
     } catch (err) {
       console.error('Error al cargar las palabras clave:', err);
     }
   }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+  async updateSynonymAndKeyword(row: KeywordRow): Promise<void> {
+    // Verificar que existen los IDs necesarios para la actualización
+    if (!row.id_palabras_clave || !row.id_sinonimos) {
+      console.error("Falta el ID para la actualización.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se encontró el registro para actualizar.'
+      });
+      return;
+    }
+
+    // Preparar los datos a actualizar
+    const synonymsToUpdate = row.synonyms.filter(s => s.trim() !== '').join(', ');
+    const palabraClaveToUpdate = row.keyword;
+    const fechaIngreso = new Date().toISOString();
+
+    // Obtener el id_componente usando el id_sinonimos
+    let relatedId: number | null = null;
+    if (row.id_sinonimos) {
+      relatedId = await this.authService.getIdComponenteFromSinonimos(row.id_sinonimos.toString());
+    }
+    const relatedIdNum = relatedId !== null ? Number(relatedId) : null;
+
+    let relatedOption: any = null;
+    // Si ya se cargaron las opciones, intenta encontrar la opción que coincida
+    if (relatedIdNum != null && this.relatedOptions && this.relatedOptions.length > 0) {
+      const matchingOption = this.relatedOptions.find((option: any) => option.id === relatedIdNum);
+      console.log("Matching option:", matchingOption);
+      if (matchingOption) {
+        // Reordena el arreglo para que la opción coincidente aparezca primero
+        this.relatedOptions = [
+          matchingOption,
+          ...this.relatedOptions.filter((option: any) => option.id !== relatedIdNum)
+        ];
+        // Asigna el objeto encontrado para que se seleccione en el <select>
+        relatedOption = matchingOption;
+      }
+    }
+
+    console.log("este es el related del componente a actualizar: ", relatedId);
+
+    console.log("id componente:", relatedIdNum);
 
 
+    // Como ya verificamos, podemos asignarlo de forma segura
+    const componenteId = relatedIdNum;
+    const metodologia = this.metodologiaNombreSeleccionada || '';
 
+    console.log("id sinonimos:", row.id_sinonimos.toString());
+    console.log("id palabras clave", row.id_palabras_clave.toString());
+    console.log("id componente", componenteId);
 
-  
+    try {
+      // Llamar al servicio para actualizar los registros
+      const { data, error } = await this.authService.updateSynonymThenKeyword(
+        row.id_sinonimos.toString(),      // ID existente del sinónimo obtenido de item.id_sinonimos
+        row.id_palabras_clave.toString(),   // ID existente de la palabra clave
+        synonymsToUpdate,                   // Sinónimo(s) actualizado(s)
+        palabraClaveToUpdate,               // Palabra clave actualizada
+        this.reviewId,                      // ID de la revisión
+        componenteId?.toString() || '',            // ID del componente seleccionado
+        metodologia,                        // Metodología (ej: "PICO", "PICOC", etc.)
+        fechaIngreso                        // Fecha de actualización
+      );
 
+      if (error) {
+        console.error('Error al actualizar sinónimo y palabra clave:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo actualizar el sinónimo y la palabra clave.'
+        });
+        return;
+      }
 
+      Swal.fire({
+        icon: 'success',
+        title: '¡Actualizado!',
+        text: 'Se actualizó la palabra clave y el sinónimo satisfactoriamente.'
+      });
 
+      // Al finalizar la actualización, se desactiva el modo edición
+      row.isEditing = false;
+      this.keywordsUpdated = true;
 
+    } catch (err) {
+      console.error('Error inesperado:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error inesperado',
+        text: 'Ocurrió un problema al actualizar el sinónimo y la palabra clave.'
+      });
+    }
+  }
 
-  async deleteRow(index: number) {
+  async deleteRow(index: number): Promise<void> {
     const row = this.tableData[index];
 
     // Si la fila no tiene un ID de BD, significa que nunca se guardó,
     // entonces basta con eliminarla localmente.
     if (!row.id_palabras_clave) {
-      // Solo quita la fila de la tabla local
       this.tableData.splice(index, 1);
       return;
     }
@@ -1134,64 +1282,94 @@ export class PlanificacionComponent implements OnInit {
 
     if (result.isConfirmed) {
       try {
-        // Llamar al método de eliminación en la BD
-        const { error } = await this.authService.deleteKeyword(row.id_palabras_clave);
+        // Llamar al método de eliminación de la palabra clave
+        const { error: keywordError } = await this.authService.deleteKeyword(row.id_palabras_clave);
 
-        if (error) {
-          // Mostrar error en caso de falla
+        // Llamar al método de eliminación del sinónimo usando el id_sinonimos
+        const { error: synonymError } = await this.authService.deleteSynonym(row.id_sinonimos?.toString() || '');
+
+        if (keywordError || synonymError) {
+          if (keywordError) {
+            console.error('Error al eliminar la palabra clave:', keywordError);
+          }
+          if (synonymError) {
+            console.error('Error al eliminar el sinónimo:', synonymError);
+          }
           Swal.fire({
             icon: 'error',
             title: 'Error al eliminar',
             text: `No se pudo eliminar "${row.keyword}". Intente nuevamente.`,
           });
-          console.error(error);
         } else {
-          // Eliminar de la tabla local
+          // Eliminar la fila localmente
           this.tableData.splice(index, 1);
 
-          // Confirmación de éxito
           Swal.fire({
             icon: 'success',
             title: 'Eliminado',
             text: `La palabra "${row.keyword}" ha sido eliminada.`,
           });
         }
+        this.keywordsUpdated = true;
       } catch (e) {
-        console.error('Error inesperado al eliminar la palabra clave:', e);
+        console.error('Error inesperado al eliminar la palabra clave y el sinónimo:', e);
         Swal.fire({
           icon: 'error',
           title: 'Error inesperado',
-          text: 'Ocurrió un error al eliminar la palabra clave.',
+          text: 'Ocurrió un error al eliminar la palabra clave y el sinónimo.',
         });
       }
     }
   }
 
-  // Formatear sinónimos en tiempo real (opcional)  
-  formatSynonyms(i: number) {
-    // Si deseas normalizar mayúsculas/minúsculas, espacios, etc.
-    const row = this.tableData[i];
-    // row.synonyms = row.synonyms.trim().toLowerCase();
-  }
-
-  buildMethodologyData(): any {
-    switch (this.paginaSeleccionada.toUpperCase()) {
-      case 'PICO':
-        return { P: this.picoP, I: this.picoI, C: this.picoC, O: this.picoO };
-      case 'PICOC':
-        return { P: this.picocP, I: this.picocI, C: this.picocC, O: this.picocO, Context: this.picocContext };
-      case 'PICOTT':
-        return { P: this.picottP, I: this.picottI, C: this.picottC, O: this.picottO, T: this.picottT, T2: this.picottT2 };
-      case 'SPICE':
-        return { S: this.spiceS, P: this.spiceP, I: this.spiceI, C: this.spiceC, E: this.spiceE };
-      default:
-        return {};
-    }
-  }
-
   generateKeywords(): void {
-    const methodologyData = this.buildMethodologyData();
+    // Construir el objeto methodologyData según la metodología cargada
+    let methodologyData: any = {};
+    this.keywordsUpdated = false;
+    const methodology = this.paginaSeleccionada ? this.paginaSeleccionada.toUpperCase() : '';
 
+    if (methodology === 'PICO') {
+      methodologyData = {
+        methodology,
+        P: this.picoP,
+        I: this.picoI,
+        C: this.picoC,
+        O: this.picoO
+      };
+    } else if (methodology === 'PICOC') {
+      methodologyData = {
+        methodology,
+        P: this.picocP,
+        I: this.picocI,
+        C: this.picocC,
+        O: this.picocO,
+        CONTEXT: this.picocContext
+      };
+    } else if (methodology === 'PICOTT') {
+      methodologyData = {
+        methodology,
+        P: this.picottP,
+        I: this.picottI,
+        C: this.picottC,
+        O: this.picottO,
+        TIPO1: this.picottT,
+        TIPO2: this.picottT2
+      };
+    } else if (methodology === 'SPICE') {
+      methodologyData = {
+        methodology,
+        S: this.spiceS,
+        P: this.spiceP,
+        I: this.spiceI,
+        C: this.spiceC,
+        E: this.spiceE
+      };
+    } else {
+      // En caso de que la metodología no sea una de las anteriores
+      methodologyData = { methodology };
+    }
+
+    // Mostrar mensaje de carga con SweetAlert2
     Swal.fire({
       title: 'Generando sugerencia...',
       text: 'Por favor, espera un momento.',
@@ -1201,18 +1379,48 @@ export class PlanificacionComponent implements OnInit {
       }
     });
 
+    // Llamada al servicio que genera las palabras clave
     this.openAiService.generateKeywords(methodologyData).subscribe(
       (response) => {
+
+        console.log("Este es el response de chatgpt: ", response);
+
         if (response && response.keywords) {
-          // Aquí se asigna id_palabras_clave como null para marcar el registro como nuevo,
-          // y se establece isEditing a true para mostrar el botón "Guardar".
-          this.tableData = response.keywords.map((item: any) => ({
-            id_palabras_clave: null,  // No se asigna un ID, por lo que se considera nuevo.
-            keyword: item.palabra_clave,
-            related: item.metodologia,
-            synonyms: Array.isArray(item.sinonimos) ? item.sinonimos.join(', ') : item.sinonimos,
-            isEditing: true
-          }));
+          // Mapea cada elemento de la respuesta para generar una nueva fila
+          const newRows: KeywordRow[] = response.keywords.map((item: any) => {
+            // Procesar sinónimos: si viene como string, separar por coma
+            let synonymsArray: string[] = [];
+            if (typeof item.sinonimos === 'string') {
+              synonymsArray = item.sinonimos
+                .split(',')
+                .map((s: string) => s.trim())
+                .filter((s: string) => s !== '');
+            } else if (Array.isArray(item.sinonimos)) {
+              synonymsArray = item.sinonimos
+                .map((s: string) => s.trim())
+                .filter((s: string) => s !== '');
+            }
+
+            console.log(item.metodologia, item.siglas);
+
+            // Para el campo "related" se asigna un objeto por defecto basado en item.seccion_metodologia.
+            // En este ejemplo, no se tiene id, por lo que se asigna null y el nombre se toma del item.
+            const relatedOption = { id: item.siglas, nombre: item.metodologia || 'Elije un componente' };
+
+            console.log(relatedOption);
+
+            return {
+              id_palabras_clave: null,  // Registro nuevo, por lo que aún no tiene ID asignado
+              keyword: item.palabra_clave,
+              related: relatedOption,
+              synonyms: synonymsArray,
+              id_sinonimos: null,       // Registro nuevo, sin id_sinonimos
+              isEditing: true           // Se marca en modo edición para permitir guardar posteriormente
+            } as KeywordRow;
+          });
+
+          // Si ya existen registros, se agregan los nuevos al final
+          this.tableData = [...this.tableData, ...newRows];
         } else {
           console.error('La respuesta no contiene la propiedad "keywords"');
         }
@@ -1236,24 +1444,7 @@ export class PlanificacionComponent implements OnInit {
     );
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  // ---------------- CADENA DE BUSQUEDA ----------------
 
   clearCadena() {
     this.cadenaBusqueda = '';
@@ -1336,7 +1527,7 @@ export class PlanificacionComponent implements OnInit {
     this.cadenaGuardada = false;
   }
 
-  /*generateSearchString() {
+  generateSearchString() {
     // Mostrar alerta de carga
     Swal.fire({
       title: 'Generando cadena...',
@@ -1366,7 +1557,7 @@ export class PlanificacionComponent implements OnInit {
           text: 'Se ha generado la cadena de búsqueda.',
           timer: 1500
         });
-        this.cadenaGuardada = true;
+        this.cadenaGuardada = false;
       },
       (error) => {
         console.error('Error al generar la cadena de búsqueda', error);
@@ -1378,18 +1569,14 @@ export class PlanificacionComponent implements OnInit {
         });
       }
     );
-  }*/
+  }
 
+  // ---------------- CRITERIOS DE EXCLUSION Y INCLUSION ----------------
 
+  guardarCriterios() {
+    this.criteriosGuardados = true;
+  }
 
-
-
-
-
-
-  /**
-   * Carga los criterios desde la BD y los separa en exclusiones/inclusiones.
-   */
   async loadCriterios() {
     const { data, error } = await this.authService.getCriterios(this.reviewId);
     if (error) {
@@ -1420,12 +1607,14 @@ export class PlanificacionComponent implements OnInit {
         this.inclusions.push(criterio);
       }
     });
+
+    // Si la carga es exitosa, puedes activar el icono de check.
+    // Por ejemplo, si se han cargado al menos un criterio de inclusión o exclusión.
+    if (this.exclusions.length > 0 || this.inclusions.length > 0) {
+      this.criteriosGuardados = true;
+    }
   }
 
-  /**
-   * Agrega un criterio de exclusión en la BD (tipo='exclusion').
-   * Se invoca cuando se hace clic en el botón "Agregar" en exclusión.
-   */
   async addExclusion() {
     if (!this.exclusionValue.trim()) return;
 
@@ -1458,13 +1647,10 @@ export class PlanificacionComponent implements OnInit {
     }
 
     // Limpiar el campo de entrada
+    this.criteriosGuardados = true;
     this.exclusionValue = '';
   }
 
-  /**
-   * Agrega un criterio de inclusión en la BD (tipo='inclusion').
-   * Se invoca cuando se hace clic en el botón "Agregar" en inclusión.
-   */
   async addInclusion() {
     if (!this.inclusionValue.trim()) return;
 
@@ -1495,12 +1681,10 @@ export class PlanificacionComponent implements OnInit {
       this.inclusions.push(newCriterio);
     }
 
+    this.criteriosGuardados = true;
     this.inclusionValue = '';
   }
 
-  /**
-   * Eliminar un criterio de exclusión en la BD y localmente
-   */
   async removeExclusion(index: number) {
     const crit = this.exclusions[index];
     if (!crit.id_criterios) {
@@ -1534,12 +1718,10 @@ export class PlanificacionComponent implements OnInit {
     }
 
     // Eliminar local
+    this.criteriosGuardados = false;
     this.exclusions.splice(index, 1);
   }
 
-  /**
-   * Eliminar un criterio de inclusión en la BD y localmente
-   */
   async removeInclusion(index: number) {
     const crit = this.inclusions[index];
     if (!crit.id_criterios) {
@@ -1569,19 +1751,15 @@ export class PlanificacionComponent implements OnInit {
       return;
     }
 
+    this.criteriosGuardados = false;
     this.inclusions.splice(index, 1);
   }
 
-  /**
-   * Activar modo edición en una exclusión
-   */
   editExclusion(index: number) {
+    this.criteriosGuardados = false;
     this.exclusions[index].isEditing = true;
   }
 
-  /**
-   * Guardar actualización de una exclusión (ya existe en BD)
-   */
   async updateExclusion(index: number) {
     const crit = this.exclusions[index];
     let updateError = null;
@@ -1595,6 +1773,8 @@ export class PlanificacionComponent implements OnInit {
       updateError = error;
       if (!updateError) {
         crit.isEditing = false;
+
+        this.criteriosGuardados = true;
         Swal.fire({
           icon: 'success',
           title: 'Actualizado',
@@ -1632,6 +1812,7 @@ export class PlanificacionComponent implements OnInit {
         isEditing: false
       };
       this.exclusions[index] = newCriterio;
+      this.criteriosGuardados = true;
     }
 
     Swal.fire({
@@ -1642,16 +1823,11 @@ export class PlanificacionComponent implements OnInit {
     });
   }
 
-  /**
-   * Activar modo edición en una inclusión
-   */
   editInclusion(index: number) {
+    this.criteriosGuardados = false;
     this.inclusions[index].isEditing = true;
   }
 
-  /**
-   * Guardar actualización de una inclusión (ya existe en BD)
-   */
   async updateInclusion(index: number) {
     const crit = this.inclusions[index];
     let updateError = null;
@@ -1665,6 +1841,8 @@ export class PlanificacionComponent implements OnInit {
       updateError = error;
       if (!updateError) {
         crit.isEditing = false;
+
+        this.criteriosGuardados = true;
         Swal.fire({
           icon: 'success',
           title: 'Actualizado',
@@ -1702,6 +1880,8 @@ export class PlanificacionComponent implements OnInit {
         isEditing: false
       };
       this.inclusions[index] = newCriterio;
+
+      this.criteriosGuardados = true;
     }
 
     Swal.fire({
@@ -1767,6 +1947,7 @@ export class PlanificacionComponent implements OnInit {
           text: 'Se ha generado la cadena de búsqueda.',
           timer: 1500
         });
+        this.criteriosGuardados = false;
       },
       (error) => {
         Swal.close();
@@ -1780,17 +1961,9 @@ export class PlanificacionComponent implements OnInit {
     );
   }
 
+  // ---------------- SEGUNDA PAGINA ----------------
 
-
-
-
-
-
-
-
-  //segunda pagina
-
-  // Cargar preguntas desde la BD
+  // ---------------- PREGUNTAS ----------------
   async loadQuestions1() {
     const { data, error } = await this.authService.getPreguntasByRevision(this.reviewId);
     if (error) {
@@ -1800,13 +1973,15 @@ export class PlanificacionComponent implements OnInit {
         title: 'Error',
         text: 'No se pudieron cargar las preguntas.'
       });
+      this.qualityQuestionsSaved = false;
     } else {
       this.questions1 = data || [];
+      // Si se cargaron preguntas, activamos el check
+      this.qualityQuestionsSaved = this.questions1.length > 0;
     }
   }
-
-  // Añadir una nueva pregunta
-  async addQuestion1() {
+  
+  async addQuestion1(): Promise<void> {
     try {
       const result = await Swal.fire({
         title: 'Nueva pregunta',
@@ -1824,11 +1999,11 @@ export class PlanificacionComponent implements OnInit {
           return null;
         }
       });
-
+  
       // Si el usuario hace clic en "Agregar" y se valida el input...
       if (result.isConfirmed && result.value) {
         const nuevaDescripcion = result.value.trim();
-
+  
         const { data, error } = await this.authService.insertPregunta(nuevaDescripcion, this.reviewId);
         if (error) {
           Swal.fire({
@@ -1845,6 +2020,8 @@ export class PlanificacionComponent implements OnInit {
           // data[0] => registro insertado
           if (data && data.length > 0) {
             this.questions1.push(data[0]);
+            // Actualizar la variable de control para mostrar el check
+            this.qualityQuestionsSaved = this.questions1.length > 0;
           }
         }
       }
@@ -1857,13 +2034,11 @@ export class PlanificacionComponent implements OnInit {
       });
     }
   }
-
-  // Editar una pregunta existente
-  async editQuestion1(index: number) {
+  
+  async editQuestion1(index: number): Promise<void> {
     const current = this.questions1[index];
-
+  
     try {
-      // Usa SweetAlert2 para mostrar un input donde el usuario edite la pregunta
       const result = await Swal.fire({
         title: 'Editar pregunta',
         text: 'Modifica la descripción de la pregunta:',
@@ -1880,14 +2055,12 @@ export class PlanificacionComponent implements OnInit {
           return null;
         }
       });
-
-      // Verifica si el usuario confirmó la actualización
+  
       if (result.isConfirmed && result.value) {
         const nuevaDescripcion = result.value.trim();
-
-        // Llama al servicio para actualizar la pregunta
+  
         const { error } = await this.authService.updatePregunta(current.id_pregunta, nuevaDescripcion);
-
+  
         if (error) {
           Swal.fire({
             icon: 'error',
@@ -1897,12 +2070,14 @@ export class PlanificacionComponent implements OnInit {
         } else {
           // Actualiza localmente la descripción
           this.questions1[index].descripcion = nuevaDescripcion;
-
+  
           Swal.fire({
             icon: 'success',
             title: 'Pregunta actualizada',
             text: 'La pregunta se actualizó correctamente.'
           });
+          // Actualiza la variable de control para mostrar el check
+          this.qualityQuestionsSaved = this.questions1.length > 0;
         }
       }
     } catch (err) {
@@ -1914,9 +2089,8 @@ export class PlanificacionComponent implements OnInit {
       });
     }
   }
-
-  // Eliminar una pregunta
-  async deleteQuestion1(index: number) {
+  
+  async deleteQuestion1(index: number): Promise<void> {
     const current = this.questions1[index];
     const result = await Swal.fire({
       title: '¿Eliminar pregunta?',
@@ -1927,7 +2101,7 @@ export class PlanificacionComponent implements OnInit {
       cancelButtonText: 'Cancelar'
     });
     if (!result.isConfirmed) return;
-
+  
     const { error } = await this.authService.deletePregunta(current.id_pregunta);
     if (error) {
       Swal.fire({
@@ -1937,6 +2111,8 @@ export class PlanificacionComponent implements OnInit {
       });
     } else {
       this.questions1.splice(index, 1);
+      // Actualizar la variable de control: se muestra el check si aún hay preguntas.
+      this.qualityQuestionsSaved = this.questions1.length > 0;
       Swal.fire({
         icon: 'success',
         title: 'Pregunta eliminada',
@@ -1945,7 +2121,8 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-  // Cargar respuestas desde la BD
+  // ---------------- RESPUESTAS ----------------
+
   async loadAnswers1() {
     const { data, error } = await this.authService.getRespuestasByRevision(this.reviewId);
     if (error) {
@@ -1955,14 +2132,13 @@ export class PlanificacionComponent implements OnInit {
         title: 'Error',
         text: 'No se pudieron cargar las respuestas.'
       });
+      this.respuestasGuardadas = false;
     } else {
       this.answers1 = data || [];
+      this.respuestasGuardadas = this.answers1.length > 0;
     }
   }
 
-  /**
-   * Añadir una fila nueva en modo edición (sin id_respuesta).
-   */
   addLocalAnswer() {
     this.answers1.push({
       descripcion: '',
@@ -1970,11 +2146,9 @@ export class PlanificacionComponent implements OnInit {
       isEditing: true,
       id_respuesta: 0//queda undefined => indica que aún no está guardado en la BD
     });
+    this.respuestasGuardadas = false;
   }
 
-  /**
-   * Guardar en la BD la respuesta nueva (la que no tiene id_respuesta)
-   */
   async saveNewAnswer(index: number) {
     const current = this.answers1[index];
     if (!current.descripcion.trim()) {
@@ -2014,17 +2188,17 @@ export class PlanificacionComponent implements OnInit {
       } else {
         // Si no se devolvieron datos, al menos quita modo edición
         this.answers1[index].isEditing = false;
+
+        this.respuestasGuardadas = this.answers1.length > 0;
       }
     }
   }
 
   editAnswer1(index: number) {
     this.answers1[index].isEditing = true;
+    this.puntuacionesGuardadas = false;
   }
 
-  /**
-   * Guardar cambios en la BD para una respuesta existente.
-   */
   async updateAnswer1(index: number) {
     const current = this.answers1[index];
     if (!current.id_respuesta) {
@@ -2059,10 +2233,10 @@ export class PlanificacionComponent implements OnInit {
         title: 'Respuesta actualizada',
         text: 'La respuesta se actualizó correctamente.'
       });
+      this.puntuacionesGuardadas = true;
     }
   }
 
-  // Eliminar una respuesta
   async deleteAnswer1(index: number) {
     const current = this.answers1[index];
 
@@ -2097,6 +2271,7 @@ export class PlanificacionComponent implements OnInit {
         title: 'Respuesta eliminada',
         text: 'La respuesta se eliminó correctamente.'
       });
+      this.puntuacionesGuardadas = false;
     }
   }
 
@@ -2108,8 +2283,11 @@ export class PlanificacionComponent implements OnInit {
       if (data && data.length > 0) {
         // Toma la primera fila
         this.limitScore1 = data[0].puntuacion_limite;
+        this.puntuacionesGuardadas = true;
+        
       } else {
         console.log('No se encontró puntuación para esta revisión. Se creará una nueva si se guarda.');
+        this.puntuacionesGuardadas = false;
       }
     } catch (error) {
       console.error('Error al cargar puntuación:', error);
@@ -2121,9 +2299,6 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-  /**
-   * Guarda la puntuación límite (crear o actualizar).
-   */
   async saveLimitScore() {
     try {
       const { data, error } = await this.authService.saveLimitScore(this.reviewId, this.limitScore1);
@@ -2141,6 +2316,7 @@ export class PlanificacionComponent implements OnInit {
           text: 'Puntuación límite guardada correctamente.',
           timer: 2000,
         });
+        this.puntuacionesGuardadas = true;
       }
     } catch (err) {
       console.error('Error inesperado al guardar la puntuación:', err);
@@ -2152,4 +2328,170 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
+  // ---------------- TERCERA PAGINA ----------------
+
+  // ---------------- EXTRACCION DE DATOS ----------------
+
+  // Agregar un nuevo campo
+addField(): void {
+  this.fields.push({
+    id_extraction_field: undefined,   // O undefined si aún no existe en la BD
+    id_revision: this.reviewId, // Ajusta según tu lógica para obtener el ID de la revisión
+    descripcion: '',
+    tipo: 'Booleano',         // Valor por defecto, ajusta según tu preferencia
+    orden: this.fields.length, // Ejemplo: lo situamos al final
+    isEditing: true
+  });
+}
+
+  moveUp(index: number): void {
+    if (index > 0) {
+      // Intercambia el campo actual con el anterior
+      [this.fields[index - 1], this.fields[index]] = [this.fields[index], this.fields[index - 1]];
+    }
+  }
+  
+  moveDown(index: number): void {
+    if (index < this.fields.length - 1) {
+      // Intercambia el campo actual con el siguiente
+      [this.fields[index], this.fields[index + 1]] = [this.fields[index + 1], this.fields[index]];
+    }
+  }
+
+  async saveOrderToDB(): Promise<void> {
+    // Recorre los campos en su nuevo orden y actualiza su 'orden' en la BD
+    for (let i = 0; i < this.fields.length; i++) {
+      const field = this.fields[i];
+      // Asigna el nuevo valor de 'orden'
+      field.orden = i;
+  
+      // Llama al servicio que hace un UPDATE en la BD
+      try {
+        //await this.authService.updateFieldOrder(field.id_extraction_field, i);
+      } catch (err) {
+        console.error('Error al actualizar el orden:', err);
+      }
+    }
+    alert('El orden de los campos se ha guardado correctamente.');
+  }
+
+  // Cargar los campos desde la BD
+  async loadFields() {
+    this.fields = await this.authService.loadExtractionFields(this.reviewId);
+  }
+  
+  // Guardar campo (nuevo o existente)
+  async saveField(index: number) {
+    const field = this.fields[index];
+    // Validar descripción
+    if (!field.descripcion.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Descripción vacía',
+        text: 'La descripción no puede estar vacía.'
+      });
+      return;
+    }
+
+    // Si no tiene ID, es un nuevo registro
+    if (!field.id_extraction_field) {
+      const result = await this.authService.createExtractionField(field);
+      if (result) {
+        // Asignar datos devueltos por la BD (ej. id_extraction_field)
+        this.fields[index] = { ...result, isEditing: false };
+
+        // Notificar éxito
+        Swal.fire({
+          icon: 'success',
+          title: 'Campo creado',
+          text: 'El campo se guardó correctamente.'
+        });
+      } else {
+        // Error al crear
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al guardar',
+          text: 'No se pudo crear el campo en la base de datos.'
+        });
+      }
+    } else {
+      // Actualizar registro existente
+      const result = await this.authService.updateExtractionField(field);
+      if (result) {
+        this.fields[index] = { ...result, isEditing: false };
+        Swal.fire({
+          icon: 'success',
+          title: 'Campo actualizado',
+          text: 'Los cambios se guardaron correctamente.'
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al actualizar',
+          text: 'No se pudo actualizar el campo.'
+        });
+      }
+    }
+  }
+
+  // Cancelar edición
+  cancelEdit(index: number) {
+    const field = this.fields[index];
+    // Si es nuevo y no tiene descripción, se elimina del arreglo
+    if (!field.id_extraction_field && !field.descripcion.trim()) {
+      this.fields.splice(index, 1);
+    } else {
+      // Revertir la edición
+      field.isEditing = false;
+      // Opcional: recargar la lista desde BD para descartar cambios no guardados
+      // this.loadFields();
+    }
+  }
+
+  // Editar campo
+  editField(index: number) {
+    this.fields[index].isEditing = true;
+  }
+
+  // Eliminar campo
+  async removeField(index: number) {
+    const field = this.fields[index];
+
+    // Si no existe en la BD, solo se quita localmente
+    if (!field.id_extraction_field) {
+      this.fields.splice(index, 1);
+      return;
+    }
+
+    // Si existe en la BD, mostrar confirmación con SweetAlert2
+    const confirmResult = await Swal.fire({
+      title: '¿Eliminar campo?',
+      text: `Estás a punto de eliminar el campo "${field.descripcion}"`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!confirmResult.isConfirmed) {
+      return;
+    }
+
+    // El usuario confirmó la eliminación
+    const success = await this.authService.deleteExtractionField(field.id_extraction_field);
+    if (success) {
+      this.fields.splice(index, 1);
+      Swal.fire({
+        icon: 'success',
+        title: 'Campo eliminado',
+        text: 'El campo ha sido eliminado de la base de datos.'
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo eliminar el campo.'
+      });
+    }
+  }
 }
