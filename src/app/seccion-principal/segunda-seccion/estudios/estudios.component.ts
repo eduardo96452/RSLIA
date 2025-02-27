@@ -58,6 +58,7 @@ export class EstudiosComponent implements OnInit {
 
   basesList: BaseBibliografica[] = [];
 
+
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
@@ -648,7 +649,7 @@ export class EstudiosComponent implements OnInit {
     this.selectedStudiesCount = this.importedStudies.filter(s => s.isSelected).length;
   }
 
-  
+
 
   async saveImportedStudy(study: Study) {
     // Verifica si el estudio con el mismo título ya existe
@@ -710,6 +711,9 @@ export class EstudiosComponent implements OnInit {
       console.log('Estudio insertado:', data && data[0]);
     }
   }
+
+
+
 
   async loadEstudiosForRevision() {
     // Convierte a número si 'this.reviewId' es string
@@ -922,8 +926,7 @@ export class EstudiosComponent implements OnInit {
     if (!this.selectedStudy) return;
 
     try {
-      // 1) Convertimos nuestro 'Study' en la estructura 'Estudio' (si es necesario).
-      //    A veces las propiedades coinciden, o a veces se mapean. Ajusta según tu diseño.
+      // 1) Mapeo de Study => Estudio
       const estudioToUpdate: Estudio = {
         id_estudios: this.selectedStudy.id_estudios,
         titulo: this.selectedStudy.title ?? '',
@@ -932,7 +935,7 @@ export class EstudiosComponent implements OnInit {
         anio: Number(this.selectedStudy.year) || 0,
         revista: this.selectedStudy.revista ?? '',
         doi: this.selectedStudy.doi ?? '',
-        id_detalles_revision: this.reviewId, // Ajusta según necesidad
+        id_detalles_revision: this.reviewId,
         estado: this.selectedStudy.status,
         keywords: this.selectedStudy.keywords ?? '',
         author_keywords: this.selectedStudy.author_keywords ?? '',
@@ -950,27 +953,28 @@ export class EstudiosComponent implements OnInit {
         // url_pdf_articulo se completa después de subir el archivo
       };
 
-      // 2) Si está "Aceptado" y hay PDF seleccionado, subimos el archivo al bucket
+      // 2) Si el estado es "Aceptado" y hay PDF pendiente de subir, súbelo
       if (this.selectedStudy.status === 'Aceptado' && this.pdfFile) {
         const pdfUrl = await this.authService.uploadPDF(this.pdfFile, this.selectedStudy.id_estudios!);
-        // Asigna la URL al campo
         estudioToUpdate.url_pdf_articulo = pdfUrl;
       }
 
-      // 3) Actualiza la BD con los demás datos (y la nueva URL si subimos PDF)
+      // 3) Llamada al servicio para actualizar el estudio en la BD
       await this.authService.updateStudy(estudioToUpdate);
 
-      // 4) SweetAlert de éxito
+      // 4) Recargar la tabla principal o la lista para reflejar los cambios
+      //    Ajusta según tu método para recargar. Ejemplo:
+      this.loadEstudiosForRevision(); // <-- llama a tu método que refresca 'importedStudies' o la lista que uses
+
+      // 5) Notificación de éxito
       Swal.fire({
         icon: 'success',
         title: 'Datos guardados',
         text: 'El estudio ha sido actualizado correctamente.'
       });
 
-      // (Opcional) Cierra modal, recarga datos, etc.
+      // 6) Cierra el modal de edición
       this.closeEditModal();
-
-      // this.loadEstudiosForRevision(); // Si recargas la lista
 
     } catch (error) {
       console.error('Error guardando cambios:', error);
@@ -979,7 +983,6 @@ export class EstudiosComponent implements OnInit {
         title: 'Error al guardar',
         text: 'Ocurrió un problema al guardar los datos.'
       });
-      // Recarga la página
     }
   }
 
@@ -1203,8 +1206,6 @@ export class EstudiosComponent implements OnInit {
     this.selectedAnswers[idPregunta] = answerObj.id_respuesta;
   }
 
-
-
   /**
    * Guarda la evaluación en la tabla "calidad_estudios"
    */
@@ -1291,8 +1292,6 @@ export class EstudiosComponent implements OnInit {
     this.selectedAnswers = {};
   }
 
-
-
   async loadCriterios() {
     try {
       const todos = await this.authService.getCriteriosByRevision(this.reviewId);
@@ -1302,9 +1301,6 @@ export class EstudiosComponent implements OnInit {
       console.error('Error al cargar criterios:', err);
     }
   }
-
-
-
 
   async autoSelectCriterio() {
     if (!this.selectedStudy || !this.selectedStudy.id_estudios) {
@@ -1374,5 +1370,120 @@ export class EstudiosComponent implements OnInit {
     }
   }
 
+
+
+  // Ejemplo de función para calcular la puntuación total (puedes adaptarlo a tu lógica)
+  calculateTotalScore(study: Estudio): number {
+    let total = 0;
+    if (!study.selectedAnswers) {
+      return 0;
+    }
+    // Recorremos cada pregunta de calidad (suponiendo que qualityQuestions es global)
+    for (const question of this.qualityQuestions) {
+      // Obtenemos la respuesta seleccionada para esta pregunta en el estudio
+      const answerId = study.selectedAnswers[question.id_pregunta];
+      if (answerId) {
+        // Buscamos la respuesta en qualityAnswers que corresponda a esta pregunta
+        const answer = this.qualityAnswers.find(a =>
+          a.id_respuesta === answerId &&
+          a.id_detalles_revision === question.id_detalles_revision
+        );
+        if (answer) {
+          total += Number(answer.peso) || 0;
+        }
+      }
+    }
+    return total;
+  }
+  
+
+
+
+
+  // Función para subir PDF para un estudio
+  uploadPDFForStudy(study: Estudio): void {
+    // Creamos un input file de forma dinámica
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.pdf';
+    fileInput.onchange = async (event: any) => {
+      const file: File = event.target.files[0];
+      if (file) {
+        try {
+          // Llamamos al servicio para subir el PDF. Se asume que updatePDF retorna la URL.
+          const pdfUrl = await this.authService.uploadPDF(file, study.id_estudios!);
+
+          // Actualizamos el estudio únicamente con la nueva URL del PDF
+          const updatedStudy: Partial<Estudio> = {
+            id_estudios: study.id_estudios,
+            url_pdf_articulo: pdfUrl
+          };
+          await this.authService.updateStudy(updatedStudy as Estudio);
+
+          // Actualizamos localmente el estudio para que la tabla se refresque
+          study.url_pdf_articulo = pdfUrl;
+
+          Swal.fire({
+            icon: 'success',
+            title: 'PDF subido',
+            text: 'El PDF se ha subido correctamente.'
+          });
+          // Llamamos a la función saveStudyEdits para actualizar el estudio en la BD
+          // Esto actualizará solo la URL, ya que en saveStudyEdits se verifica si ya existe.
+          await this.saveStudyEdits();
+        } catch (error) {
+          console.error('Error al subir PDF:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo subir el PDF.'
+          });
+        }
+      }
+    };
+    fileInput.click();
+  }
+
+  // Función para eliminar PDF de un estudio eliminando la carpeta correspondiente
+  async deletePDF1(study: Estudio): Promise<void> {
+    try {
+      const confirmResult = await Swal.fire({
+        title: 'Eliminar PDF',
+        text: '¿Estás seguro de eliminar el PDF?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      });
+      if (!confirmResult.isConfirmed) return;
+
+      // En vez de usar study.url_pdf_articulo, definimos la carpeta usando el id del estudio.
+      const folderPath = `estudios/${study.id_estudios}`;
+
+      // Llamamos a la función del AuthService que elimina todos los archivos de la carpeta
+      await this.authService.removeFolder(folderPath);
+
+      // Actualizamos el estudio para poner la URL del PDF en null
+      const updatedStudy: Partial<Estudio> = {
+        id_estudios: study.id_estudios,
+        url_pdf_articulo: null
+      };
+      await this.authService.updateStudy(updatedStudy as Estudio);
+      study.url_pdf_articulo = null;
+
+      Swal.fire({
+        icon: 'success',
+        title: 'PDF eliminado',
+        text: 'El PDF ha sido eliminado correctamente.'
+      });
+    } catch (error) {
+      console.error('Error al eliminar PDF:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al eliminar el PDF.'
+      });
+    }
+  }
 
 }

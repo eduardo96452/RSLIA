@@ -830,15 +830,14 @@
 
                                                         <form>
                                                             <div class="mb-3">
-                                                                <!-- Enlazamos con [(ngModel)]="cadenaBusqueda" -->
                                                                 <textarea class="form-control" id="cadena" rows="5"
                                                                     [(ngModel)]="cadenaBusqueda" name="cadenaBusqueda"
                                                                     placeholder="Ingrese su cadena de búsqueda (use mayúsculas para AND, OR, comillas dobles, etc.)"
-                                                                    maxlength="100"
+                                                                    maxlength="800"
                                                                     (ngModelChange)="onCadenaEdit()"></textarea>
 
                                                                 <div class="text-end text-muted mt-1">
-                                                                    <small>{{ cadenaBusqueda.length || 0 }}/100
+                                                                    <small>{{ cadenaBusqueda.length || 0 }}/800
                                                                         caracteres</small>
                                                                 </div>
                                                             </div>
@@ -851,7 +850,7 @@
                                                                     <i class="fa-solid fa-eraser"></i>&nbsp; Limpiar
                                                                 </button>
                                                             </div>
-                                                            <div class="col text-end">
+                                                            <div class="col text-end" *ngIf="!cadenaGuardada">
                                                                 <!-- Botón para guardar el objetivo -->
                                                                 <button class="btn btn-success" type="button"
                                                                     (click)="saveCadena()">
@@ -944,7 +943,7 @@
                                                                                     class="btn btn-success btn-sm me-1"
                                                                                     (click)="saveBase(i)">Guardar</button>
                                                                                 <button class="btn btn-secondary btn-sm"
-                                                                                    (click)="cancelEdit(i)">Cancelar</button>
+                                                                                    (click)="cancelEdit1(i)">Cancelar</button>
                                                                             </ng-container>
 
                                                                             <!-- Modo vista -->
@@ -1350,9 +1349,8 @@
 
                                         <p>
                                             En esta sección podrás ingresar las preguntas para hacer la recolección de
-                                            datos en el submenú "Extracción de datos" de los estudios aceptados. De esta
-                                            forma, podrás definir cada campo de información que deseas extraer y
-                                            mantener un control claro de los valores que se recopilan.
+                                            datos en el submenú "Extracción de datos" donde estaran los estudios aceptados. De esta
+                                            forma, podrás definir cada campo de información que deseas extraer.
                                         </p>
                                         <div class="container">
                                             <div class="card">

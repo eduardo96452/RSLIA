@@ -152,6 +152,7 @@ export interface Estudio {
   comentario?: string;
   fuente_bibliografica?: string;
   url_pdf_articulo?: string | null | undefined;
+  selectedAnswers?: { [questionId: string]: number };
 }
 
 export interface Criterio1 {
@@ -1545,6 +1546,7 @@ export class AuthService {
     }
   }
 
+  
 
   async removePDF(filePath: string): Promise<void> {
     // filePath sería algo como "estudios/10/mi_archivo.pdf"
@@ -1556,6 +1558,31 @@ export class AuthService {
       throw error;
     }
   }
+
+  async removeFolder(folderPath: string): Promise<void> {
+    // Listar los archivos dentro de la carpeta
+    const { data: files, error: listError } = await this._supabaseClient.storage
+      .from('documentos')
+      .list(folderPath, { limit: 100, offset: 0 });
+    if (listError) {
+      throw listError;
+    }
+  
+    // Si hay archivos, construir los paths completos y eliminarlos
+    if (files && files.length > 0) {
+      const filePaths = files.map(file => `${folderPath}/${file.name}`);
+      const { error } = await this._supabaseClient.storage
+        .from('documentos')
+        .remove(filePaths);
+      if (error) {
+        throw error;
+      }
+    }
+  }
+  
+
+
+
 
   /**
  * Extrae el path usado en el bucket a partir de la URL pública devuelta por Supabase.

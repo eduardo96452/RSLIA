@@ -2627,7 +2627,7 @@ export class PlanificacionComponent implements OnInit {
       // Revertir la edición
       field.isEditing = false;
       // Opcional: recargar la lista desde BD para descartar cambios no guardados
-      // this.loadFields();
+      //this.loadFields();
     }
   }
 

@@ -68,7 +68,7 @@
                                             <tbody>
                                                 <tr *ngFor="let review of userReviews; let i = index">
                                                     <td style="display: none;">{{ i + 1 }}</td>
-                                                    <td>
+                                                    <td class="text-start">
                                                         <a [routerLink]="['/detalle_revision']"
                                                             [queryParams]="{ id: review.id_detalles_revision }"
                                                             class="text-primary text-decoration-underline">

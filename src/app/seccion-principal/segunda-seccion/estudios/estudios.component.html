@@ -181,93 +181,93 @@
                               <th (click)="sortStudies('database')" style="cursor: pointer;">
                                 Base bibliográfica
                                 <i *ngIf="sortColumn === 'database'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
 
                               <!-- Volumen (oculto) -->
                               <th (click)="sortStudies('id_estudios')" style="cursor: pointer; display:none;">
                                 ID Estudios
                                 <i *ngIf="sortColumn === 'volume'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
 
                               <th (click)="sortStudies('author')" style="cursor: pointer;">
                                 Autor
                                 <i *ngIf="sortColumn === 'author'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
 
                               <th (click)="sortStudies('booktitle')" style="cursor: pointer;">
                                 Título del libro
                                 <i *ngIf="sortColumn === 'booktitle'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
 
                               <th (click)="sortStudies('title')" style="cursor: pointer;">
                                 Título
                                 <i *ngIf="sortColumn === 'title'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
 
                               <th (click)="sortStudies('year')" style="cursor: pointer;">
                                 Año
                                 <i *ngIf="sortColumn === 'year'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
 
                               <!-- Volumen (oculto) -->
                               <th (click)="sortStudies('volume')" style="cursor: pointer; display:none;">
                                 Volumen
                                 <i *ngIf="sortColumn === 'volume'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
 
                               <!-- Número (oculto) -->
                               <th (click)="sortStudies('number')" style="cursor: pointer; display:none;">
                                 Número
                                 <i *ngIf="sortColumn === 'number'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
 
                               <!-- Páginas (oculto) -->
                               <th (click)="sortStudies('pages')" style="cursor: pointer; display:none;">
                                 Páginas
                                 <i *ngIf="sortColumn === 'pages'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
 
                               <th (click)="sortStudies('keywords')" style="cursor: pointer;">
                                 Palabras clave
                                 <i *ngIf="sortColumn === 'keywords'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
 
                               <th (click)="sortStudies('doi')" style="cursor: pointer;">
                                 DOI
                                 <i *ngIf="sortColumn === 'doi'" class="bi" [ngClass]="{
-              'bi-arrow-up': sortOrder === 'asc',
-              'bi-arrow-down': sortOrder === 'desc'
-            }"></i>
+                                  'bi-arrow-up': sortOrder === 'asc',
+                                  'bi-arrow-down': sortOrder === 'desc'
+                                }"></i>
                               </th>
                             </tr>
                           </thead>
@@ -283,10 +283,10 @@
 
                               <td [ngClass]="{
                                   'cell-gray': study.status === 'Sin clasificar',
-          'cell-green': study.status === 'Aceptado',
-          'cell-yellow': study.status === 'Duplicado',
-          'cell-red': study.status === 'Rechazado'
-        }">
+                                  'cell-green': study.status === 'Aceptado',
+                                  'cell-yellow': study.status === 'Duplicado',
+                                  'cell-red': study.status === 'Rechazado'
+                                }">
                                 <select class="form-select form-select-sm" [(ngModel)]="study.status"
                                   (click)="$event.stopPropagation()" (change)="updateStudyStatus(study)">
                                   <option value="Sin clasificar">Sin clasificar
@@ -315,98 +315,166 @@
                     </div>
                   </div>
 
-
                   <!-- Contenido Página 2 -->
                   <div class="tab-pane fade" id="pagina2" role="tabpanel" aria-labelledby="tab2">
-                    <div class="containes">
-                      <p>Tabla de estudios en estado "Aceptado" y sus preguntas de calidad</p>
+                    <div class="container my-4">
+                      <h5 class="mb-3">Estudios en estado "Aceptado" y sus preguntas de calidad</h5>
+                      <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                          Lista de Estudios Aceptados
+                        </div>
+                        <div class="card-body p-0">
+                          <table class="table table-hover mb-0" style="table-layout: fixed; width: 100%;">
+                            <colgroup>
+                              <col style="display:none;"> <!-- ID Estudio -->
+                              <col style="width: 60%;">    <!-- Título -->
+                              <col style="width: 20%;">    <!-- Puntuación Total -->
+                              <col style="width: 20%;">    <!-- Acciones -->
+                            </colgroup>
+                            <thead class="table-light">
+                              <tr>
+                                <th style="display:none;">ID Estudio</th>
+                                <th>Título</th>
+                                <th>Puntuación Total</th>
+                                <th>Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <ng-container *ngFor="let study of acceptedStudies">
+                                <!-- Fila principal del estudio -->
+                                <tr>
+                                  <td style="display:none;">{{ study.id_estudios }}</td>
+                                  <td>
+                                    {{ study.titulo }}
+                                    <!-- Ícono de check si hay PDF subido -->
+                                    <span *ngIf="study.url_pdf_articulo">
+                                      &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
+                                    </span>
+                                  </td>
+                                  <td class="text-center">
+                                    {{ calculateTotalScore(study) }}
+                                  </td>
+                                  <td class="text-center">
+                                    <button class="btn btn-primary btn-sm" (click)="toggleEvaluation(study)">
+                                      Evaluar
+                                    </button>
+                                  </td>
+                                </tr>
+                  
+                                <!-- Sub-fila (acordeón) de evaluación -->
+                                <tr *ngIf="openedStudy === study" class="bg-light">
+                                  <td colspan="4">
+                                    <div class="p-3">
+                                      <p><strong>Título:</strong> {{ study.titulo }}</p>
+                                      <form>
+                                        <!-- Tabla de Preguntas / Respuestas -->
+                                        <table class="table table-sm">
+                                          <thead>
+                                            <tr>
+                                              <th>Pregunta</th>
+                                              <th>Respuestas</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            <tr *ngFor="let question of qualityQuestions">
+                                              <td>{{ question.descripcion }}</td>
+                                              <td>
+                                                <div *ngFor="let answer of qualityAnswers">
+                                                  <ng-container *ngIf="answer.id_detalles_revision === question.id_detalles_revision">
+                                                    <input type="radio" [name]="'resp_' + question.id_pregunta"
+                                                           [value]="answer.id_respuesta"
+                                                           (change)="selectAnswer(question.id_pregunta, answer)"
+                                                           [checked]="selectedAnswers[question.id_pregunta] === answer.id_respuesta" />
+                                                    {{ answer.descripcion }} (peso: {{ answer.peso }})
+                                                  </ng-container>
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          </tbody>
+                                        </table>
+                                        <div class="d-flex justify-content-end mt-3">
+                                          <button class="btn btn-success me-2" (click)="saveEvaluation(study)">
+                                            Guardar Evaluación
+                                          </button>
+                                          <button class="btn btn-danger" (click)="cancelEvaluation()">
+                                            Cancelar
+                                          </button>
+                                        </div>
+                                      </form>
+                                    </div>
+                                  </td>
+                                </tr>
+                              </ng-container>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  
+                  
+                  
 
-                      <table class="table table-bordered">
-                        <thead>
+                  <!-- Contenido Página 3 -->
+                  <div class="tab-pane fade" id="pagina3" role="tabpanel" aria-labelledby="tab3">
+                    <div class="container mt-4">
+                      <p>En esta sección puede gestionar los documento cientificos mediante las opciones para visualizar o eliminar el PDF.</p>
+                      <table class="table table-striped table-hover" style="table-layout: fixed; width: 100%;">
+                        <colgroup>
+                          <col style="display: none;"> <!-- ID Estudio -->
+                          <col style="width: 40%;">     <!-- Título -->
+                          <col style="width: 30%;">     <!-- Ver PDF -->
+                          <col style="width: 30%;">     <!-- Eliminar/Subir PDF -->
+                        </colgroup>
+                        <thead class="text-center" style="background-color: #f8f9fa;">
                           <tr>
                             <th style="display:none;">ID Estudio</th>
                             <th>Título</th>
-                            <th>Acciones</th>
+                            <th>Ver PDF</th>
+                            <th>Acción</th>
                           </tr>
                         </thead>
                         <tbody>
-                          <!-- Iteramos cada estudio aceptado -->
                           <ng-container *ngFor="let study of acceptedStudies">
-                            <!-- Fila principal del estudio -->
                             <tr>
                               <td style="display:none;">{{ study.id_estudios }}</td>
-                              <td>{{ study.titulo }}</td>
                               <td>
-                                <button class="btn btn-primary" (click)="toggleEvaluation(study)">
-                                  Evaluar
-                                </button>
+                                {{ study.titulo }}
+                                <span *ngIf="study.url_pdf_articulo">
+                                  &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
+                                </span>
                               </td>
-                            </tr>
-
-                            <!-- Sub-fila (acordeón), solo visible si openedStudy es este mismo estudio -->
-                            <tr *ngIf="openedStudy === study">
-                              <td colspan="3">
-                                <!-- Contenido de la Evaluación -->
-                                <div class="p-3 border">
-                                  <h4 style="display:none;">Evaluando Estudio ID: {{ study.id_estudios }}</h4>
-                                  <p><strong>Título: </strong>{{ study.titulo }}</p>
-
-                                  <form>
-                                    <!-- Tabla de Preguntas / Respuestas -->
-                                    <table class="table">
-                                      <thead>
-                                        <tr>
-                                          <th>Pregunta</th>
-                                          <th>Respuestas</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        <tr *ngFor="let question of qualityQuestions">
-                                          <td>{{ question.descripcion }}</td>
-                                          <td>
-                                            <!-- Radio Buttons para las respuestas -->
-                                            <div *ngFor="let answer of qualityAnswers">
-                                              <ng-container
-                                                *ngIf="answer.id_detalles_revision === question.id_detalles_revision">
-                                                <input type="radio" [name]="'resp_' + question.id_pregunta"
-                                                  [value]="answer.id_respuesta"
-                                                  (change)="selectAnswer(question.id_pregunta, answer)"
-                                                  [checked]="selectedAnswers[question.id_pregunta] === answer.id_respuesta" />
-                                                {{ answer.descripcion }} (peso: {{ answer.peso }})
-                                              </ng-container>
-                                            </div>
-                                          </td>
-                                        </tr>
-                                      </tbody>
-                                    </table>
-
-                                    <button class="btn btn-success me-2" (click)="saveEvaluation(study)">
-                                      Guardar Evaluación
-                                    </button>
-                                    <button class="btn btn-danger" (click)="cancelEvaluation()">
-                                      Cancelar
-                                    </button>
-                                  </form>
-                                </div>
+                              <!-- Columna Ver PDF -->
+                              <td class="text-center">
+                                <ng-container *ngIf="study.url_pdf_articulo; else noPdf">
+                                  <a [href]="study.url_pdf_articulo" target="_blank" title="Ver PDF" style="text-decoration: none;">
+                                    <i class="bi bi-file-earmark-pdf" style="font-size: 1.5rem; color: #dc3545;"></i>
+                                  </a>
+                                </ng-container>
+                                <ng-template #noPdf>
+                                  <span class="text-muted">-</span>
+                                </ng-template>
+                              </td>
+                              <!-- Columna Acción: Eliminar o Subir PDF -->
+                              <td class="text-center">
+                                <ng-container *ngIf="study.url_pdf_articulo; else uploadPdf">
+                                  <i class="bi bi-trash text-danger" style="font-size: 1.5rem; cursor: pointer;"
+                                     title="Eliminar PDF" (click)="deletePDF1(study)"></i>
+                                </ng-container>
+                                <ng-template #uploadPdf>
+                                  <button class="btn btn-primary btn-sm" (click)="uploadPDFForStudy(study)">
+                                    Subir PDF
+                                  </button>
+                                </ng-template>
                               </td>
                             </tr>
                           </ng-container>
                         </tbody>
                       </table>
                     </div>
-
-
                   </div>
-
-
-                  <!-- Contenido Página 3 -->
-                  <div class="tab-pane fade" id="pagina3" role="tabpanel" aria-labelledby="tab3">
-                    <div class="containes">
-
-                    </div>
-                  </div>
-
-
+                  
                 </div>
               </div>
             </div>
