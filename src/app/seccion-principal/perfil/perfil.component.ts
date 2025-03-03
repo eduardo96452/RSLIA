@@ -210,7 +210,6 @@ export class PerfilComponent implements OnInit {
             text: 'No se encontró registro con el UID proporcionado.',
           });
         } else {
-          console.log('Datos actualizados:', data);
 
           // Mostrar alerta de éxito con SweetAlert2
           Swal.fire({

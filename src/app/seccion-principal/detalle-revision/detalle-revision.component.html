@@ -9,10 +9,10 @@
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <div class="row">
-                <div >
+                <div>
                   <li class="breadcrumb-item" aria-current="page">{{reviewData.titulo_revision}}</li>
                 </div>
-                
+
               </div>
             </ol>
           </nav>
@@ -39,7 +39,7 @@
               </div>
 
               <!-- Revisión de datos -->
-               <div class="menu-item" [routerLink]="['/extraccion_datos']" [queryParams]="{ id: reviewId }">
+              <div class="menu-item" [routerLink]="['/extraccion_datos']" [queryParams]="{ id: reviewId }">
                 Extracción de datos
               </div>
 
@@ -55,16 +55,32 @@
         <div class="col col-sm col-md-10">
           <!-- Tarjeta Principal -->
           <div class="card" style="flex-grow: 1;">
-            <div class="card-header">
+            <div class="card-header position-relative">
+              <!-- Título a la izquierda -->
               <h2 class="card-title mb-0">
                 <i class="fa-solid fa-pencil"></i>&nbsp; Editar reseña
               </h2>
+
+              <!-- Ícono de interrogación en la esquina superior derecha -->
+              <span style="position: absolute; top: 10px; right: 10px; cursor: pointer; color: #0d6efd;"
+                (mouseenter)="showExplanation = true" (mouseleave)="showExplanation = false">
+                <i class="fa-solid fa-circle-question"></i>
+              </span>
+
+              <!-- Tooltip que aparece cuando showExplanation es true -->
+              <div *ngIf="showExplanation" class="custom-tooltip">
+                <p class="mb-0">
+                  En esta sección puedes ajustar detalles de tu reseña, como el título, la metodología, el alcance y
+                  otros campos relevantes.
+                </p>
+              </div>
             </div>
+
             <div class="card-body">
               <form [formGroup]="form">
                 <!-- Campo Título -->
                 <div class="mb-3">
-                  <label for="title" class="form-label">Título de la reseña</label>
+                  <label for="title" class="form-label"><strong>Título de la reseña</strong></label>
                   <input type="text" class="form-control" id="title" formControlName="titulo_revision"
                     placeholder="Escribe el título de la reseña" [(ngModel)]="reviewData.titulo_revision"
                     name="titulo_revision" (ngModelChange)="onFieldChange($event)" />
@@ -72,7 +88,8 @@
 
                 <!-- Campo Selección de Metodología -->
                 <div class="input-group mb-3">
-                  <label class="input-group-text" for="inputGroupSelect01">Metodología de reseña</label>
+                  <label class="input-group-text" for="inputGroupSelect01"><strong>Metodología de
+                      reseña</strong></label>
                   <select class="form-select" id="inputGroupSelect01" [(ngModel)]="reviewData.tipo_revision"
                     name="tipo_revision" formControlName="tipo_revision" (ngModelChange)="onFieldChange($event)">
                     <option value="Revisión Sistemática">Revisión Sistemática</option>
@@ -81,17 +98,96 @@
                   </select>
                 </div>
 
+                <!-- Alcance -->
+                <div class="input-group mb-3">
+                  <label class="input-group-text" for="alcanceSelect"><strong>Alcance</strong></label>
+                  <select class="form-select" id="alcanceSelect" formControlName="alcance"
+                    [(ngModel)]="reviewData.alcance" name="alcance" (ngModelChange)="onFieldChange($event)">
+                    <option value="" disabled>Seleccione un alcance...</option>
+                    <option value="Global">Global</option>
+                    <option value="Internacional">Internacional</option>
+                    <option value="Nacional">Nacional</option>
+                    <option value="Alcance local (Ciudad(es) o unidades territoriales)">
+                      Alcance local (Ciudad(es) o unidades territoriales)
+                    </option>
+                    <option value="Nivel institucional">Nivel institucional</option>
+                  </select>
+                </div>
+
+                <!-- Contenedor condicional para campos de Unidad Territorial e Institución -->
+                <div *ngIf="reviewData.alcance === 'Internacional' || reviewData.alcance === 'Nacional' || 
+                          reviewData.alcance === 'Alcance local (Ciudad(es) o unidades territoriales)' || 
+                          reviewData.alcance === 'Nivel institucional'" class="mb-3">
+                  <hr>
+
+                  <!-- Si se selecciona Internacional o Nacional o Nivel institucional: se muestra solo el campo País -->
+                  <div *ngIf="reviewData.alcance === 'Internacional' || reviewData.alcance === 'Nacional'" class="mb-3">
+                    <label class="form-label"><strong>Unidad territorial</strong></label> <br>
+                    <label for="pais" class="form-label">País</label>
+                    <input type="text" class="form-control" id="pais" [(ngModel)]="reviewData.pais"
+                      formControlName="pais" name="pais" placeholder="Ej. Colombia">
+                  </div>
+
+                  <!-- Si se selecciona Alcance local o Nivel institucional: se muestran los campos País y Ciudad -->
+                  <div *ngIf="reviewData.alcance === 'Alcance local (Ciudad(es) o unidades territoriales)' || 
+                            reviewData.alcance === 'Nivel institucional'" class="mb-3">
+                    <label class="form-label"><strong>Unidad territorial</strong></label>
+                    <div class="mb-2">
+                      <label for="paisLocal" class="form-label">País</label>
+                      <input type="text" class="form-control" id="paisLocal" [(ngModel)]="reviewData.pais"
+                        formControlName="pais" name="paisLocal" placeholder="Ej. Colombia">
+                    </div>
+                    <div>
+                      <label for="ciudad" class="form-label">Ciudad</label>
+                      <input type="text" class="form-control" id="ciudad" [(ngModel)]="reviewData.ciudad"
+                        formControlName="ciudad" name="ciudad" placeholder="Ej. Bogotá">
+                    </div>
+                  </div>
+
+                  <!-- Campo adicional para Nivel institucional: Institución -->
+                  <div *ngIf="reviewData.alcance === 'Nivel institucional'" class="mb-3">
+                    <label for="institucion" class="form-label">Institución</label>
+                    <input type="text" class="form-control" id="institucion" [(ngModel)]="reviewData.institucion"
+                      formControlName="institucion" name="institucion" placeholder="Ingrese la institución">
+                  </div>
+                  <hr>
+                </div>
+
+                <!-- Área de Conocimiento (disciplina) -->
+                <div class="mb-3">
+                  <label for="areaConocimiento" class="form-label"><strong>Área de conocimiento
+                      (disciplina)</strong></label>
+                  <input type="text" class="form-control" id="areaConocimiento"
+                    placeholder="Ingrese el área de conocimiento" [(ngModel)]="reviewData.area_conocimiento"
+                    formControlName="area_conocimiento" name="areaConocimiento" (ngModelChange)="onFieldChange($event)">
+                </div>
+
+                <!-- Tipo de Investigación -->
+                <div class="input-group mb-3">
+                  <label class="input-group-text" for="tipoInvestigacionSelect"><strong>Tipo de
+                      investigación</strong></label>
+                  <select class="form-select" id="tipoInvestigacionSelect" [(ngModel)]="reviewData.tipo_investigacion"
+                    formControlName="tipo_investigacion" name="tipoInvestigacion"
+                    (ngModelChange)="onFieldChange($event)">
+                    <option value="" disabled>Seleccione el tipo...</option>
+                    <option value="exploratorio">Exploratorio</option>
+                    <option value="descriptivo">Descriptivo</option>
+                    <option value="explicativo">Explicativo</option>
+                    <option value="correlacional">Correlacional</option>
+                  </select>
+                </div>
+
                 <!-- Campo Descripción -->
                 <div class="mb-3">
-                  <label for="description" class="form-label">Descripción de la reseña</label>
+                  <label for="description" class="form-label"><strong>Descripción de la reseña</strong></label>
                   <textarea class="form-control" id="description" rows="5" formControlName="descripcion"
                     placeholder="Ingrese una descripción detallada de la reseña" [(ngModel)]="reviewData.descripcion"
-                    name="description" (ngModelChange)="onFieldChange($event)" maxlength="500">
-                  </textarea>
+                    name="description" (ngModelChange)="onFieldChange($event)" maxlength="800"></textarea>
                   <div class="text-end text-muted mt-1">
-                    <small>{{ charCount1 }}/500 caracteres</small>
+                    <small>{{ charCount1 }}/800 caracteres</small>
                   </div>
                 </div>
+
               </form>
             </div>
             <div class="card-footer text-end">

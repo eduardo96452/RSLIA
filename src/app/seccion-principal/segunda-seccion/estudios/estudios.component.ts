@@ -48,6 +48,7 @@ export class EstudiosComponent implements OnInit {
   qualityAnswers: any[] = [];
   openedStudy: Estudio | null = null;
   selectedAnswers: { [key: number]: number } = {};
+  currentEvaluationSaved: boolean = false;
 
   criterios: any[] = [];
   inclusionCriterios: any[] = [];
@@ -89,6 +90,11 @@ export class EstudiosComponent implements OnInit {
     await this.loadCriterios();
 
     this.basesList = await this.authService.loadBasesBibliograficas(this.reviewId);
+
+    // Para cada estudio aceptado, cargamos la evaluación guardada (si existe)
+    for (const study of this.acceptedStudies) {
+      await this.loadEvaluationForStudy(study);
+    }
   }
 
   @HostListener('window:resize', ['$event'])
@@ -1170,8 +1176,8 @@ export class EstudiosComponent implements OnInit {
 
   // Segunda Pagina
   async loadAcceptedStudies() {
-    // 1) Cargar estudios Aceptados
-    const { data: estudiosAceptados, error: errorEst } = await this.authService.getAcceptedStudies();
+    // 1) Cargar estudios Aceptados filtrados por id_detalles_revision
+    const { data: estudiosAceptados, error: errorEst } = await this.authService.getAcceptedStudies(this.reviewId);
     if (errorEst) {
       console.error('Error al cargar estudios aceptados:', errorEst);
     } else {
@@ -1199,16 +1205,64 @@ export class EstudiosComponent implements OnInit {
     }
   }
 
-  /**
-   * Si el usuario hace clic en una respuesta (radio button)
-   */
-  selectAnswer(idPregunta: number, answerObj: any) {
+  async loadEvaluationForStudy(study: Estudio): Promise<void> {
+    try {
+      const evaluaciones = await this.authService.getCalidadEstudiosByStudy(study.id_estudios!);
+      const evalMap: { [key: number]: any } = {};
+      if (evaluaciones && evaluaciones.length > 0) {
+        for (const ev of evaluaciones) {
+          evalMap[ev.id_pregunta] = ev;
+        }
+        this.currentEvaluationSaved = Object.keys(evalMap).length > 0;
+      } else {
+        // Si no hay evaluaciones, nos aseguramos de que el flag quede en false
+        this.currentEvaluationSaved = false;
+      }
+      study.savedEvaluation = evalMap;
+    } catch (error) {
+      console.error('Error al cargar evaluación guardada:', error);
+      this.currentEvaluationSaved = false;
+    }
+  }
+  
+
+  selectAnswer(idPregunta: number, answerObj: any): void {
     this.selectedAnswers[idPregunta] = answerObj.id_respuesta;
+    // Al modificar una respuesta, indicamos que la evaluación aún no está guardada
+    if (this.openedStudy) {
+      this.currentEvaluationSaved = false;
+    }
   }
 
-  /**
-   * Guarda la evaluación en la tabla "calidad_estudios"
-   */
+  getAnswerDescription(id_respuesta: number): string {
+    const answer = this.qualityAnswers.find(r => r.id_respuesta === id_respuesta);
+    return answer ? answer.descripcion : '';
+  }
+
+  calculateTotalScore(study: Estudio): number {
+    let total = 0;
+    if (study.savedEvaluation) {
+      for (const key in study.savedEvaluation) {
+        total += Number(study.savedEvaluation[key].peso) || 0;
+      }
+    } else {
+      // Si no se guardó evaluación, calcula localmente a partir de selectedAnswers
+      for (const question of this.qualityQuestions) {
+        const answerId = this.selectedAnswers[question.id_pregunta];
+        if (answerId) {
+          const answer = this.qualityAnswers.find(r =>
+            r.id_respuesta === answerId &&
+            r.id_detalles_revision === question.id_detalles_revision
+          );
+          if (answer) {
+            total += Number(answer.peso) || 0;
+          }
+        }
+      }
+    }
+    return total;
+  }
+
   async saveEvaluation(study: Estudio): Promise<void> {
     const idEstudio = study.id_estudios;
     if (!idEstudio) {
@@ -1219,50 +1273,36 @@ export class EstudiosComponent implements OnInit {
       });
       return;
     }
-
     try {
-      // Recorremos cada pregunta para obtener la respuesta elegida
+      // Recorrer cada pregunta y guardar la evaluación en la tabla "calidad_estudios"
       for (const question of this.qualityQuestions) {
         const preguntaId = question.id_pregunta;
         const respuestaId = this.selectedAnswers[preguntaId];
-        // (Almacenado por selectAnswer(preguntaId, answer))
-
-        if (!respuestaId) {
-          // El usuario no eligió respuesta para esta pregunta
-          continue;
-        }
-
-        // Busca el objeto respuesta para extraer el peso
-        const respuestaObj = this.qualityAnswers.find(
-          (r) => r.id_respuesta === respuestaId
-        );
+        if (!respuestaId) continue;
+        const respuestaObj = this.qualityAnswers.find(r => r.id_respuesta === respuestaId);
         const pesoRespuesta = respuestaObj ? respuestaObj.peso : 0;
-
-        // Datos para insertar en "calidad_estudios"
         const calidadData = {
           id_estudios: idEstudio,
-          pregunta: preguntaId,    // ID en vez de la descripción
-          respuesta: respuestaId,  // ID en vez de la descripción
+          id_pregunta: preguntaId,
+          id_respuesta: respuestaId,
           peso: pesoRespuesta,
           fecha_evaluacion: new Date().toISOString()
         };
-
-        // Llamada al método que inserta en la tabla "calidad_estudios"
         const { data, error } = await this.authService.createCalidadEstudio(calidadData);
         if (error) {
-          console.error('Error al guardar calidad_estudios:', error);
+          console.error('Error al guardar evaluación:', error);
         }
       }
+
+      this.currentEvaluationSaved = true;
 
       Swal.fire({
         icon: 'success',
         title: 'Evaluación Guardada',
-        text: 'La evaluación de calidad se guardó correctamente.'
+        text: 'La evaluación se guardó correctamente.'
       });
-
-      // Cierra la sección de evaluación (acordeón) y limpia las respuestas
+      await this.loadEvaluationForStudy(study);
       this.cancelEvaluation();
-
     } catch (err) {
       console.error('Error guardando evaluación:', err);
       Swal.fire({
@@ -1275,22 +1315,44 @@ export class EstudiosComponent implements OnInit {
   }
 
   toggleEvaluation(study: Estudio): void {
-    // Si se hace clic en el mismo estudio, se cierra
-    if (this.openedStudy === study) {
-      this.openedStudy = null;
-    } else {
-      // Cambiamos a este estudio y vaciamos las selecciones si deseas
-      this.openedStudy = study;
-      // this.selectedAnswers = {};
-    }
+    // Solo cambia el estudio abierto sin alterar currentEvaluationSaved
+    this.openedStudy = (this.openedStudy === study) ? null : study;
   }
+  
 
   cancelEvaluation(): void {
-    // Cierra la sub-fila
     this.openedStudy = null;
-    // Limpia selecciones si es necesario
     this.selectedAnswers = {};
   }
+
+  getCheckedAnswer(questionId: number): number | undefined {
+    if (this.selectedAnswers && this.selectedAnswers[questionId]) {
+      return this.selectedAnswers[questionId];
+    }
+    if (this.openedStudy && this.openedStudy.savedEvaluation && this.openedStudy.savedEvaluation[questionId]) {
+      return this.openedStudy.savedEvaluation[questionId].id_respuesta;
+    }
+    return undefined;
+  }
+
+  isEvaluationCompleteForStudy(study: Estudio): boolean {
+    // Se considera completa la evaluación si study.savedEvaluation existe
+    // y contiene una respuesta para cada pregunta de qualityQuestions.
+    if (!study.savedEvaluation) {
+      return false;
+    }
+    return study.savedEvaluation && this.qualityQuestions.every(question => !!study.savedEvaluation![question.id_pregunta]);
+  }
+  
+
+
+
+
+
+
+  
+
+
 
   async loadCriterios() {
     try {
@@ -1372,30 +1434,7 @@ export class EstudiosComponent implements OnInit {
 
 
 
-  // Ejemplo de función para calcular la puntuación total (puedes adaptarlo a tu lógica)
-  calculateTotalScore(study: Estudio): number {
-    let total = 0;
-    if (!study.selectedAnswers) {
-      return 0;
-    }
-    // Recorremos cada pregunta de calidad (suponiendo que qualityQuestions es global)
-    for (const question of this.qualityQuestions) {
-      // Obtenemos la respuesta seleccionada para esta pregunta en el estudio
-      const answerId = study.selectedAnswers[question.id_pregunta];
-      if (answerId) {
-        // Buscamos la respuesta en qualityAnswers que corresponda a esta pregunta
-        const answer = this.qualityAnswers.find(a =>
-          a.id_respuesta === answerId &&
-          a.id_detalles_revision === question.id_detalles_revision
-        );
-        if (answer) {
-          total += Number(answer.peso) || 0;
-        }
-      }
-    }
-    return total;
-  }
-  
+
 
 
 

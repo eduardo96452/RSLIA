@@ -82,7 +82,6 @@ export class AuthSignUpComponent {
       // 5. Si se creó el usuario correctamente, guardamos en la DB
       if (authData?.user) {
         const id_usuario = authData.user.id; // UID en Supabase
-        console.log('UID obtenida:', id_usuario);
   
         const { error: dbError } = await this._authService.addUserToDatabase(
           id_usuario,
@@ -100,8 +99,6 @@ export class AuthSignUpComponent {
           });
           return;
         }
-  
-        console.log('Usuario guardado en la base de datos.');
   
         // 6. Guarda la UID en localStorage y redirige
         localStorage.setItem('session_ID', id_usuario);

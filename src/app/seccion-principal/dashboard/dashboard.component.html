@@ -31,34 +31,39 @@
                 </div>
 
                 <!-- Columna con la tarjeta "Mis revisiones" -->
-                <div class="col-md-9 mb-4">
+                <div class="col-12 col-lg-9 mb-4">
                     <div class="card">
                         <div class="card-body">
                             <div class="container text-center">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <h5 class="card-title">Mis revisiones</h5>
+                                <!-- Encabezado: "Mis revisiones" y botón "Crear una revisión" -->
+                                <div class="row align-items-center g-2">
+                                    <!-- Título -->
+                                    <div class="col-12 col-md-6 text-md-start mb-2 mb-md-0">
+                                        <h5 class="card-title m-0">Mis revisiones</h5>
                                     </div>
-                                    <div class="col">
-                                        <button type="button" routerLink="/Descripción_General"
-                                            class="btn btn-success p-2">
+                                    <!-- Botón -->
+                                    <div class="col-12 col-md-6 text-md-end">
+                                        <button type="button" routerLink="/Descripción_General" class="btn btn-success">
                                             Crear una revisión
                                         </button>
                                     </div>
-                                    <div>
-                                        <br>
-                                    </div>
-                                    <div style="background-color: #f8f9fa; text-align: center;">
-                                        <br>
-                                        <p class="card-text align-items-center text-center">
-                                            Aquí se muestran las reseñas que están en progreso.
-                                        </p>
+                                </div>
+
+                                <hr class="my-3">
+
+                                <!-- Sección con la tabla -->
+                                <div class="p-3" style="background-color: #f8f9fa;">
+                                    <p class="card-text text-center mb-3">
+                                        Aquí se muestran las reseñas que están en progreso.
+                                    </p>
+
+                                    <!-- Tabla responsiva para evitar desbordes en pantallas pequeñas -->
+                                    <div class="table-responsive">
                                         <table class="table table-striped">
                                             <thead>
                                                 <tr>
                                                     <th style="display: none;">#</th>
                                                     <th>Título de la reseña</th>
-                                                    <!-- Columna invisible si la necesitas ocultar -->
                                                     <th style="display: none;">ID (Invisible)</th>
                                                     <th>Doc. procesados</th>
                                                     <th>Fecha de última edición</th>
@@ -75,16 +80,15 @@
                                                             {{ review.titulo_revision }}
                                                         </a>
                                                     </td>
-                                                    <!-- Aquí mostramos la cantidad de documentos de la revisión -->
+                                                    <!-- Cantidad de documentos de la revisión -->
                                                     <td class="text-center align-middle">
                                                         {{ review.docCount }}
                                                     </td>
-
-                                                    <!-- Nueva columna: Fecha de última edición -->
-                                                    <td class="text-center align-middle">{{ review.fecha_modificacion
-                                                        | date:'short' }}</td>
-
-                                                    <!-- Nueva columna: Acción (tacho de basura) -->
+                                                    <!-- Fecha de última edición -->
+                                                    <td class="text-center align-middle">
+                                                        {{ review.fecha_modificacion | date:'short' }}
+                                                    </td>
+                                                    <!-- Botón Eliminar -->
                                                     <td class="text-center align-middle">
                                                         <button class="btn btn-outline-danger btn-sm"
                                                             (click)="eliminarRevision(review.id_detalles_revision)">
@@ -94,13 +98,14 @@
                                                 </tr>
                                             </tbody>
                                         </table>
+                                    </div> <!-- /.table-responsive -->
 
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                </div> <!-- /fondo gris -->
+                            </div> <!-- /container text-center -->
+                        </div> <!-- /card-body -->
+                    </div> <!-- /card -->
                 </div>
+
             </div>
         </div>
     </div>

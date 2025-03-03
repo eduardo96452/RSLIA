@@ -132,7 +132,7 @@ export class PlanificacionComponent implements OnInit {
   showButton = false;
 
   fields: DataField[] = [];
-
+  fieldsSaved: boolean = false;
   dataExtractionQuestions: Array<{ pregunta: string; tipo: string }> = [];
 
   constructor(
@@ -268,12 +268,35 @@ export class PlanificacionComponent implements OnInit {
         Swal.showLoading(Swal.getConfirmButton());
       }
     });
-
-    // Llamar al servicio OpenAiService
+  
+    // Preparar objeto con campos opcionales
+    const extraFields: any = {};
+  
+    if (this.reviewData.alcance && this.reviewData.alcance.trim()) {
+      extraFields.alcance = this.reviewData.alcance.trim();
+    }
+    if (this.reviewData.pais && this.reviewData.pais.trim()) {
+      extraFields.pais = this.reviewData.pais.trim();
+    }
+    if (this.reviewData.ciudad && this.reviewData.ciudad.trim()) {
+      extraFields.ciudad = this.reviewData.ciudad.trim();
+    }
+    if (this.reviewData.institucion && this.reviewData.institucion.trim()) {
+      extraFields.institucion = this.reviewData.institucion.trim();
+    }
+    if (this.reviewData.area_conocimiento && this.reviewData.area_conocimiento.trim()) {
+      extraFields.area_conocimiento = this.reviewData.area_conocimiento.trim();
+    }
+    if (this.reviewData.tipo_investigacion && this.reviewData.tipo_investigacion.trim()) {
+      extraFields.tipo_investigacion = this.reviewData.tipo_investigacion.trim();
+    }
+  
+    // Llamar al servicio OpenAiService y pasarle los campos opcionales
     this.openAiService.getSuggestionFromChatGPT(
       this.titulo_revision,
       this.tipo_revision,
-      this.descripcion
+      this.descripcion,
+      extraFields
     ).subscribe({
       next: (response) => {
         const suggestion = response.objective; // Ajusta según la respuesta del backend
@@ -289,6 +312,7 @@ export class PlanificacionComponent implements OnInit {
           timer: 2500
         });
         this.metodologiaGuardada = false;
+        this.objectiveSaved = false;
       },
       error: (error) => {
         Swal.close();
@@ -301,6 +325,7 @@ export class PlanificacionComponent implements OnInit {
       }
     });
   }
+  
 
   // ---------------- FRAMEWORK ----------------
 
@@ -341,7 +366,7 @@ export class PlanificacionComponent implements OnInit {
         }
 
         // 3. Eliminar la metodología anterior
-        await this.authService.deleteMetodologiaByRevisionId(this.reviewId);
+        await this.authService.deleteMethodologiaByRevisionId(this.reviewId);
       }
 
       // 4. Obtener el id_metodologia según la página seleccionada (PICO, PICOC, PICOTT, SPICE, etc.)
@@ -915,34 +940,35 @@ export class PlanificacionComponent implements OnInit {
             Swal.showLoading(Swal.getConfirmButton());
           }
         });
-
+  
         // Llamada al servicio para generar las preguntas
         this.openAiService.getResearchQuestions(
-          this.titulo_revision,       // Título o dato que uses en tu componente
+          this.titulo_revision,       // Título o dato que uses
           this.paginaSeleccionada,    // Metodología seleccionada
-          this.objetivo,              // Objetivo, etc.
-          numQuestions
-        ).subscribe(
-          (response) => {
+          this.objetivo,              // Objetivo
+          numQuestions,
+          this.reviewData.tipo_investigacion // Campo adicional
+        ).subscribe({
+          next: (response) => {
             Swal.close();
             // Suponemos que response.questions es un arreglo de strings
             const generatedQuestions: string[] = response.questions || [];
-
-            // Aquí se mapea cada string a un objeto Question
+  
+            // Mapea cada string a un objeto Question
             const newQuestions = generatedQuestions.map(q => ({
               id: Date.now() + Math.floor(Math.random() * 1000),
               value: q,
               id_detalles_revision: this.reviewId,
               isSaved: false
             }));
-
-            // Si ya existen registros, se agregan los nuevos al final; de lo contrario, se asignan directamente
+  
+            // Si ya existen registros, se agregan los nuevos al final
             if (this.questions && this.questions.length > 0) {
               this.questions = [...this.questions, ...newQuestions];
             } else {
               this.questions = newQuestions;
             }
-
+  
             Swal.fire({
               icon: 'success',
               title: 'Preguntas Generadas',
@@ -951,7 +977,7 @@ export class PlanificacionComponent implements OnInit {
             });
             this.questionsUpdated = false;
           },
-          (error) => {
+          error: (error) => {
             console.error('Error al generar preguntas:', error);
             Swal.close();
             Swal.fire({
@@ -961,7 +987,7 @@ export class PlanificacionComponent implements OnInit {
               timer: 1500
             });
           }
-        );
+        });
       }
     });
   }
@@ -1135,7 +1161,6 @@ export class PlanificacionComponent implements OnInit {
         // Si ya se cargaron las opciones, intenta encontrar la opción que coincida
         if (relatedIdNum != null && this.relatedOptions && this.relatedOptions.length > 0) {
           const matchingOption = this.relatedOptions.find((option: any) => option.id === relatedIdNum);
-          console.log("Matching option:", matchingOption);
           if (matchingOption) {
             // Reordena el arreglo para que la opción coincidente aparezca primero
             this.relatedOptions = [
@@ -1157,8 +1182,6 @@ export class PlanificacionComponent implements OnInit {
             relatedOption = { id: null, nombre: 'Elije un componente' };
           }
         }
-
-        console.log("estaz", item.seccion_metodologia);
 
         return {
           id_palabras_clave: item.id_palabras_clave,
@@ -1203,7 +1226,6 @@ export class PlanificacionComponent implements OnInit {
     // Si ya se cargaron las opciones, intenta encontrar la opción que coincida
     if (relatedIdNum != null && this.relatedOptions && this.relatedOptions.length > 0) {
       const matchingOption = this.relatedOptions.find((option: any) => option.id === relatedIdNum);
-      console.log("Matching option:", matchingOption);
       if (matchingOption) {
         // Reordena el arreglo para que la opción coincidente aparezca primero
         this.relatedOptions = [
@@ -1394,8 +1416,6 @@ export class PlanificacionComponent implements OnInit {
     this.openAiService.generateKeywords(methodologyData).subscribe(
       (response) => {
 
-        console.log("Este es el response de chatgpt: ", response);
-
         if (response && response.keywords) {
           // Mapea cada elemento de la respuesta para generar una nueva fila
           const newRows: KeywordRow[] = response.keywords.map((item: any) => {
@@ -1412,13 +1432,9 @@ export class PlanificacionComponent implements OnInit {
                 .filter((s: string) => s !== '');
             }
 
-            console.log(item.metodologia, item.siglas);
-
             // Para el campo "related" se asigna un objeto por defecto basado en item.seccion_metodologia.
             // En este ejemplo, no se tiene id, por lo que se asigna null y el nombre se toma del item.
             const relatedOption = { id: item.siglas, nombre: item.metodologia || 'Elije un componente' };
-
-            console.log(relatedOption);
 
             return {
               id_palabras_clave: null,  // Registro nuevo, por lo que aún no tiene ID asignado
@@ -1588,7 +1604,6 @@ export class PlanificacionComponent implements OnInit {
   async loadBases() {
     this.bases = await this.authService.loadBasesBibliograficas(this.reviewId);
     this.basesGuardadas = (this.bases.length > 0);
-    console.log(this.bases.length > 0);
   }
 
   async showSuggestions() {
@@ -2205,6 +2220,7 @@ export class PlanificacionComponent implements OnInit {
             this.questions1.push(data[0]);
             // Actualizar la variable de control para mostrar el check
             this.qualityQuestionsSaved = this.questions1.length > 0;
+            this.puntuacionesGuardadas = false;
           }
         }
       }
@@ -2301,6 +2317,7 @@ export class PlanificacionComponent implements OnInit {
         title: 'Pregunta eliminada',
         text: 'La pregunta se eliminó correctamente.'
       });
+      this.puntuacionesGuardadas = false;
     }
   }
 
@@ -2330,6 +2347,7 @@ export class PlanificacionComponent implements OnInit {
       id_respuesta: 0//queda undefined => indica que aún no está guardado en la BD
     });
     this.respuestasGuardadas = false;
+    this.puntuacionesGuardadas = false;
   }
 
   async saveNewAnswer(index: number) {
@@ -2379,7 +2397,7 @@ export class PlanificacionComponent implements OnInit {
 
   editAnswer1(index: number) {
     this.answers1[index].isEditing = true;
-    this.puntuacionesGuardadas = false;
+    this.respuestasGuardadas = false;
   }
 
   async updateAnswer1(index: number) {
@@ -2416,7 +2434,8 @@ export class PlanificacionComponent implements OnInit {
         title: 'Respuesta actualizada',
         text: 'La respuesta se actualizó correctamente.'
       });
-      this.puntuacionesGuardadas = true;
+      this.respuestasGuardadas = true;
+      this.puntuacionesGuardadas = false;
     }
   }
 
@@ -2454,6 +2473,7 @@ export class PlanificacionComponent implements OnInit {
         title: 'Respuesta eliminada',
         text: 'La respuesta se eliminó correctamente.'
       });
+      this.respuestasGuardadas = true;
       this.puntuacionesGuardadas = false;
     }
   }
@@ -2465,9 +2485,22 @@ export class PlanificacionComponent implements OnInit {
       const data = await this.authService.getScoreByRevision(this.reviewId);
       if (data && data.length > 0) {
         // Toma la primera fila
-        this.limitScore1 = data[0].puntuacion_limite;
-        this.puntuacionesGuardadas = true;
-
+        const row = data[0];
+        this.limitScore1 = row.puntuacion_limite;
+  
+        // Valor de la base de datos
+        const dbMax = Number(row.puntuacion_maxima) || 0;
+        // Valor calculado localmente
+        const localMax = this.getMaxScore();
+  
+        if (dbMax !== localMax) {
+          // Si la puntuación máxima en la BD es distinta de la calculada localmente => No está "guardado"
+          this.puntuacionesGuardadas = false;
+        } else {
+          // Si coincide => se asume que está guardada y coincide
+          this.puntuacionesGuardadas = true;
+        }
+  
       } else {
         console.log('No se encontró puntuación para esta revisión. Se creará una nueva si se guarda.');
         this.puntuacionesGuardadas = false;
@@ -2481,10 +2514,11 @@ export class PlanificacionComponent implements OnInit {
       });
     }
   }
-
+  
   async saveLimitScore() {
     try {
-      const { data, error } = await this.authService.saveLimitScore(this.reviewId, this.limitScore1);
+      const maxScore = this.getMaxScore(); // calculado a partir de tus questions1 / answers1
+      const { data, error } = await this.authService.saveLimitScore(this.reviewId, this.limitScore1, maxScore);
       if (error) {
         console.error('Error al guardar puntuación:', error);
         Swal.fire({
@@ -2511,11 +2545,32 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
+  getMaxScore(): number {
+    if (!this.answers1 || this.answers1.length === 0 || !this.questions1) {
+      return 0;
+    }
+    // Encontrar el peso mayor entre las respuestas
+    let maxWeight = 0;
+    for (const ans of this.answers1) {
+      const pesoNum = Number(ans.peso) || 0;
+      if (pesoNum > maxWeight) {
+        maxWeight = pesoNum;
+      }
+    }
+    
+    // Multiplicar por la cantidad de preguntas
+    return maxWeight * this.questions1.length;
+  }
+
+  onLimitScoreChange(newValue: number): void {
+    this.limitScore1 = newValue;
+    this.puntuacionesGuardadas = false;
+  }
+
   // ---------------- TERCERA PAGINA ----------------
 
   // ---------------- EXTRACCION DE DATOS ----------------
 
-  // Agregar un nuevo campo
   addField(): void {
     this.fields.push({
       id_extraction_field: undefined,   // O undefined si aún no existe en la BD
@@ -2525,45 +2580,72 @@ export class PlanificacionComponent implements OnInit {
       orden: this.fields.length, // Ejemplo: lo situamos al final
       isEditing: true
     });
+    this.fieldsSaved = false;
   }
 
   moveUp(index: number): void {
     if (index > 0) {
       // Intercambia el campo actual con el anterior
       [this.fields[index - 1], this.fields[index]] = [this.fields[index], this.fields[index - 1]];
+  
+      // Actualiza el orden de los elementos en el array
+      this.fields.forEach((field, i) => {
+        field.orden = i;
+      });
+  
+      // Guarda en la base de datos
+      this.saveOrderToDB();
     }
   }
-
+  
   moveDown(index: number): void {
     if (index < this.fields.length - 1) {
       // Intercambia el campo actual con el siguiente
       [this.fields[index], this.fields[index + 1]] = [this.fields[index + 1], this.fields[index]];
+  
+      // Actualiza el orden de los elementos en el array
+      this.fields.forEach((field, i) => {
+        field.orden = i;
+      });
+  
+      // Guarda en la base de datos
+      this.saveOrderToDB();
     }
   }
 
   async saveOrderToDB(): Promise<void> {
-    // Recorre los campos en su nuevo orden y actualiza su 'orden' en la BD
-    for (let i = 0; i < this.fields.length; i++) {
-      const field = this.fields[i];
-      // Asigna el nuevo valor de 'orden'
-      field.orden = i;
-
-      // Llama al servicio que hace un UPDATE en la BD
-      try {
-        //await this.authService.updateFieldOrder(field.id_extraction_field, i);
-      } catch (err) {
-        console.error('Error al actualizar el orden:', err);
+    try {
+      for (let i = 0; i < this.fields.length; i++) {
+        const field = this.fields[i];
+        field.orden = i; // Asignar el nuevo orden
+  
+        // Llamar al servicio que actualiza en la BD
+        if (field.id_extraction_field !== undefined) {
+          await this.authService.updateFieldOrder(field.id_extraction_field.toString(), i);
+        }
       }
+  
+      Swal.fire({
+        icon: 'success',
+        title: 'Orden guardado',
+        text: 'El orden de los campos se ha actualizado correctamente.',
+        timer: 2000
+      });
+    } catch (err) {
+      console.error('Error al actualizar el orden:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al actualizar el orden en la base de datos.'
+      });
     }
-    alert('El orden de los campos se ha guardado correctamente.');
   }
-
-  // Cargar los campos desde la BD
+  
   async loadFields() {
     this.fields = await this.authService.loadExtractionFields(this.reviewId);
+    this.fieldsSaved = true;
   }
 
-  // Guardar campo (nuevo o existente)
   async saveField(index: number) {
     const field = this.fields[index];
     // Validar descripción
@@ -2582,7 +2664,7 @@ export class PlanificacionComponent implements OnInit {
       if (result) {
         // Asignar datos devueltos por la BD (ej. id_extraction_field)
         this.fields[index] = { ...result, isEditing: false };
-
+        this.fieldsSaved = true; // Marcamos que está guardado
         // Notificar éxito
         Swal.fire({
           icon: 'success',
@@ -2617,7 +2699,6 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-  // Cancelar edición
   cancelEdit(index: number) {
     const field = this.fields[index];
     // Si es nuevo y no tiene descripción, se elimina del arreglo
@@ -2631,12 +2712,11 @@ export class PlanificacionComponent implements OnInit {
     }
   }
 
-  // Editar campo
   editField(index: number) {
     this.fields[index].isEditing = true;
+    this.fieldsSaved = false;
   }
 
-  // Eliminar campo
   async removeField(index: number) {
     const field = this.fields[index];
 
@@ -2688,7 +2768,7 @@ export class PlanificacionComponent implements OnInit {
       });
       return;
     }
-
+  
     // Pedir la cantidad de preguntas mediante SweetAlert
     Swal.fire({
       title: 'Número de preguntas',
@@ -2709,8 +2789,8 @@ export class PlanificacionComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed && result.value) {
         const numberOfQuestions = Number(result.value);
-
-        // Mostrar otro SweetAlert de carga mientras se llama al servicio
+  
+        // Mostrar alerta de carga mientras se llama al servicio
         Swal.fire({
           title: 'Generando preguntas...',
           text: 'Por favor, espera un momento.',
@@ -2719,7 +2799,7 @@ export class PlanificacionComponent implements OnInit {
             Swal.showLoading(Swal.getConfirmButton());
           }
         });
-
+  
         // Llamar al servicio de IA
         this.openAiService.generateDataExtractionQuestions(
           this.titulo_revision,
@@ -2729,27 +2809,26 @@ export class PlanificacionComponent implements OnInit {
           next: (response) => {
             Swal.close();
             if (response && response.questions) {
-              // Mapea cada pregunta del array a tu interfaz DataField
-              const newQuestions = response.questions.map((item: any) => {
-                return {
-                  id_extraction_field: undefined, // no existe en la BD
-                  id_revision: this.reviewId,
-                  descripcion: item.pregunta,     // "pregunta" viene de la IA
-                  tipo: item.tipo,                // "tipo" viene de la IA
-                  orden: this.fields.length,      // lo situamos al final
-                  isEditing: true                 // si quieres que aparezca en modo edición
-                };
-              });
-
-              // Agrega estos nuevos campos al final de fields
+              // Mapea cada pregunta del array a un objeto DataField
+              const newQuestions = response.questions.map((item: any, index: number) => ({
+                id_extraction_field: undefined,  // no existe en la BD
+                id_revision: this.reviewId,
+                descripcion: item.pregunta,        // "pregunta" viene de la IA
+                tipo: item.tipo,                   // "tipo" viene de la IA
+                orden: this.fields.length + index, // Asigna el orden basado en el tamaño actual del array
+                isEditing: true                    // Si deseas que aparezca en modo edición
+              }));
+  
+              // Agrega estos nuevos campos al final del array de campos
               this.fields = [...this.fields, ...newQuestions];
-
+  
               Swal.fire({
                 icon: 'success',
                 title: 'Preguntas generadas',
                 text: `Se han agregado ${response.questions.length} nuevas preguntas.`,
                 timer: 2000
               });
+              this.fieldsSaved = true;
             } else {
               Swal.fire({
                 icon: 'info',
@@ -2771,4 +2850,5 @@ export class PlanificacionComponent implements OnInit {
       }
     });
   }
+  
 }

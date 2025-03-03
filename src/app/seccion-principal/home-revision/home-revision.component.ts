@@ -1,6 +1,6 @@
 import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
@@ -9,7 +9,7 @@ import { filter } from 'rxjs';
 @Component({
   selector: 'app-home-revision',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ReactiveFormsModule],
   templateUrl: './home-revision.component.html',
   styleUrl: './home-revision.component.css'
 })
@@ -17,10 +17,17 @@ export class HomeRevisionComponent implements OnInit  {
   title: string = '';
   description: string = '';
   tipoRevision: string = '';
-  charCount: number = 0; // Contador de caracteres (opcional)
+  alcance: string = '';
+  pais: string = '';
+  ciudad: string = '';
+  institucion: string = '';
+  areaConocimiento: string = '';
+  tipoInvestigacion: string = '';
+  charCount: number = 0;
   isLargeScreen: boolean = true;
+  form!: FormGroup;
 
-  constructor(private router: Router, private authService: AuthService) { }
+  constructor(private fb: FormBuilder, private router: Router, private authService: AuthService) { }
 
   updateCharCount() {
     this.charCount = this.description.length;
@@ -52,7 +59,26 @@ export class HomeRevisionComponent implements OnInit  {
     this.charCount = value.length;
   }
 
-  async createReview() {
+  isFormValid(): boolean {
+    // Campos obligatorios generales:
+    if (!this.title.trim() || !this.tipoRevision || !this.alcance ||
+        !this.areaConocimiento.trim() || !this.tipoInvestigacion || !this.description.trim()) {
+      return false;
+    }
+    // Validar campos condicionales:
+    if ((this.alcance === 'Internacional' || this.alcance === 'Nacional' || this.alcance === 'Nivel institucional') && !this.pais.trim()) {
+      return false;
+    }
+    if (this.alcance === 'Alcance local (Ciudad(es) o unidades territoriales)' && (!this.pais.trim() || !this.ciudad.trim())) {
+      return false;
+    }
+    if (this.alcance === 'Nivel institucional' && !this.institucion.trim()) {
+      return false;
+    }
+    return true;
+  }
+
+  async createReview(): Promise<void> {
     const userId = await this.authService.getSession().then(session => session?.user?.id);
     if (!userId) {
       console.error('No se pudo obtener el ID del usuario.');
@@ -66,6 +92,12 @@ export class HomeRevisionComponent implements OnInit  {
       descripcion: this.description,
       fecha_creacion: new Date().toISOString(),
       fecha_modificacion: new Date().toISOString(),
+      alcance: this.alcance,
+      pais: (this.alcance === 'Internacional' || this.alcance === 'Nacional' || this.alcance === 'Nivel institucional') ? this.pais : null,
+      ciudad: this.alcance === 'Alcance local (Ciudad(es) o unidades territoriales)' ? this.ciudad : null,
+      area_conocimiento: this.areaConocimiento,
+      tipo_investigacion: this.tipoInvestigacion,
+      institucion: this.alcance === 'Nivel institucional' ? this.institucion : null
     };
   
     const { insertData, error } = await this.authService.createReview(reviewData);
@@ -75,7 +107,6 @@ export class HomeRevisionComponent implements OnInit  {
       return;
     }
   
-    // Accede al ID correctamente
     const newReviewId = insertData?.[0]?.id_detalles_revision;
     if (!newReviewId) {
       console.error('No se recibió ID de la nueva reseña');
@@ -93,6 +124,4 @@ export class HomeRevisionComponent implements OnInit  {
       });
     });
   }
-  
-  
 }

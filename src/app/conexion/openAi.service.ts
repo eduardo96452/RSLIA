@@ -20,9 +20,22 @@ export class OpenAiService {
   getSuggestionFromChatGPT(
     title: string,
     methodology: string,
-    description: string
+    description: string,
+    extraFields: any
   ): Observable<any> {
-    return this.http.post<any>(this.objetiveUrl, { title, methodology, description });
+    // Construir el body antes de enviarlo
+    const requestBody = {
+      title,
+      methodology,
+      description,
+      ...extraFields
+    };
+  
+    // Agregar un console.log para ver qué datos enviamos
+    //console.log('Enviando a /api/generate-objetive:', requestBody);
+  
+    // Ahora sí hacemos la petición HTTP
+    return this.http.post<any>(this.objetiveUrl, requestBody);
   }
 
   getMethodologyStructure(
@@ -37,10 +50,18 @@ export class OpenAiService {
     title: string,
     methodology: string,
     objective: string,
-    numQuestions: number
+    numQuestions: number,
+    tipoInvestigacion: string
   ): Observable<any> {
-    return this.http.post<any>(this.researchQuestionsUrl, { title, methodology, objective, numQuestions });
+    return this.http.post<any>(this.researchQuestionsUrl, {
+      title,
+      methodology,
+      objective,
+      numQuestions,
+      tipoInvestigacion
+    });
   }
+  
 
   generateKeywords(methodologyData: any): Observable<any> {
     return this.http.post<any>(this.generateKeywordsUrl, { methodologyData });

@@ -42,7 +42,8 @@
                             </div>
 
                             <!-- Extracción de datos -->
-                            <div class="menu-item" [routerLink]="['/extraccion_datos']" [queryParams]="{ id: reviewId }">
+                            <div class="menu-item" [routerLink]="['/extraccion_datos']"
+                                [queryParams]="{ id: reviewId }">
                                 Extracción de datos
                             </div>
 
@@ -95,8 +96,9 @@
                                     <div class="tab-pane fade show active" id="pagina1" role="tabpanel"
                                         aria-labelledby="tab1">
 
-                                        <p>Para continuar con los pasos de realizar una revisión sistemática de
-                                            literatura, sigue estos lineamientos:</p>
+                                        <p>Aquí encontrarás los pasos esenciales para avanzar con tu revisión
+                                            sistemática
+                                            de literatura y asegurar resultados de calidad:</p>
 
 
                                         <div class="accordion accordion-flush" id="accordionFlushExample">
@@ -594,6 +596,9 @@
                                                         <br>
 
                                                         <div class="container">
+                                                            <p>Tipo de Investigación:
+                                                                <strong>{{reviewData.tipo_investigacion}}</strong>
+                                                            </p>
                                                             <div *ngFor="let question of questions" class="mb-3">
                                                                 <div class="input-group mb-2">
                                                                     <textarea class="form-control"
@@ -1148,11 +1153,10 @@
                                         <!-- Tarjeta de Preguntas -->
 
                                         <p>
-                                            En esta sección, se crearán las preguntas que se utilizarán para evaluar los
-                                            artículos aceptados en la sección correspondiente. Estas preguntas serán
-                                            clave para analizar aspectos específicos de los artículos, como su
-                                            relevancia, calidad metodológica, resultados y contribuciones al área de
-                                            estudio.
+                                            En esta sección podrás crear las preguntas que permitirán evaluar en detalle
+                                            los artículos aceptados. Con estas preguntas analizarás la relevancia, la
+                                            calidad metodológica, los resultados y las contribuciones de cada estudio,
+                                            asegurando así un análisis sólido y consistente de tu revisión.
                                         </p>
 
                                         <div class="accordion accordion-flush" id="accordionFlushExample1">
@@ -1272,7 +1276,8 @@
                                                                             *ngIf="answer1.isEditing && answer1.id_respuesta"
                                                                             class="btn btn-success btn-sm me-2"
                                                                             (click)="updateAnswer1(i)">
-                                                                            <i class="bi bi-check-square"></i> Guardar
+                                                                            <i class="bi bi-check-square"></i>
+                                                                            Actualizar
                                                                         </button>
 
                                                                         <!-- CASO 3: Fila sin edición => Botón amarillo "Editar" -->
@@ -1294,7 +1299,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <!-- Acordeon de puntuacion limite-->
+                                            <!-- Acordeón de Puntuación Límite -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
                                                     <button class="accordion-button collapsed" type="button"
@@ -1303,8 +1308,7 @@
                                                         style="background-color: #F8F8F8; flex: 7;">
                                                         <h5 class="card-title mb-0">
                                                             <i class="bi bi-bar-chart"></i>&nbsp;&nbsp;11.- Puntuaciones
-                                                            de evaluación
-                                                            de calidad
+                                                            de evaluación de calidad
                                                             <span *ngIf="puntuacionesGuardadas">
                                                                 &nbsp;<i
                                                                     class="bi bi-check-circle-fill text-success"></i>
@@ -1317,22 +1321,26 @@
                                                     <div class="accordion-body">
                                                         <div class="row mb-3">
                                                             <!-- Puntuación Máxima -->
-                                                            <div class="col-md-6">
+                                                            <div class="col-md-6 mb-3">
                                                                 <label for="maxScore" class="form-label">Puntuación
                                                                     máxima</label>
+                                                                <!-- Se usa [value]="getMaxScore()" para mostrar la puntuación calculada -->
                                                                 <input type="number" id="maxScore" class="form-control"
-                                                                    value="3.0" readonly />
+                                                                    [value]="getMaxScore()" readonly />
                                                             </div>
+
                                                             <!-- Puntuación Límite -->
-                                                            <div class="col-md-6">
+                                                            <div class="col-md-6 mb-3">
                                                                 <label for="limitScore" class="form-label">Puntuación
-                                                                    límite</label>
+                                                                    mínima de aceptación</label>
                                                                 <div class="input-group">
                                                                     <input type="number" id="limitScore"
-                                                                        class="form-control"
-                                                                        [(ngModel)]="limitScore1" />
+                                                                        class="form-control" [(ngModel)]="limitScore1"
+                                                                        (ngModelChange)="onLimitScoreChange($event)" />
+                                                                    <!-- Botón "Guardar" solo aparece si puntuacionesGuardadas es true -->
                                                                     <button class="btn btn-success"
-                                                                        (click)="saveLimitScore()">
+                                                                        (click)="saveLimitScore()"
+                                                                        *ngIf="!puntuacionesGuardadas">
                                                                         Guardar
                                                                     </button>
                                                                 </div>
@@ -1341,6 +1349,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+
                                         </div>
                                     </div>
 
@@ -1349,14 +1358,20 @@
 
                                         <p>
                                             En esta sección podrás ingresar las preguntas para hacer la recolección de
-                                            datos en el submenú "Extracción de datos" donde estaran los estudios aceptados. De esta
+                                            datos en el submenú "Extracción de datos" donde estaran los estudios
+                                            aceptados. De esta
                                             forma, podrás definir cada campo de información que deseas extraer.
                                         </p>
                                         <div class="container">
                                             <div class="card">
-                                                <div class="card-header">
-                                                    <h5><i class="bi bi-clipboard-data-fill"></i>&nbsp;&nbsp;12.-
-                                                        Formulario de Extracción de Datos</h5>
+                                                <div class="card-header position-relative">
+                                                    <h5 class="mb-0">
+                                                        <i class="bi bi-clipboard-data-fill"></i>&nbsp;&nbsp;12.-
+                                                        Formulario de Extracción de Datos
+                                                        <span *ngIf="fieldsSaved">
+                                                            &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
+                                                        </span>
+                                                    </h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <!-- Contenedor principal -->
@@ -1393,9 +1408,13 @@
                                                                     <div class="d-flex">
                                                                         <button
                                                                             class="btn btn-secondary btn-sm w-50 me-1"
-                                                                            (click)="moveUp(i)"><strong>↑</strong></button>
+                                                                            (click)="moveUp(i)">
+                                                                            <strong>↑</strong>
+                                                                        </button>
                                                                         <button class="btn btn-secondary btn-sm w-50"
-                                                                            (click)="moveDown(i)"><strong>↓</strong></button>
+                                                                            (click)="moveDown(i)">
+                                                                            <strong>↓</strong>
+                                                                        </button>
                                                                     </div>
                                                                 </td>
                                                                 <!-- Columna de Descripción -->

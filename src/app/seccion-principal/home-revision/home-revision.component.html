@@ -1,7 +1,4 @@
-<div [ngClass]="{
-  'px-5': isLargeScreen,
-  'container': !isLargeScreen
-}">
+<div [ngClass]="{ 'px-5': isLargeScreen, 'container': !isLargeScreen }">
   <div class="card mx-auto" style="max-width: 600px;">
     <!-- Card Header -->
     <div class="card-header">
@@ -12,31 +9,111 @@
     <!-- Card Body -->
     <div class="card-body">
       <form>
-        <!-- Title Field -->
+        <!-- Campo Título -->
         <div class="mb-3">
-          <label for="title" class="form-label">Título de la reseña</label>
+          <label for="title" class="form-label"><strong>Título de la reseña</strong></label>
           <input type="text" class="form-control" id="title" placeholder="Escribe el título de la reseña"
             [(ngModel)]="title" name="title" />
         </div>
+
+        <!-- Selección de Metodología -->
         <div class="input-group mb-3">
-          <label class="input-group-text" for="inputGroupSelect01">Metodología de reseña</label>
-          <select class="form-select" id="inputGroupSelect01" [(ngModel)]="tipoRevision" name="tipoRevision">
+          <label class="input-group-text" for="metodologiaSelect"><strong>Metodología de reseña</strong></label>
+          <select class="form-select" id="metodologiaSelect" [(ngModel)]="tipoRevision" name="tipoRevision">
             <option value="" disabled selected>Seleccione la metodología...</option>
             <option value="Revisión Sistemática">Revisión Sistemática</option>
             <option value="Meta-análisis">Meta-análisis</option>
             <option value="Revisión de Alcance">Revisión de Alcance</option>
           </select>
         </div>
-        <!-- Description Field -->
+
+        <!-- Alcance -->
+        <div class="input-group mb-3">
+          <label class="input-group-text" for="alcanceSelect"><strong>Alcance</strong></label>
+          <select class="form-select" id="alcanceSelect" [(ngModel)]="alcance" name="alcance">
+            <option value="" disabled selected>Seleccione un alcance...</option>
+            <option value="Global">Global</option>
+            <option value="Internacional">Internacional</option>
+            <option value="Nacional">Nacional</option>
+            <option value="Alcance local (Ciudad(es) o unidades territoriales)">
+              Alcance local (Ciudad(es) o unidades territoriales)
+            </option>
+            <option value="Nivel institucional">Nivel institucional</option>
+          </select>
+        </div>
+
+        <!-- Contenedor condicional para campos de Unidad Territorial e Institución -->
+        <div *ngIf="alcance === 'Internacional' || alcance === 'Nacional' || 
+alcance === 'Alcance local (Ciudad(es) o unidades territoriales)' || 
+alcance === 'Nivel institucional'" class="mb-3">
+          <hr>
+
+          <!-- Si se selecciona Internacional o Nacional o Nivel institucional: se muestra solo el campo País -->
+          <div *ngIf="alcance === 'Internacional' || alcance === 'Nacional'" class="mb-3">
+            <label class="form-label"><strong>Unidad territorial</strong></label> <br>
+            <label for="pais" class="form-label">País</label>
+            <input type="text" class="form-control" id="pais" [(ngModel)]="pais" name="pais" placeholder="Ej. Colombia">
+          </div>
+
+          <!-- Si se selecciona Alcance local o Nivel institucional: se muestran los campos País y Ciudad -->
+          <div
+            *ngIf="alcance === 'Alcance local (Ciudad(es) o unidades territoriales)' || alcance === 'Nivel institucional'"
+            class="mb-3">
+            <label class="form-label"><strong>Unidad territorial</strong></label>
+            <div class="mb-2">
+              <label for="paisLocal" class="form-label">País</label>
+              <input type="text" class="form-control" id="paisLocal" [(ngModel)]="pais" name="paisLocal"
+                placeholder="Ej. Colombia">
+            </div>
+            <div>
+              <label for="ciudad" class="form-label">Ciudad</label>
+              <input type="text" class="form-control" id="ciudad" [(ngModel)]="ciudad" name="ciudad"
+                placeholder="Ej. Bogotá">
+            </div>
+          </div>
+
+          <!-- Campo adicional para Nivel institucional: Institución -->
+          <div *ngIf="alcance === 'Nivel institucional'" class="mb-3">
+            <label for="institucion" class="form-label">Institución</label>
+            <input type="text" class="form-control" id="institucion" [(ngModel)]="institucion" name="institucion"
+              placeholder="Ingrese la institución">
+          </div>
+
+          <hr>
+        </div>
+
+
+        <!-- Área de Conocimiento (disciplina) -->
         <div class="mb-3">
-          <label for="description" class="form-label">Descripción de la reseña</label>
+          <label for="areaConocimiento" class="form-label"><strong>Área de conocimiento (disciplina)</strong></label>
+          <input type="text" class="form-control" id="areaConocimiento" placeholder="Ingrese el área de conocimiento"
+            [(ngModel)]="areaConocimiento" name="areaConocimiento">
+        </div>
+
+        <!-- Tipo de Investigación -->
+        <div class="input-group mb-3">
+          <label class="input-group-text" for="tipoInvestigacionSelect"><strong>Tipo de investigación</strong></label>
+          <select class="form-select" id="tipoInvestigacionSelect" [(ngModel)]="tipoInvestigacion"
+            name="tipoInvestigacion">
+            <option value="" disabled selected>Seleccione el tipo...</option>
+            <option value="exploratorio">Exploratorio</option>
+            <option value="descriptivo">Descriptivo</option>
+            <option value="explicativo">Explicativo</option>
+            <option value="correlacional">Correlacional</option>
+          </select>
+        </div>
+        
+        <!-- Descripción -->
+        <div class="mb-3">
+          <label for="description" class="form-label"><strong>Descripción de la reseña</strong></label>
           <textarea class="form-control" id="description" rows="5"
             placeholder="Ingrese una descripción detallada de la reseña" [(ngModel)]="description" name="description"
-            (ngModelChange)="charCount = description.length" maxlength="500"></textarea>
+            (ngModelChange)="onTextChange($event)" maxlength="800"></textarea>
           <div class="text-end text-muted mt-1">
             <small>{{ charCount }}/800 caracteres</small>
           </div>
         </div>
+
       </form>
     </div>
     <!-- Card Footer -->
@@ -44,8 +121,8 @@
       <button routerLink="/panel_principal" class="btn btn-danger me-2" type="button">
         <i class="bi bi-x me-1"></i>Cancelar
       </button>
-      <button (click)="createReview()" class="btn btn-success" type="button">
-        <i class="fa-solid fa-paper-plane"></i> &nbsp; Crear reseña
+      <button (click)="createReview()" class="btn btn-success" type="button" [disabled]="!isFormValid()">
+        <i class="fa-solid fa-paper-plane"></i>&nbsp; Crear reseña
       </button>
     </div>
   </div>

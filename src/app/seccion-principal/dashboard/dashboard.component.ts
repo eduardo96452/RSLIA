@@ -40,7 +40,7 @@ export class DashboardComponent implements OnInit {
     await this.loadUserDocumentCount();
     try {
       this.distributionData = await this.authService.getEstudiosDistributionByDatabase();
-      console.log('Datos recibidos:', this.distributionData); // Debug
+      
     } catch (error) {
       console.error('Error en ngOnInit:', error); // Debug
       this.errorMessage = 'Error al cargar los datos: ' + (error as Error).message;
@@ -68,7 +68,8 @@ export class DashboardComponent implements OnInit {
 
   loadRevisionBySlug(slug: string | null): void {
     // Lógica para obtener la revisión desde la base de datos utilizando el slug
-    console.log('Slug recibido:', slug);
+    
+    
     // Ejemplo: Llama a tu servicio para buscar la revisión
   }
 
@@ -121,26 +122,42 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  async eliminarRevision(idRevision: number) {
-    // Mostramos un cuadro de confirmación
-    Swal.fire({
+  async eliminarRevision(idRevision: number): Promise<void> {
+    const confirmResult = await Swal.fire({
       title: '¿Estás seguro de eliminar esta revisión?',
       text: 'Esta acción no se puede revertir.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          Swal.fire('Revisión eliminada', 'La revisión se eliminó correctamente.', 'success');
-          console.log('Eliminando revisión con ID:', idRevision);
-        } catch (err) {
-          console.error('Error inesperado:', err);
-          Swal.fire('Error', 'Hubo un problema al eliminar la revisión.', 'error');
-        }
-      }
     });
+  
+    if (!confirmResult.isConfirmed) return;
+  
+    try {
+      const { error } = await this.authService.eliminarRevision(idRevision);
+      if (error) {
+        throw error;
+      }
+      Swal.fire({
+        icon: 'success',
+        title: 'Revisión eliminada',
+        text: 'La revisión se eliminó correctamente.'
+      });
+      // Actualizamos la lista y el contador
+      await this.loadUserReviews();
+      // userReviewCount se actualiza en loadUserReviews, por ejemplo:
+      // this.userReviewCount = this.userReviews.length;
+    } catch (err) {
+      console.error('Error inesperado:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un problema al eliminar la revisión.'
+      });
+    }
   }
+  
+  
 
 }

@@ -10,7 +10,7 @@
             <ol class="breadcrumb">
               <div class="row">
                 <div>
-                  <li class="breadcrumb-item active" aria-current="page">
+                  <li class="breadcrumb-item" aria-current="page">
                     {{reviewData.titulo_revision}}</li>
                 </div>
               </div>
@@ -104,6 +104,13 @@
                           <div class="col-12 col-md-6 d-flex justify-content-end">
                             <button class="btn btn-primary w-100 w-md-auto" (click)="openAddStudyModal()">
                               <i class="bi bi-file-earmark-plus"></i>&nbsp;Añadir manualmente el estudio
+                            </button>
+                          </div>
+
+                          <!-- Columna para el botón "Importar archivo" -->
+                          <div class="col-12 col-md-6 d-flex justify-content-start mb-3 mb-md-0">
+                            <button class="btn btn-info w-100 w-md-auto" >
+                              <i class="bi bi-box-arrow-in-up"></i>&nbsp;Importar archivo
                             </button>
                           </div>
                         </div>
@@ -346,11 +353,11 @@
                                   <td style="display:none;">{{ study.id_estudios }}</td>
                                   <td>
                                     {{ study.titulo }}
-                                    <!-- Ícono de check si hay PDF subido -->
-                                    <span *ngIf="study.url_pdf_articulo">
+                                    <!-- Mostrar el check si el estudio abierto es este y la evaluación está completa -->
+                                    <span *ngIf="isEvaluationCompleteForStudy(study)">
                                       &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
                                     </span>
-                                  </td>
+                                  </td>                                  
                                   <td class="text-center">
                                     {{ calculateTotalScore(study) }}
                                   </td>
@@ -360,12 +367,12 @@
                                     </button>
                                   </td>
                                 </tr>
-                  
+                            
                                 <!-- Sub-fila (acordeón) de evaluación -->
                                 <tr *ngIf="openedStudy === study" class="bg-light">
                                   <td colspan="4">
                                     <div class="p-3">
-                                      <p><strong>Título:</strong> {{ study.titulo }}</p>
+                                      <!-- <p><strong>Título:</strong> {{ study.titulo }}</p>-->
                                       <form>
                                         <!-- Tabla de Preguntas / Respuestas -->
                                         <table class="table table-sm">
@@ -384,7 +391,7 @@
                                                     <input type="radio" [name]="'resp_' + question.id_pregunta"
                                                            [value]="answer.id_respuesta"
                                                            (change)="selectAnswer(question.id_pregunta, answer)"
-                                                           [checked]="selectedAnswers[question.id_pregunta] === answer.id_respuesta" />
+                                                           [checked]="getCheckedAnswer(question.id_pregunta) === answer.id_respuesta" />
                                                     {{ answer.descripcion }} (peso: {{ answer.peso }})
                                                   </ng-container>
                                                 </div>
@@ -393,7 +400,8 @@
                                           </tbody>
                                         </table>
                                         <div class="d-flex justify-content-end mt-3">
-                                          <button class="btn btn-success me-2" (click)="saveEvaluation(study)">
+                                          <!-- Mostrar botón Guardar Evaluación solo si currentEvaluationSaved es false -->
+                                          <button *ngIf="!currentEvaluationSaved" class="btn btn-success me-2" (click)="saveEvaluation(study)">
                                             Guardar Evaluación
                                           </button>
                                           <button class="btn btn-danger" (click)="cancelEvaluation()">
@@ -406,11 +414,13 @@
                                 </tr>
                               </ng-container>
                             </tbody>
+                            
                           </table>
                         </div>
                       </div>
                     </div>
                   </div>
+                  
                   
                   
                   

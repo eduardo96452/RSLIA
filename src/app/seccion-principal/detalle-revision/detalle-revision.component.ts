@@ -14,24 +14,29 @@ import { filter } from 'rxjs';
   styleUrl: './detalle-revision.component.css'
 })
 export class DetalleRevisionComponent implements OnInit {
-  title: string = '';
-  description: string = '';
-  charCount1: number = 0;
+  showExplanation: boolean = false;
   reviewId!: string;
-  reviewData = {
+
+  // Objeto que almacena los campos de la reseña, incluida la nueva información (alcance, pais, etc.)
+  reviewData: any = {
     titulo_revision: '',
     tipo_revision: '',
-    descripcion: ''
+    descripcion: '',
+    alcance: '',
+    pais: '',
+    ciudad: '',
+    institucion: '',
+    area_conocimiento: '',
+    tipo_investigacion: ''
   };
-  originalData: any = {};
-  isModified: boolean = false;
-  form: FormGroup;
-  userData: any = null;
-  isLargeScreen: boolean = true;
 
-  updateCharCount1() {
-    this.charCount1 = this.description.length;
-  }
+  originalData: any = {};  // Almacena los datos originales para comparar cambios
+  isModified: boolean = false;
+
+  // Contador de caracteres para la descripción
+  charCount1: number = 0;
+  form: FormGroup;
+  isLargeScreen: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -44,6 +49,12 @@ export class DetalleRevisionComponent implements OnInit {
       titulo_revision: [''],
       tipo_revision: [''],
       descripcion: [''],
+      alcance: [''],
+      pais: [''],
+      ciudad: [''],
+      institucion: [''],
+      area_conocimiento: [''],
+      tipo_investigacion: ['']
     });
   }
 
@@ -51,9 +62,8 @@ export class DetalleRevisionComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.reviewId = params['id'];
       if (this.reviewId) {
-        console.log('Recibí el ID:', this.reviewId);
-        // Aquí llamas al método para cargar o procesar los datos de la reseña
-        this.loadReviewData1();
+        // Cargar los datos de la reseña
+        this.loadReviewData();
       } else {
         console.error('No se encontró el ID en queryParams.');
       }
@@ -61,28 +71,17 @@ export class DetalleRevisionComponent implements OnInit {
 
     this.checkScreenSize();
 
-    this.reviewId = this.route.snapshot.queryParams['id'];
-
-    this.reviewId = this.route.snapshot.paramMap.get('id')!;
-    if (this.reviewId) {
-      this.loadReviewData();
-    }
-
-    this.loadUserData();
-
-    // Detectar cambios en el formulario
+    // Escuchar cambios en el formulario para detectar modificaciones
     this.form.valueChanges.subscribe(() => {
-      this.isModified = this.form.dirty || this.form.touched; // Detecta cambios
+      this.isModified = this.form.dirty || this.form.touched;
     });
 
-    // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
+    // Nos suscribimos a NavigationEnd, para llevar el scroll al tope
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
-        // Llevamos el scroll al tope
         window.scrollTo(0, 0);
       });
-
   }
 
   @HostListener('window:resize', ['$event'])
@@ -91,54 +90,50 @@ export class DetalleRevisionComponent implements OnInit {
   }
 
   private checkScreenSize(): void {
-    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
+    this.isLargeScreen = window.innerWidth >= 768; // true si la pantalla es >= md
   }
 
-  async loadUserData() {
-    try {
-      this.userData = await this.authService.getCurrentUserData();
-    } catch (error) {
-      console.error('Error al cargar los datos del usuario:', error);
-    }
-  }
-
-  loadReviewData1(): void {
-    this.authService.getReviewById(this.reviewId).then(review => {
-      if (review) {
-        this.form.patchValue({
-          titulo_revision: review.titulo_revision,
-          tipo_revision: review.tipo_revision,
-          descripcion: review.descripcion
-        });
-      } else {
-        console.error('No se encontraron datos para la revisión con ID:', this.reviewId);
-      }
-    });
-  }
-
+  // Cargar datos desde Supabase
   async loadReviewData() {
-    this.reviewId = this.route.snapshot.queryParams['id'];
     try {
       const review = await this.authService.getReviewById(this.reviewId);
       if (review) {
         this.reviewData = review;
         this.originalData = { ...review };
+
+        // Llenar el formulario reactivo
+        this.form.patchValue({
+          titulo_revision: review.titulo_revision,
+          tipo_revision: review.tipo_revision,
+          descripcion: review.descripcion,
+          alcance: review.alcance,
+          pais: review.pais,
+          ciudad: review.ciudad,
+          institucion: review.institucion,
+          area_conocimiento: review.area_conocimiento,
+          tipo_investigacion: review.tipo_investigacion
+        });
+
+        // Actualizar el contador de caracteres si es necesario
+        this.charCount1 = (review.descripcion || '').length;
       }
     } catch (error) {
-      console.error('Error al cargar los datos de la reseña:', error);
+      console.error('Error al cargar datos de la reseña:', error);
     }
   }
 
-  // Método para detectar cambios en el formulario
+  // Manejar cambios en algún campo (para contador de caracteres, etc.)
   onFieldChange(value: string): void {
-    this.reviewId = this.route.snapshot.queryParams['id'];
     this.isModified = JSON.stringify(this.reviewData) !== JSON.stringify(this.originalData);
     this.charCount1 = value.length;
   }
 
+  // Actualizar la reseña en Supabase
   updateReview(): void {
     if (this.form.valid && this.reviewId) {
       const updatedData = this.form.value;
+      // Asignamos la fecha_modificacion internamente si deseas
+      updatedData.fecha_modificacion = new Date().toISOString();
 
       this.authService.updateReview(this.reviewId, updatedData).then(({ data, error }) => {
         if (error) {
@@ -156,6 +151,7 @@ export class DetalleRevisionComponent implements OnInit {
             showConfirmButton: true,
             timer: 2000,
           }).then(() => {
+            // Opcional: recargar la página o navegar
             this.router.navigate(['/planificacion'], { queryParams: { id: this.reviewId } });
           });
         }
@@ -169,8 +165,8 @@ export class DetalleRevisionComponent implements OnInit {
     }
   }
 
+  // Navegar a la siguiente vista
   navigateToNext(): void {
-    this.reviewId = this.route.snapshot.queryParams['id'];
     if (this.reviewId) {
       this.router.navigate(['/planificacion'], { queryParams: { id: this.reviewId } });
     } else {

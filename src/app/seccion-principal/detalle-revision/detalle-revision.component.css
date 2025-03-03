@@ -18,3 +18,16 @@
   .menu-item:hover {
     background-color: #f1f1f1;
   }
+
+  .custom-tooltip {
+    position: absolute;
+    top: 3.5rem; /* Ajusta la posición vertical según tu encabezado */
+    right: 1rem; /* Ajusta la posición horizontal si deseas */
+    width: 260px; /* Ancho del tooltip */
+    background: #f8f9fa; /* color de fondo */
+    border: 1px solid #ccc; /* borde */
+    padding: 8px;
+    border-radius: 4px;
+    z-index: 999;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  }

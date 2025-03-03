@@ -9,9 +9,17 @@ export interface DetallesRevision {
   id_detalles_revision: string;
   id_usuarios: string;
   titulo_revision: string;
+  objetivo?: string;
   tipo_revision: string;
   descripcion: string;
   fecha_creacion: string;
+  fecha_modificacion: string;
+  alcance?: string | null;
+  pais?: string | null;
+  ciudad?: string | null;
+  area_conocimiento?: string;
+  tipo_investigacion?: string;
+  institucion?: string | null;
 }
 
 export interface Metodologia {
@@ -153,6 +161,7 @@ export interface Estudio {
   fuente_bibliografica?: string;
   url_pdf_articulo?: string | null | undefined;
   selectedAnswers?: { [questionId: string]: number };
+  savedEvaluation?: { [questionId: number]: any };
 }
 
 export interface Criterio1 {
@@ -381,25 +390,41 @@ export class AuthService {
     return { data };
   }
 
+  // Función para crear una nueva reseña (detalles_revision)
   async createReview(data: {
     id_usuarios: string;
     titulo_revision: string;
+    objetivo?: string;
     tipo_revision: string;
     descripcion: string;
     fecha_creacion: string;
+    fecha_modificacion: string;
+    alcance?: string | null;
+    pais?: string | null;
+    ciudad?: string | null;
+    area_conocimiento?: string | null;
+    tipo_investigacion?: string | null;
+    institucion?: string | null;
   }): Promise<{ insertData: DetallesRevision[] | null; error: any }> {
     const { data: insertData, error } = await this._supabaseClient
       .from('detalles_revision')
       .insert([data])
-      .select(); // Asegúrate de que Supabase retorne los datos insertados
-
+      .select(); // Retorna los datos insertados
     if (error) {
       console.error('Error al crear la reseña:', error);
       return { insertData: null, error };
     }
-
     return { insertData, error };
   }
+  
+  async eliminarRevision(idRevision: number): Promise<{ error: any }> {
+    const { error } = await this._supabaseClient
+      .from('detalles_revision')
+      .delete()
+      .eq('id_detalles_revision', idRevision);
+    return { error };
+  }
+  
 
   async countUserReviews(userId: string) {
     const { count, error } = await this._supabaseClient
@@ -556,29 +581,60 @@ export class AuthService {
   async getReviewById(reviewId: string) {
     const { data, error } = await this._supabaseClient
       .from('detalles_revision')
-      .select('id_detalles_revision, titulo_revision, objetivo, tipo_revision, descripcion')
+      .select(`
+        id_detalles_revision,
+        id_usuarios,
+        titulo_revision,
+        objetivo,
+        tipo_revision,
+        descripcion,
+        fecha_creacion,
+        fecha_modificacion,
+        alcance,
+        pais,
+        ciudad,
+        area_conocimiento,
+        tipo_investigacion,
+        institucion
+      `)
       .eq('id_detalles_revision', reviewId)
-      .single(); // Para obtener un único registro
-
+      .single(); // Se espera un único registro
+  
     if (error) {
       console.error('Error al obtener la reseña por ID:', error);
       return null;
     }
     return data;
   }
+  
 
-  async updateReview(reviewId: string, reviewData: { titulo_revision: string; tipo_revision: string; descripcion: string }) {
+  async updateReview(reviewId: string, updatedData: {
+    titulo_revision: string;
+    objetivo?: string;
+    tipo_revision: string;
+    descripcion: string;
+    fecha_modificacion?: string;
+    alcance?: string | null;
+    pais?: string | null;
+    ciudad?: string | null;
+    area_conocimiento?: string | null;
+    tipo_investigacion?: string | null;
+    institucion?: string | null;
+  }): Promise<{ data: any; error: any }> {
+    // Actualizamos la fecha de modificación automáticamente
+    updatedData.fecha_modificacion = new Date().toISOString();
+  
     const { data, error } = await this._supabaseClient
       .from('detalles_revision')
-      .update(reviewData)
+      .update(updatedData)
       .eq('id_detalles_revision', reviewId);
-
+  
     if (error) {
       console.error('Error al actualizar la reseña:', error);
     }
-
     return { data, error };
   }
+  
 
   async updateReviewObjective(reviewId: string, newObjective: string) {
     const { data, error } = await this._supabaseClient
@@ -714,25 +770,38 @@ export class AuthService {
     }
   }
 
-  async deleteMetodologiaByRevisionId(reviewId: string): Promise<boolean> {
+  async deleteMethodologiaByRevisionId(reviewId: string): Promise<boolean> {
     try {
-      const { data, error } = await this._supabaseClient
+      // 1) Eliminar registros de la tabla "componente_revision"
+      const { data: compData, error: compError } = await this._supabaseClient
         .from('componente_revision')
         .delete()
         .eq('id_revision', reviewId);
-
-      if (error) {
-        console.error('Error al borrar metodología para la revisión:', error);
+  
+      if (compError) {
+        console.error('Error al borrar metodología (componente_revision):', compError);
         return false;
       }
-
-      // data contiene los registros eliminados, si necesitas validarlos
+  
+      // 2) Eliminar registros de la tabla "cadenas_busqueda"
+      const { data: cadsData, error: cadsError } = await this._supabaseClient
+        .from('cadenas_busqueda')
+        .delete()
+        .eq('id_detalles_revision', reviewId);
+  
+      if (cadsError) {
+        console.error('Error al borrar cadenas de búsqueda (cadenas_busqueda):', cadsError);
+        return false;
+      }
+  
+      // Si ambas eliminaciones se realizaron sin error, retornamos true
       return true;
     } catch (err) {
-      console.error('Error inesperado al borrar la metodología:', err);
+      console.error('Error inesperado al borrar registros:', err);
       return false;
     }
   }
+  
 
   async insertComponenteRevision(
     idRevision: string,
@@ -1368,39 +1437,60 @@ export class AuthService {
 
   async saveLimitScore(
     idRevision: string,
-    newLimit: number
+    newLimit: number,
+    newMax: number
   ): Promise<{ data: any; error: any }> {
-    // Verificar si ya existe
+    // 1) Verificar si ya existe un registro para esta revisión
     const { data: existingData, error: existingError } = await this._supabaseClient
       .from('puntuaciones_evaluacion')
       .select('*')
       .eq('id_detalles_revision', idRevision);
-
-    // existingData es un array
+  
+    if (existingError) {
+      console.error('Error al consultar puntuaciones_evaluacion:', existingError);
+      return { data: null, error: existingError };
+    }
+  
+    // 2) Si existe, actualizamos
     if (existingData && existingData.length > 0) {
-      const row = existingData[0]; // Toma la primera (o la que necesites)
-      // Ahora row.id_puntuacion existe
+      const row = existingData[0]; // Tomamos la primera fila para actualizar
       const { data, error } = await this._supabaseClient
         .from('puntuaciones_evaluacion')
-        .update({ puntuacion_limite: newLimit })
+        .update({
+          puntuacion_limite: newLimit,
+          puntuacion_maxima: newMax,
+          fecha_creacion: new Date().toISOString() // si quieres controlar la fecha
+        })
         .eq('id_puntuacion', row.id_puntuacion)
         .select();
-
+  
       return { data, error };
+  
     } else {
-      // Crea una nueva fila con puntuacion_maxima = 3.0 por default
+      // 3) Si no existe, creamos un nuevo registro
       const { data, error } = await this._supabaseClient
         .from('puntuaciones_evaluacion')
-        .insert([
-          {
-            puntuacion_limite: newLimit,
-            // puntuacion_maxima: 3.0 se asigna por DEFAULT en la BD
-            id_detalles_revision: idRevision
-          }
-        ])
+        .insert([{
+          id_detalles_revision: idRevision,
+          puntuacion_limite: newLimit,
+          puntuacion_maxima: newMax,
+          fecha_creacion: new Date().toISOString()
+        }])
         .select();
-
+  
       return { data, error };
+    }
+  }
+
+  async updateFieldOrder(id_extraction_field: string, newOrder: number): Promise<void> {
+    const { error } = await this._supabaseClient
+      .from('campos_extraccion') // Asegúrate de que este es el nombre correcto de la tabla
+      .update({ orden: newOrder })
+      .eq('id_campo_extraccion', id_extraction_field);
+  
+    if (error) {
+      console.error('Error al actualizar el orden del campo:', error);
+      throw error;
     }
   }
 
@@ -1546,8 +1636,6 @@ export class AuthService {
     }
   }
 
-  
-
   async removePDF(filePath: string): Promise<void> {
     // filePath sería algo como "estudios/10/mi_archivo.pdf"
     const { data, error } = await this._supabaseClient.storage
@@ -1640,12 +1728,12 @@ export class AuthService {
     }
   }
 
-  async getAcceptedStudies() {
+  async getAcceptedStudies(id_detalles_revision: string) {
     const { data, error } = await this._supabaseClient
       .from('estudios')
       .select('*')
-      .eq('estado', 'Aceptado');
-
+      .eq('estado', 'Aceptado')
+      .eq('id_detalles_revision', id_detalles_revision);
     return { data, error };
   }
 
@@ -1670,6 +1758,29 @@ export class AuthService {
       .select();
     return { data, error };
   }
+
+  // Método para obtener las evaluaciones (calidad_estudios) de un estudio dado
+async getCalidadEstudiosByStudy(id_estudios: number): Promise<any[]> {
+  try {
+    const { data, error } = await this._supabaseClient
+      .from('calidad_estudios')
+      .select('*')
+      .eq('id_estudios', id_estudios);
+    if (error) {
+      console.error('Error al cargar evaluaciones:', error);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.error('Error inesperado al cargar evaluaciones:', err);
+    return [];
+  }
+}
+
+
+
+
+
 
   async getCriteriosByRevision(idDetallesRevision: string) {
     const { data, error } = await this._supabaseClient
