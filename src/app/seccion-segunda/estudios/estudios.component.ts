@@ -2,13 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
-import { AuthService, BaseBibliografica, Criterio, Estudio } from '../../../auth/data-access/auth.service';
-import { OpenAiService } from '../../../conexion/openAi.service';
-import { Study } from '../../../auth/data-access/auth.service';
 import Swal from 'sweetalert2';
-import { DoiApiService } from '../../../conexion/doiApi.service';
 import { format } from 'date-fns';
 import { filter } from 'rxjs';
+import { AuthService, BaseBibliografica, Estudio, Study } from '../../auth/data-access/auth.service';
+import { OpenAiService } from '../../conexion/openAi.service';
+import { DoiApiService } from '../../conexion/doiApi.service';
 
 @Component({
   selector: 'app-estudios',
@@ -135,8 +134,6 @@ export class EstudiosComponent implements OnInit {
       });
     });
   }
-  
-  
 
   @HostListener('window:resize', ['$event'])
   onResize(): void {

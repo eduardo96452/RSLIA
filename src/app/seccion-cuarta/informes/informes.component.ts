@@ -4,9 +4,9 @@ import cytoscape from 'cytoscape';
 import { FormBuilder, FormsModule } from '@angular/forms';
 import { jsPDF } from 'jspdf';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../auth/data-access/auth.service';
-import { OpenAiService } from '../../../conexion/openAi.service';
 import { filter } from 'rxjs';
+import { AuthService } from '../../auth/data-access/auth.service';
+import { OpenAiService } from '../../conexion/openAi.service';
 
 
 @Component({

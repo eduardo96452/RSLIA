@@ -7,16 +7,15 @@ import { PerfilComponent } from './seccion-principal/perfil/perfil.component';
 import { DetalleRevisionComponent } from './seccion-principal/detalle-revision/detalle-revision.component';
 import { PlanificacionComponent } from './seccion-principal/planificacion/planificacion.component';
 import { DashboardComponent } from './seccion-principal/dashboard/dashboard.component';
-
-import { EstudiosComponent } from './seccion-principal/segunda-seccion/estudios/estudios.component';
 import { AcercadeComponent } from './principal/acercade/acercade.component';
 import { ContactoComponent } from './principal/contacto/contacto.component';
 import { NoAuthGuard } from './conexion/no-auth.guard';
 import { AuthGuard } from './conexion/auth.guard';
-import { InformesComponent } from './seccion-principal/segunda-seccion/informes/informes.component';
 import { CambiarpasswordComponent } from './seccion-principal/cambiarpassword/cambiarpassword.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
-import { ExtraccionDatosComponent } from './seccion-principal/segunda-seccion/extraccion-datos/extraccion-datos.component';
+import { EstudiosComponent } from './seccion-segunda/estudios/estudios.component';
+import { ExtraccionDatosComponent } from './seccion-tercera/extraccion-datos/extraccion-datos.component';
+import { InformesComponent } from './seccion-cuarta/informes/informes.component';
 
 
 export const routes: Routes = [

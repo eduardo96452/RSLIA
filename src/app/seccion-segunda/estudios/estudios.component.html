@@ -485,14 +485,28 @@
             <!-- Campo oculto para ID del estudio (no visible) -->
             <input type="hidden" [value]="selectedStudy.id_estudios" name="id_estudios" />
 
-            <!-- Muestra el estado como texto, con clases simulando un "select" -->
-            <div class="form-select mb-3" [ngClass]="{
-  'cell-gray': selectedStudy.status === 'Sin clasificar',
-  'cell-green': selectedStudy.status === 'Aceptado',
-  'cell-yellow': selectedStudy.status === 'Duplicado',
-  'cell-red': selectedStudy.status === 'Rechazado'
-}" style="pointer-events: none;">
-              {{ selectedStudy.status }}
+            <!-- Estado (campo "estado" en tu interfaz) -->
+            <div class="form-group mb-3">
+              <label class="form-label fw-bold">Estado</label>
+              <select class="form-select" [(ngModel)]="selectedStudy.status" name="estado" [ngClass]="{
+                          'cell-gray': selectedStudy.status === 'Sin clasificar',
+                          'cell-green': selectedStudy.status === 'Aceptado',
+                          'cell-yellow': selectedStudy.status === 'Duplicado',
+                          'cell-red': selectedStudy.status === 'Rechazado'
+                        }">
+                <option value="Sin clasificar" [ngClass]="{ 'cell-gray': true }">
+                  Sin clasificar
+                </option>
+                <option value="Aceptado" [ngClass]="{ 'cell-green': true }">
+                  Aceptado
+                </option>
+                <option value="Duplicado" [ngClass]="{ 'cell-yellow': true }">
+                  Duplicado
+                </option>
+                <option value="Rechazado" [ngClass]="{ 'cell-red': true }">
+                  Rechazado
+                </option>
+              </select>
             </div>
 
             <!-- Input de subir PDF (aparece sólo si el status es "Aceptado") -->
