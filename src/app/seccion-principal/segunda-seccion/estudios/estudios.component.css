@@ -102,3 +102,22 @@
   border-radius: 5px;
   border: 1px solid #ccc;
 }
+
+
+
+th {
+  position: relative;
+  /* Opcional: agregar padding extra a la derecha para no tapar el texto */
+  padding-right: 8px;
+}
+
+th .resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 5px;
+  cursor: col-resize;
+  user-select: none;
+  height: 100%;
+  z-index: 2;
+}

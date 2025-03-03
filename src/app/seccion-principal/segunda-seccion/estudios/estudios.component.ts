@@ -32,6 +32,7 @@ export class EstudiosComponent implements OnInit {
   sortColumn: string = '';
   sortOrder: 'asc' | 'desc' = 'asc';
   selectedStudy: Study | null = null;
+  allDisplayedSelected = false;
   showEditModal = false;
   selectedStudiesCount = 0;
   allSelected = false;
@@ -96,6 +97,46 @@ export class EstudiosComponent implements OnInit {
       await this.loadEvaluationForStudy(study);
     }
   }
+
+  ngAfterViewInit() {
+    const headers = document.querySelectorAll('th');
+    headers.forEach(header => {
+      const resizer = header.querySelector('.resizer');
+      if (!resizer) return;
+  
+      let startX: number;
+      let startWidth: number;
+  
+      const onMouseMove = (e: Event) => {
+        const mouseEvent = e as MouseEvent; // Convertir a MouseEvent
+        const newWidth = startWidth + (mouseEvent.pageX - startX);
+        header.style.width = newWidth + 'px';
+        
+        // Actualizar el <col> correspondiente en el <colgroup>
+        const colIndex = Array.from(header.parentElement!.children).indexOf(header);
+        const colGroup = header.closest('table')!.querySelector('colgroup');
+        if (colGroup && colGroup.children[colIndex]) {
+          (colGroup.children[colIndex] as HTMLElement).style.width = newWidth + 'px';
+        }
+      };
+  
+      const onMouseUp = (e: Event) => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
+  
+      resizer.addEventListener('mousedown', (e: Event) => {
+        const mouseEvent = e as MouseEvent; // Convertir a MouseEvent
+        startX = mouseEvent.pageX;
+        startWidth = header.offsetWidth;
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        e.preventDefault();
+      });
+    });
+  }
+  
+  
 
   @HostListener('window:resize', ['$event'])
   onResize(): void {
@@ -385,23 +426,25 @@ export class EstudiosComponent implements OnInit {
 
       for (let line of lines) {
         line = line.trim();
-        if (line.startsWith('author')) {
+        const lineLower = line.toLowerCase(); // Convertir a minúsculas para comparación
+
+        if (lineLower.startsWith('author')) {
           study.author = this.extractBibValue(line);
-        } else if (line.startsWith('booktitle')) {
+        } else if (lineLower.startsWith('booktitle')) {
           study.booktitle = this.extractBibValue(line);
-        } else if (line.startsWith('title')) {
+        } else if (lineLower.startsWith('title')) {
           study.title = this.extractBibValue(line);
-        } else if (line.startsWith('year')) {
+        } else if (lineLower.startsWith('year')) {
           study.year = this.extractBibValue(line);
-        } else if (line.startsWith('volume')) {
+        } else if (lineLower.startsWith('volume')) {
           study.volume = this.extractBibValue(line);
-        } else if (line.startsWith('number')) {
+        } else if (lineLower.startsWith('number')) {
           study.number = this.extractBibValue(line);
-        } else if (line.startsWith('pages')) {
+        } else if (lineLower.startsWith('pages')) {
           study.pages = this.extractBibValue(line);
-        } else if (line.startsWith('keywords')) {
+        } else if (lineLower.startsWith('keywords')) {
           study.keywords = this.extractBibValue(line);
-        } else if (line.startsWith('doi')) {
+        } else if (lineLower.startsWith('doi')) {
           study.doi = this.extractBibValue(line);
         }
       }
@@ -409,6 +452,7 @@ export class EstudiosComponent implements OnInit {
     }
     return entries;
   }
+
 
   // Función auxiliar para extraer valores en .bib
   extractBibValue(line: string): string {
@@ -642,13 +686,17 @@ export class EstudiosComponent implements OnInit {
 
   // (6) Seleccionar/deseleccionar todos
   toggleSelectAll(event: MouseEvent) {
-    this.allSelected = !this.allSelected;
+    this.allDisplayedSelected = !this.allDisplayedSelected; // Cambia el estado de selección de los estudios visibles
 
-    this.importedStudies.forEach(s => s.isSelected = this.allSelected);
+    // Solo se afecta a los estudios que están actualmente visibles en la tabla
+    this.displayedStudies.forEach(study => study.isSelected = this.allDisplayedSelected);
+
+    // Se actualiza el contador de seleccionados
     this.updateSelectedCount();
 
-    event.stopPropagation(); // Evita abrir modal
+    event.stopPropagation(); // Evita que el evento afecte a otros elementos como modales
   }
+
 
   // Actualiza el conteo
   updateSelectedCount() {
@@ -787,7 +835,8 @@ export class EstudiosComponent implements OnInit {
     const changes = { estado: study.status };
 
     const { data, error } = await this.authService.updateEstudio(study.id_estudios, changes);
-
+    // Para cada estudio aceptado, cargamos la evaluación guardada (si existe)
+    
     if (error) {
       console.error('Error al actualizar el estado:', error);
       // Podrías mostrar un SweetAlert2 o manejar el error como quieras
@@ -795,6 +844,41 @@ export class EstudiosComponent implements OnInit {
       // data contiene la fila o filas actualizadas
       console.log('Estado actualizado correctamente:', data);
     }
+
+    // Actualiza la lista de estudios aceptados para la segunda página
+    this.refreshAcceptedStudies();
+  }
+
+  refreshAcceptedStudies() {
+    // Suponiendo que 'importedStudies' es la lista completa de estudios,
+    // y que 'acceptedStudies' es la lista que se utiliza en la segunda página.
+    this.acceptedStudies = this.importedStudies
+      .filter(study => study.status === 'Aceptado')
+      .map(study => ({
+        titulo: study.title,
+        autores: study.author,
+        anio: parseInt(study.year) || 0,
+        revista: study.booktitle,
+        doi: study.doi,
+        id_detalles_revision: this.reviewId,
+        estado: study.status,
+        keywords: study.keywords,
+        fuente_bibliografica: study.database,
+        author_keywords: study.author_keywords,
+        bibtex_key: study.bibtex_key,
+        document_type: study.document_type,
+        paginas: study.pages,
+        volumen: study.volume,
+        url: study.url,
+        afiliacion: study.afiliacion,
+        publisher: study.publisher,
+        issn: study.issn,
+        language: study.language,
+        comentario: study.comentario,
+        resumen: study.resumen,
+        id_estudios: study.id_estudios,
+        url_pdf_articulo: study.url_pdf_articulo
+      }));
   }
 
   async deleteEstudio(id: number) {
@@ -1224,7 +1308,7 @@ export class EstudiosComponent implements OnInit {
       this.currentEvaluationSaved = false;
     }
   }
-  
+
 
   selectAnswer(idPregunta: number, answerObj: any): void {
     this.selectedAnswers[idPregunta] = answerObj.id_respuesta;
@@ -1318,7 +1402,7 @@ export class EstudiosComponent implements OnInit {
     // Solo cambia el estudio abierto sin alterar currentEvaluationSaved
     this.openedStudy = (this.openedStudy === study) ? null : study;
   }
-  
+
 
   cancelEvaluation(): void {
     this.openedStudy = null;
@@ -1343,14 +1427,14 @@ export class EstudiosComponent implements OnInit {
     }
     return study.savedEvaluation && this.qualityQuestions.every(question => !!study.savedEvaluation![question.id_pregunta]);
   }
-  
 
 
 
 
 
 
-  
+
+
 
 
 
