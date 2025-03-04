@@ -16,7 +16,6 @@ export class OpenAiService {
   private dataExtractionQuestionsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-data-extraction-questions';
   private introductionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-introduction';
 
-
   constructor(private http: HttpClient) { }
 
   getSuggestionFromChatGPT(
@@ -32,17 +31,17 @@ export class OpenAiService {
       description,
       ...extraFields
     };
-  
+
     // Agregar un console.log para ver qué datos enviamos
     //console.log('Enviando a /api/generate-objetive:', requestBody);
-  
+
     // Ahora sí hacemos la petición HTTP
     return this.http.post<any>(this.objetiveUrl, requestBody);
   }
 
   getMethodologyStructure(
-    title: string, 
-    methodology: string, 
+    title: string,
+    methodology: string,
     objective: string
   ): Observable<any> {
     return this.http.post<any>(this.methodologyUrl, { title, methodology, objective });
@@ -68,23 +67,12 @@ export class OpenAiService {
     return this.http.post<any>(this.generateKeywordsUrl, { methodologyData });
   }
 
-  getSearchString(keywords: KeywordRow[]): Observable<any> {
-    const transformedKeywords = keywords.map(item => {
-      const metodologiaLimpia = item.related && item.related.nombre 
-        ? item.related.nombre.replace(/\s*\(.*?\)/, "").trim() 
-        : '';
-      return {
-        palabra_clave: item.keyword,
-        metodologia: metodologiaLimpia,
-        sinonimos: Array.isArray(item.synonyms) ? item.synonyms.map(s => s.trim()) : []
-      };
-    });
-    
-    return this.http.post<any>(this.searchStringUrl, { keywords: transformedKeywords });
+  getSearchString(payload: { keywords: any[]; base: string; idioma: string }): Observable<any> {
+    return this.http.post<any>(this.searchStringUrl, payload);
   }
 
   generateCriteria(title: string, objective: string): Observable<any> {
-    
+
     return this.http.post<any>(this.criteriaUrl, { title, objective });
   }
 

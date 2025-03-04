@@ -147,7 +147,7 @@ export class DashboardComponent implements OnInit {
       // Actualizamos la lista y el contador
       await this.loadUserReviews();
       // userReviewCount se actualiza en loadUserReviews, por ejemplo:
-      // this.userReviewCount = this.userReviews.length;
+      this.userReviewCount = this.userReviews.length;      
     } catch (err) {
       console.error('Error inesperado:', err);
       Swal.fire({

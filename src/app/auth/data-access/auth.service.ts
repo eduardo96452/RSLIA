@@ -425,7 +425,6 @@ export class AuthService {
     return { error };
   }
 
-
   async countUserReviews(userId: string) {
     const { count, error } = await this._supabaseClient
       .from('detalles_revision') // Nombre de la tabla
@@ -607,7 +606,6 @@ export class AuthService {
     return data;
   }
 
-
   async updateReview(reviewId: string, updatedData: {
     titulo_revision: string;
     objetivo?: string;
@@ -634,7 +632,6 @@ export class AuthService {
     }
     return { data, error };
   }
-
 
   async updateReviewObjective(reviewId: string, newObjective: string) {
     const { data, error } = await this._supabaseClient
@@ -802,7 +799,6 @@ export class AuthService {
     }
   }
 
-
   async insertComponenteRevision(
     idRevision: string,
     idComponente: number,
@@ -967,18 +963,19 @@ export class AuthService {
     sinonimo: string,
     palabraClave: string,
     idDetallesRevision: string,
-    idseccioncomponente: string, // ID que usarás para buscar en componente_revision
-    seccionMetodologia: string,
+    idseccioncomponente: string, // este es el id_componente que usarás para buscar en componente_revision
     fechaIngreso?: string
   ): Promise<{ data?: any; error?: any }> {
     try {
-      // ===========================
-      // 0) Buscar el id_componente_revision 
-      //    usando el idseccionMetodologia que recibes
-      // ===========================
+      // ======================================================
+      // 0) Buscar el id_componente_revision
+      //    usando el idseccioncomponente que recibes.
+      //    Asumimos que tu tabla "componente_revision" 
+      //    tiene la columna "id_componente" para filtrar.
+      // ======================================================
       const { data: compRevData, error: compRevError } = await this._supabaseClient
         .from('componente_revision')
-        .select('id_componente_revision') // Ajusta si necesitas más columnas
+        .select('id_componente_revision')
         .eq('id_componente', idseccioncomponente)
         .single();
 
@@ -989,27 +986,26 @@ export class AuthService {
 
       if (!compRevData) {
         return {
-          error: new Error(`No se encontró un componente_revision con el ID`)
+          error: new Error(`No se encontró un componente_revision con id_componente = ${idseccioncomponente}`)
         };
       }
 
       const foundCompRevId = compRevData.id_componente_revision;
 
-      console.log(foundCompRevId);
-
-      // ===========================
-      // 1) Insertar primero el sinónimo en la tabla "sinonimos",
-      //    usando el foundCompRevId como id_componente_revision
-      // ===========================
+      // ======================================================
+      // 1) Insertar el sinónimo en la tabla "sinonimos".
+      //    (Si lo sigues necesitando en tu lógica.)
+      // ======================================================
       const { data: synData, error: synError } = await this._supabaseClient
         .from('sinonimos')
         .insert([
           {
+            // el campo "id_componente_revision" en "sinonimos"
             id_componente_revision: foundCompRevId,
             sinonimo: sinonimo
           }
         ])
-        .select(); // Para retornar el registro insertado (Supabase >= 2.0)
+        .select(); // Para retornar el registro insertado
 
       if (synError) {
         console.error('Error al insertar sinónimo:', synError);
@@ -1017,18 +1013,18 @@ export class AuthService {
       }
 
       if (!synData || synData.length === 0) {
-        // No se devolvió nada, algo falló
         return { error: new Error('No se pudo insertar el sinónimo.') };
       }
 
-      // Se toma el primer sinónimo insertado
+      // Obtenemos el sinónimo insertado
       const newSynonym = synData[0];
-      const newSynonymId = newSynonym.id_sinonimos;
+      const newSynonymId = newSynonym.id_sinonimos; // si la tabla "sinonimos" sigue manejando su PK "id_sinonimos"
 
-      // ===========================
-      // 2) Insertar ahora la palabra clave en la tabla "palabras_clave"
-      //    Usando el id_sinonimos recién obtenido
-      // ===========================
+      // ======================================================
+      // 2) Insertar la palabra clave en "palabras_clave"
+      //    Usando la nueva estructura sin 'seccion_metodologia' ni 'id_sinonimos'.
+      //    Ahora necesitamos pasar "id_componente_revision" = foundCompRevId
+      // ======================================================
       const { data: kwData, error: kwError } = await this._supabaseClient
         .from('palabras_clave')
         .insert([
@@ -1036,11 +1032,11 @@ export class AuthService {
             palabra_clave: palabraClave,
             fecha_ingreso: fechaIngreso || new Date().toISOString(),
             id_detalles_revision: idDetallesRevision,
-            seccion_metodologia: seccionMetodologia,
-            id_sinonimos: newSynonymId // Vincula este sinónimo en la palabra clave
+            id_componente_revision: foundCompRevId
+            // Se eliminan las columnas 'id_sinonimos' y 'seccion_metodologia'
           }
         ])
-        .select(); // Para obtener el registro creado
+        .select();
 
       if (kwError) {
         console.error('Error al insertar en palabras_clave:', kwError);
@@ -1064,191 +1060,146 @@ export class AuthService {
     }
   }
 
-  async getKeywordsAndSynonyms(reviewId: string): Promise<any[]> {
-    try {
-      // Ejemplo usando un JOIN (ajusta según tu estructura y relaciones en Supabase):
-      const { data, error } = await this._supabaseClient
-        .from('palabras_clave')
-        .select(`
-          *,
-          sinonimos:sinonimos!inner(*)
-        `)
-        .eq('id_detalles_revision', reviewId);
-
-      if (error) {
-        console.error('Error al cargar palabras clave y sinónimos:', error);
-        return [];
-      }
-
-      // data es un array donde, para cada palabra clave, el campo "sinonimos" es un array de registros
-      return data;
-    } catch (err) {
-      console.error('Error inesperado al cargar palabras clave y sinónimos:', err);
+  async getKeywordsAndSynonymsAdvanced(reviewId: string): Promise<any[]> {
+    const { data, error } = await this._supabaseClient
+      .from('palabras_clave')
+      .select(`
+        id_palabras_clave,
+        palabra_clave,
+        fecha_ingreso,
+        id_detalles_revision,
+        id_componente_revision,
+        componente_revision!left(
+          id_revision,
+          id_componente,
+          palabra_clave,
+          sinonimos!left(
+            id_sinonimos,
+            sinonimo
+          ),
+          componente!left(
+            id_componente,
+            nombre,
+            sigla,
+            descripcion,
+            id_metodologia
+          )
+        )
+      `)
+      .eq('id_detalles_revision', reviewId);
+  
+    if (error) {
+      console.error("Error al cargar palabras clave y sinónimos avanzados:", error);
       return [];
     }
-  }
-
-  async getIdComponenteFromSinonimos(id_sinonimos: string): Promise<number | null> {
-    try {
-      // Primera consulta: obtener el id_componente_revision desde la tabla "sinonimos"
-      const { data: sinonimosData, error: sinonimosError } = await this._supabaseClient
-        .from('sinonimos')
-        .select('id_componente_revision')
-        .eq('id_sinonimos', id_sinonimos)
-        .single();
-
-      if (sinonimosError || !sinonimosData) {
-        console.error('Error al obtener id_componente_revision desde sinonimos:', sinonimosError);
-        return null;
-      }
-
-      const id_componente_revision = sinonimosData.id_componente_revision;
-
-      // Segunda consulta: con el id_componente_revision, obtener el id_componente desde "componente_revision"
-      const { data: compRevData, error: compRevError } = await this._supabaseClient
-        .from('componente_revision')
-        .select('id_componente')
-        .eq('id_componente_revision', id_componente_revision)
-        .single();
-
-      if (compRevError || !compRevData) {
-        console.error('Error al obtener id_componente desde componente_revision:', compRevError);
-        return null;
-      }
-
-      return compRevData.id_componente;
-    } catch (err) {
-      console.error('Error inesperado en getIdComponenteFromSinonimos:', err);
-      return null;
-    }
+    return data;
   }
 
   async updateSynonymThenKeyword(
-    idSinonimos: string,
-    idPalabrasClave: string,
+    idPalabraClave: number,
+    idSinonimos: number,  // Nuevo parámetro para el id_sinonimos
     sinonimo: string,
     palabraClave: string,
     idDetallesRevision: string,
-    idseccioncomponente: string,
-    seccionMetodologia: string,
-    fechaIngreso?: string
+    idseccioncomponente: string, // Usado para buscar en componente_revision
+    fechaIngreso: string
   ): Promise<{ data?: any; error?: any }> {
     try {
-      // ===========================
-      // 0) Buscar el id_componente_revision 
-      //    usando el idseccionMetodologia que recibes
-      // ===========================
+      // ======================================================
+      // 0) Buscar el id_componente_revision usando el idseccioncomponente
+      // ======================================================
       const { data: compRevData, error: compRevError } = await this._supabaseClient
         .from('componente_revision')
-        .select('id_componente_revision') // Ajusta si necesitas más columnas
+        .select('id_componente_revision')
         .eq('id_componente', idseccioncomponente)
         .single();
-
+  
       if (compRevError) {
         console.error('Error al buscar componente_revision:', compRevError);
         return { error: compRevError };
       }
-
       if (!compRevData) {
-        return {
-          error: new Error(`No se encontró un componente_revision con el ID`)
-        };
+        return { error: new Error('No se encontró un componente_revision con el id proporcionado.') };
       }
-
       const foundCompRevId = compRevData.id_componente_revision;
-
-      console.log("Este es el id de contexto en la base de datos", foundCompRevId);
-
-      // ===========================
-      // 1) Actualizar el registro en la tabla "sinonimos"
-      // ===========================
-      const { data: synData, error: synError } = await this._supabaseClient
+  
+      // ======================================================
+      // 1) Actualizar el sinónimo en la tabla "sinonimos" usando el id_sinonimos
+      // ======================================================
+      const { data: updateSynData, error: updateSynError } = await this._supabaseClient
         .from('sinonimos')
         .update({
           sinonimo: sinonimo,
-          // Actualiza también el id_componente_revision si lo requieres:
           id_componente_revision: foundCompRevId
         })
         .eq('id_sinonimos', idSinonimos)
-        .select();
-
-      if (synError) {
-        console.error('Error al actualizar sinónimo:', synError);
-        return { error: synError };
+        .single();
+  
+      if (updateSynError) {
+        console.error('Error al actualizar sinonimos:', updateSynError);
+        return { error: updateSynError };
       }
-
-      // ===========================
-      // 2) Actualizar el registro en la tabla "palabras_clave"
-      // ===========================
-      const { data: kwData, error: kwError } = await this._supabaseClient
+  
+      // ======================================================
+      // 2) Actualizar la palabra clave en la tabla "palabras_clave"
+      // ======================================================
+      const { data: updateKwData, error: updateKwError } = await this._supabaseClient
         .from('palabras_clave')
         .update({
           palabra_clave: palabraClave,
-          fecha_ingreso: fechaIngreso || new Date().toISOString(),
+          fecha_ingreso: fechaIngreso,
           id_detalles_revision: idDetallesRevision,
-          seccion_metodologia: seccionMetodologia
-          // No es necesario actualizar id_sinonimos si ya está vinculado
+          id_componente_revision: foundCompRevId
         })
-        .eq('id_palabras_clave', idPalabrasClave)
-        .select();
-
-      if (kwError) {
-        console.error('Error al actualizar palabra clave:', kwError);
-        return { error: kwError };
+        .eq('id_palabras_clave', idPalabraClave)
+        .single();
+  
+      if (updateKwError) {
+        console.error('Error al actualizar palabra clave:', updateKwError);
+        return { error: updateKwError };
       }
-
-      return {
-        data: {
-          synonym: synData,
-          keyword: kwData
-        }
-      };
-
+  
+      return { data: { synonym: updateSynData, keyword: updateKwData } };
     } catch (err) {
       console.error('Error inesperado al actualizar sinónimo y palabra clave:', err);
       return { error: err };
     }
   }
-
-  async deleteSynonym(idSinonimos: string): Promise<{ error?: any }> {
-    try {
-      const { error } = await this._supabaseClient
-        .from('sinonimos')
-        .delete()
-        .eq('id_sinonimos', idSinonimos);
-      return { error };
-    } catch (err) {
-      console.error('Error inesperado al eliminar el sinónimo:', err);
-      return { error: err };
+  
+  async deleteKeyword(idPalabrasClave: number, idSinonimos: number): Promise<{ data: any; error: any }> {
+    // Primero eliminamos los sinónimos asociados al componente
+    const { data: synData, error: synError } = await this._supabaseClient
+      .from('sinonimos')
+      .delete()
+      .eq('id_sinonimos', idSinonimos);
+      
+    if (synError) {
+      console.error('Error al eliminar sinónimos:', synError);
+      return { data: null, error: synError };
     }
-  }
-
-  async deleteKeyword(idPalabrasClave: number): Promise<{ data: any; error: any }> {
+    
+    // Luego eliminamos la palabra clave
     const { data, error } = await this._supabaseClient
       .from('palabras_clave')
       .delete()
       .eq('id_palabras_clave', idPalabrasClave);
-
+      
     if (error) {
-      console.error('Error al eliminar la palabra clave:', error.message);
+      console.error('Error al eliminar palabra clave:', error);
     }
+    
     return { data, error };
   }
 
-  async insertarCadenaBusqueda(cadenaBusqueda: string, idDetallesRevision: string) {
-    // La columna "fecha_creacion" puede ser un default en la BD
+  async actualizarCadenaBusqueda(cadenaBusqueda: string, idDetallesRevision: string) {
+    // Actualiza el registro existente filtrando por id_detalles_revision
     const { data, error } = await this._supabaseClient
       .from('cadenas_busqueda')
-      .insert([
-        {
-          cadena_busqueda: cadenaBusqueda,
-          id_detalles_revision: idDetallesRevision
-          // fecha_creacion: se asigna automáticamente si la BD tiene DEFAULT CURRENT_TIMESTAMP
-        }
-      ]);
-
+      .update({ cadena_busqueda: cadenaBusqueda })
+      .eq('id_detalles_revision', idDetallesRevision);
+      
     if (error) {
-      console.error('Error al insertar cadena de búsqueda:', error.message);
+      console.error('Error al actualizar cadena de búsqueda:', error.message);
     }
     return { data, error };
   }
@@ -2184,93 +2135,93 @@ export class AuthService {
   }
 
   // auth.service.ts
-async getExtractionFields(id_revision: string) {
-  const { data, error } = await this._supabaseClient
-    .from('campos_extraccion')
-    .select('*')
-    .eq('id_revision', id_revision)
-    .order('orden', { ascending: true });
-  return { data, error };
-}
-
-// auth.service.ts
-async saveExtractionResponses(responses: any[]): Promise<{ data: any; error: any }> {
-  const { data, error } = await this._supabaseClient
-    .from('respuestas_extraccion')
-    .insert(responses);
-  return { data, error };
-}
-
-// auth.service.ts
-async getExtractionStatusForStudies(studyIds: number[]): Promise<{ [key: number]: boolean }> {
-  // Se consulta la tabla "respuestas_extraccion" para traer registros con done=true para los estudios indicados.
-  const { data, error } = await this._supabaseClient
-    .from('respuestas_extraccion')
-    .select('id_estudios, done')
-    .in('id_estudios', studyIds)
-    .eq('done', true);
-
-  if (error) {
-    console.error('Error al obtener el estado de extracción:', error);
-    return {};
+  async getExtractionFields(id_revision: string) {
+    const { data, error } = await this._supabaseClient
+      .from('campos_extraccion')
+      .select('*')
+      .eq('id_revision', id_revision)
+      .order('orden', { ascending: true });
+    return { data, error };
   }
 
-  const statusMap: { [key: number]: boolean } = {};
-  // Si existe al menos un registro con done=true para un estudio, se marca como hecho.
-  data.forEach((record: any) => {
-    statusMap[record.id_estudios] = true;
-  });
-  return statusMap;
-}
-
-async getExtractionResponsesForStudies(studyIds: number[]): Promise<{ data: any; error: any }> {
-  const { data, error } = await this._supabaseClient
-    .from('respuestas_extraccion')
-    .select('*')
-    .in('id_estudios', studyIds);
-  return { data, error };
-}
-
-async saveSectionDraft(sectionData: {
-  id_detalles_revision: string;
-  introduccion?: string;
-  trabajos_relacionados?: string;
-  metodologia?: string;
-  resultados?: string;
-  discusion?: string;
-  limitaciones?: string;
-  conclusion?: string;
-  referencias?: string;
-}): Promise<{ data: any; error: any }> {
-  // Se agrega la fecha de ingreso para el registro
-  const payload = {
-    ...sectionData,
-    fecha_ingreso: new Date().toISOString()
-  };
-
-  // Se envuelve payload en un array y se utiliza onConflict para identificar la fila
-  const { data, error } = await this._supabaseClient
-    .from('secciones_revision')
-    .upsert([payload], { onConflict: 'id_detalles_revision' });
-
-  if (error) {
-    console.error('Error guardando el borrador de sección:', error);
+  // auth.service.ts
+  async saveExtractionResponses(responses: any[]): Promise<{ data: any; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('respuestas_extraccion')
+      .insert(responses);
+    return { data, error };
   }
 
-  return { data, error };
-}
+  // auth.service.ts
+  async getExtractionStatusForStudies(studyIds: number[]): Promise<{ [key: number]: boolean }> {
+    // Se consulta la tabla "respuestas_extraccion" para traer registros con done=true para los estudios indicados.
+    const { data, error } = await this._supabaseClient
+      .from('respuestas_extraccion')
+      .select('id_estudios, done')
+      .in('id_estudios', studyIds)
+      .eq('done', true);
 
-async getSectionDraft(id_detalles_revision: string): Promise<{ data: any; error: any }> {
-  const { data, error } = await this._supabaseClient
-    .from('secciones_revision')
-    .select('*')
-    .eq('id_detalles_revision', id_detalles_revision)
-    .single();
-  if (error) {
-    console.error('Error al obtener el borrador de sección:', error);
+    if (error) {
+      console.error('Error al obtener el estado de extracción:', error);
+      return {};
+    }
+
+    const statusMap: { [key: number]: boolean } = {};
+    // Si existe al menos un registro con done=true para un estudio, se marca como hecho.
+    data.forEach((record: any) => {
+      statusMap[record.id_estudios] = true;
+    });
+    return statusMap;
   }
-  return { data, error };
-}
+
+  async getExtractionResponsesForStudies(studyIds: number[]): Promise<{ data: any; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('respuestas_extraccion')
+      .select('*')
+      .in('id_estudios', studyIds);
+    return { data, error };
+  }
+
+  async saveSectionDraft(sectionData: {
+    id_detalles_revision: string;
+    introduccion?: string;
+    trabajos_relacionados?: string;
+    metodologia?: string;
+    resultados?: string;
+    discusion?: string;
+    limitaciones?: string;
+    conclusion?: string;
+    referencias?: string;
+  }): Promise<{ data: any; error: any }> {
+    // Se agrega la fecha de ingreso para el registro
+    const payload = {
+      ...sectionData,
+      fecha_ingreso: new Date().toISOString()
+    };
+
+    // Se envuelve payload en un array y se utiliza onConflict para identificar la fila
+    const { data, error } = await this._supabaseClient
+      .from('secciones_revision')
+      .upsert([payload], { onConflict: 'id_detalles_revision' });
+
+    if (error) {
+      console.error('Error guardando el borrador de sección:', error);
+    }
+
+    return { data, error };
+  }
+
+  async getSectionDraft(id_detalles_revision: string): Promise<{ data: any; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('secciones_revision')
+      .select('*')
+      .eq('id_detalles_revision', id_detalles_revision)
+      .single();
+    if (error) {
+      console.error('Error al obtener el borrador de sección:', error);
+    }
+    return { data, error };
+  }
 
 
 
