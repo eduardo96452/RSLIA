@@ -16,6 +16,7 @@ import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.
 import { EstudiosComponent } from './seccion-segunda/estudios/estudios.component';
 import { ExtraccionDatosComponent } from './seccion-tercera/extraccion-datos/extraccion-datos.component';
 import { InformesComponent } from './seccion-cuarta/informes/informes.component';
+import { PrismaComponent } from './seccion-quinta/prisma/prisma.component';
 
 
 export const routes: Routes = [
@@ -73,6 +74,10 @@ export const routes: Routes = [
   },
   {
     path: 'informes', component: InformesComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'prisma', component: PrismaComponent,
     canActivate: [AuthGuard]
   },
   {

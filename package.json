@@ -28,6 +28,7 @@
     "chart.js": "^4.4.7",
     "cytoscape": "^3.31.0",
     "date-fns": "^4.1.0",
+    "docx": "^9.2.0",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "firebase": "^11.1.0",

@@ -1,0 +1,91 @@
+.panel-container {
+    overflow: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    position: relative;
+    left: 50px;
+    top: 50px;
+  }
+  
+  .node {
+    display: inline-block;
+    padding: 10px;
+    border: 1px solid #000;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  
+  .horizontal-node {
+    background-color: #d1ecf1;
+  }
+  
+  .vertical-node {
+    background-color: #f8d7da;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .additional-vertical {
+    /* Estilos adicionales si es necesario para el nodo vertical extra */
+    margin-top: 20px;
+  }
+  
+  .editable {
+    outline: none;
+  }
+  
+  .no-edit {
+    user-select: none;
+    pointer-events: none;
+  }
+  
+  .connection-svg {
+    top: 0;
+    left: 0;
+    z-index: -1;
+  }
+  
+  .locked {
+    pointer-events: none;
+  }
+  
+  
+  @media (min-height: 992px) {
+    #cy {
+      height: 500px !important;
+    }
+  }
+  
+  /* Ancho para pantallas medianas y menores */
+  @media (max-height: 991.98px) {
+    #cy {
+      height: 420px !important;
+    }
+  }
+  .floating-menu {
+    width: 200px;
+  }
+  
+  .menu-item {
+    padding: 10px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  
+  .menu-item.active {
+    background-color: #f8f9fa;
+    border-color: #007bff;
+    font-weight: bold;
+  }
+  
+  .menu-item:hover {
+    background-color: #f1f1f1;
+  }
+  
+  @media (max-width: 576px) {
+    .floating-menu {
+      width: 100%;
+    }
+  }

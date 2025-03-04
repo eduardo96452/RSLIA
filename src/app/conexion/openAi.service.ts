@@ -14,6 +14,8 @@ export class OpenAiService {
   private searchStringUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-search-string';
   private criteriaUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-criteria';
   private dataExtractionQuestionsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-data-extraction-questions';
+  private introductionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-introduction';
+
 
   constructor(private http: HttpClient) { }
 
@@ -61,7 +63,6 @@ export class OpenAiService {
       tipoInvestigacion
     });
   }
-  
 
   generateKeywords(methodologyData: any): Observable<any> {
     return this.http.post<any>(this.generateKeywordsUrl, { methodologyData });
@@ -94,5 +95,15 @@ export class OpenAiService {
   ): Observable<any> {
     const body = { title, objective, numberOfQuestions };
     return this.http.post<any>(this.dataExtractionQuestionsUrl, body);
+  }
+
+  generateIntroduction(data: {
+    title: string;
+    description: string;
+    objective: string;
+    area_conocimiento?: string;
+    tipo_investigacion?: string;
+  }) {
+    return this.http.post<any>(this.introductionUrl, data);
   }
 }

@@ -253,7 +253,7 @@ export class ExtraccionDatosComponent implements OnInit {
     // 3. Construir la lista de columnas (encabezados) para la tabla
     //    La primera columna será "article" (o "Título del Estudio"),
     //    y las siguientes serán cada pregunta de extracción.
-    const columns = ['article', ...this.extractionFields.map(f => f.descripcion)];
+    const columns = ['Articulo', ...this.extractionFields.map(f => f.descripcion)];
 
     // 4. Agregar la primera fila con un TÍTULO unificado
     //    (fila 1 en Excel, índice 0 internamente)
@@ -310,5 +310,12 @@ export class ExtraccionDatosComponent implements OnInit {
       const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       saveAs(blob, 'Mi_Revision_Extraccion.xlsx'); // Nombre personalizado
     }).catch(err => console.error('Error al generar Excel:', err));
+  }
+
+  generateAISuggestions(): void {
+    // Aquí implementa la lógica para generar sugerencias de IA para cada estudio
+    // Por ejemplo, podrías iterar sobre this.acceptedStudiesThreshold y enviar los títulos a un servicio de IA
+    console.log("Generar sugerencia de IA para todos los artículos.");
+    // Implementa la llamada a tu servicio de IA, muestra un SweetAlert o actualiza la interfaz según necesites.
   }
 }

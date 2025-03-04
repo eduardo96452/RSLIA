@@ -121,3 +121,9 @@ th .resizer {
   height: 100%;
   z-index: 2;
 }
+
+@media (max-width: 576px) {
+  .floating-menu {
+    width: 100%;
+  }
+}

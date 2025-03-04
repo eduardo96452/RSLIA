@@ -83,3 +83,9 @@
 .menu-item:hover {
   background-color: #f1f1f1;
 }
+
+@media (max-width: 576px) {
+  .floating-menu {
+    width: 100%;
+  }
+}

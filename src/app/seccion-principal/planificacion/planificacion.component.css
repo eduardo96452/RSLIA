@@ -70,3 +70,8 @@
 }
 
 
+@media (max-width: 576px) {
+  .floating-menu {
+    width: 100%;
+  }
+}

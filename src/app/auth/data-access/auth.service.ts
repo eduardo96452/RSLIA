@@ -2231,6 +2231,46 @@ async getExtractionResponsesForStudies(studyIds: number[]): Promise<{ data: any;
   return { data, error };
 }
 
+async saveSectionDraft(sectionData: {
+  id_detalles_revision: string;
+  introduccion?: string;
+  trabajos_relacionados?: string;
+  metodologia?: string;
+  resultados?: string;
+  discusion?: string;
+  limitaciones?: string;
+  conclusion?: string;
+  referencias?: string;
+}): Promise<{ data: any; error: any }> {
+  // Se agrega la fecha de ingreso para el registro
+  const payload = {
+    ...sectionData,
+    fecha_ingreso: new Date().toISOString()
+  };
+
+  // Se envuelve payload en un array y se utiliza onConflict para identificar la fila
+  const { data, error } = await this._supabaseClient
+    .from('secciones_revision')
+    .upsert([payload], { onConflict: 'id_detalles_revision' });
+
+  if (error) {
+    console.error('Error guardando el borrador de sección:', error);
+  }
+
+  return { data, error };
+}
+
+async getSectionDraft(id_detalles_revision: string): Promise<{ data: any; error: any }> {
+  const { data, error } = await this._supabaseClient
+    .from('secciones_revision')
+    .select('*')
+    .eq('id_detalles_revision', id_detalles_revision)
+    .single();
+  if (error) {
+    console.error('Error al obtener el borrador de sección:', error);
+  }
+  return { data, error };
+}
 
 
 

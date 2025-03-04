@@ -1,1 +1,100 @@
-<p>prisma works!</p>
+<main>
+    <div>
+        <div [ngClass]="{
+          'px-5': isLargeScreen,
+          'container': !isLargeScreen
+        }">
+            <div class="row align-items-start">
+                <div class="col-md-12">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <div class="row">
+                                <div>
+                                    <li class="breadcrumb-item" aria-current="page">
+                                        {{reviewData.titulo_revision}}</li>
+                                </div>
+                            </div>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-12 col-md-2">
+                    <div class="d-flex">
+                        <div class="floating-menu">
+                            <!-- Descripción general -->
+                            <div class="menu-item" [routerLink]="['/detalle_revision']"
+                                [queryParams]="{ id: reviewId }">
+                                Descripción general
+                            </div>
+                            <!-- Planificación -->
+                            <div class="menu-item" [routerLink]="['/planificacion']" [queryParams]="{ id: reviewId }">
+                                Planificación
+                            </div>
+                            <!-- Revisión de datos -->
+                            <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
+                                Revisión de datos
+                            </div>
+                            <!-- Extracción de datos -->
+                            <div class="menu-item" [routerLink]="['/extraccion_datos']"
+                                [queryParams]="{ id: reviewId }">
+                                Extracción de datos
+                            </div>
+                            <!-- Proyección de borrador de artículo -->
+                            <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
+                                Proyección de artículo
+                            </div>
+                            <!-- Diagrama de Flujo PRISMA -->
+                            <div class="menu-item active" [routerLink]="['/prisma']" [queryParams]="{ id: reviewId }">
+                                Diagrama de Flujo PRISMA
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                </div>
+
+
+                <div class="col col-sm col-md-10">
+                    <!-- Contenedor flex para distribuir los botones -->
+                    <div class="d-flex justify-content-between align-items-center mb-2" style="width: 100%;">
+
+                        <!-- Grupo de botones de zoom (alineado a la izquierda) -->
+                        <div class="btn-group">
+                            <button class="btn btn-primary" (click)="zoomIn()">
+                                <i class="bi bi-zoom-in"></i>
+                            </button>
+                            <button class="btn btn-primary" (click)="zoomOut()">
+                                <i class="bi bi-zoom-out"></i>
+                            </button>
+                        </div>
+
+                        <!-- Botón de centrar (en el centro) -->
+                        <div class="btn-group">
+                            <button class="btn btn-info" (click)="centerAndUnlock()">
+                                <i class="bi bi-arrows-fullscreen"></i>
+                            </button>
+                        </div>
+
+                        <!-- Grupo de botones de descarga (alineado a la derecha) -->
+                        <div class="btn-group">
+                            <button class="btn btn-secondary" (click)="downloadPNG()">
+                                <i class="bi bi-cloud-download"></i>&nbsp;&nbsp;
+                                <i class="bi bi-file-earmark-image-fill"></i>
+                            </button>
+                            <button class="btn btn-secondary" (click)="downloadPDF()">
+                                <i class="bi bi-cloud-download"></i>&nbsp;&nbsp;
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Contenedor Cytoscape responsivo -->
+                    <div id="cy"
+                        style="width: 100%; height: calc(100% - 70px); border: 1px solid #ccc; position: relative;">
+                        <!-- Contenido de Cytoscape aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

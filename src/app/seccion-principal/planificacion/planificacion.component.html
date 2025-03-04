@@ -20,41 +20,38 @@
             </div>
             <br>
             <div class="row">
-
-                <div class="col col-sm col-md-2">
+                <div class="col-12 col-md-2">
                     <div class="d-flex">
-                        <div class="floating-menu">
-                            <!-- Descripción general -->
-                            <div class="menu-item " [routerLink]="['/detalle_revision']"
-                                [queryParams]="{ id: reviewId }">
-                                Descripción general
-                            </div>
-
-                            <!-- Planificación -->
-                            <div class="menu-item active" [routerLink]="['/planificacion']"
-                                [queryParams]="{ id: reviewId }">
-                                Planificación
-                            </div>
-
-                            <!-- Revisión de datos -->
-                            <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
-                                Revisión de datos
-                            </div>
-
-                            <!-- Extracción de datos -->
-                            <div class="menu-item" [routerLink]="['/extraccion_datos']"
-                                [queryParams]="{ id: reviewId }">
-                                Extracción de datos
-                            </div>
-
-                            <!-- Proyección de informes -->
-                            <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
-                                Proyección de informes
-                            </div>
+                      <div class="floating-menu">
+                        <!-- Descripción general -->
+                        <div class="menu-item" [routerLink]="['/detalle_revision']" [queryParams]="{ id: reviewId }">
+                          Descripción general
                         </div>
+                        <!-- Planificación -->
+                        <div class="menu-item active" [routerLink]="['/planificacion']" [queryParams]="{ id: reviewId }">
+                          Planificación
+                        </div>
+                        <!-- Revisión de datos -->
+                        <div class="menu-item" [routerLink]="['/estudios']" [queryParams]="{ id: reviewId }">
+                          Revisión de datos
+                        </div>
+                        <!-- Extracción de datos -->
+                        <div class="menu-item" [routerLink]="['/extraccion_datos']" [queryParams]="{ id: reviewId }">
+                          Extracción de datos
+                        </div>
+                        <!-- Proyección de borrador de artículo -->
+                        <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
+                          Proyección de artículo
+                        </div>
+                        <!-- Diagrama de Flujo PRISMA -->
+                        <div class="menu-item" [routerLink]="['/prisma']" [queryParams]="{ id: reviewId }">
+                          Diagrama de Flujo PRISMA
+                        </div>
+                      </div>
                     </div>
                     <br />
-                </div>
+                  </div>
+                  
 
                 <div class="col col-sm col-md-10">
                     <div class="card">
@@ -138,7 +135,7 @@
                                                             <button class="btn btn-info align-self-start" type="button"
                                                                 (click)="getIaSuggestion()"
                                                                 onclick="event.stopPropagation();">
-                                                                <i class="bi bi-lightbulb"></i>&nbsp; Generar objetivo
+                                                                <i class="bi bi-robot"></i>&nbsp; Generar objetivo
                                                                 con IA
                                                             </button>
                                                         </div>
@@ -217,7 +214,7 @@
                                                                         <div class="col text-end">
                                                                             <button class="btn btn-info" type="button"
                                                                                 (click)="generateMethodologyStructure()">
-                                                                                <i class="bi bi-lightbulb"></i> &nbsp;
+                                                                                <i class="bi bi-robot"></i> &nbsp;
                                                                                 Generar {{paginaSeleccionada}} con IA
                                                                             </button>
                                                                         </div>
@@ -293,7 +290,7 @@
                                                                         <div class="col text-end">
                                                                             <button class="btn btn-info" type="button"
                                                                                 (click)="generateMethodologyStructure()">
-                                                                                <i class="bi bi-lightbulb"></i>
+                                                                                <i class="bi bi-robot"></i>
                                                                                 &nbsp; Generar {{paginaSeleccionada}}
                                                                                 con IA
                                                                             </button>
@@ -380,7 +377,7 @@
                                                                         <div class="col text-end">
                                                                             <button class="btn btn-info" type="button"
                                                                                 (click)="generateMethodologyStructure()">
-                                                                                <i class="bi bi-lightbulb"></i>
+                                                                                <i class="bi bi-robot"></i>
                                                                                 &nbsp; Generar {{paginaSeleccionada}}
                                                                                 con IA
                                                                             </button>
@@ -477,7 +474,7 @@
                                                                         <div class="col text-end">
                                                                             <button class="btn btn-info" type="button"
                                                                                 (click)="generateMethodologyStructure()">
-                                                                                <i class="bi bi-lightbulb"></i>
+                                                                                <i class="bi bi-robot"></i>
                                                                                 &nbsp; Generar {{paginaSeleccionada}}
                                                                                 con IA
                                                                             </button>
@@ -588,7 +585,7 @@
                                                             <!-- Botón Sugerencia IA alineado a la izquierda -->
                                                             <button class="btn btn-info" type="button"
                                                                 (click)="generateResearchQuestions()">
-                                                                <i class="bi bi-lightbulb"></i>&nbsp; Generar
+                                                                <i class="bi bi-robot"></i>&nbsp; Generar
                                                                 pregunta
                                                                 con IA
                                                             </button>
@@ -684,7 +681,7 @@
                                                             <!-- Botón Sugerencia IA alineado a la izquierda -->
                                                             <button class="btn btn-info" type="button"
                                                                 (click)="generateKeywords()">
-                                                                <i class="bi bi-lightbulb"></i>&nbsp; Generar sinonimos
+                                                                <i class="bi bi-robot"></i>&nbsp; Generar sinonimos
                                                                 con IA
                                                             </button>
                                                         </div>
@@ -825,7 +822,7 @@
                                                             <!-- Botón de Sugerencia IA en la fila superior -->
                                                             <button class="btn btn-info" type="button"
                                                                 (click)="generateSearchString()">
-                                                                <i class="bi bi-lightbulb"></i>&nbsp; Generar cadena
+                                                                <i class="bi bi-robot"></i>&nbsp; Generar cadena
                                                                 con IA
                                                             </button>
                                                         </div>
@@ -993,7 +990,7 @@
                                                             <!-- Botón de Sugerencia IA en la fila superior -->
                                                             <button class="btn btn-info" type="button"
                                                                 (click)="generateCriteriaFromAI()">
-                                                                <i class="bi bi-lightbulb"></i>&nbsp; Generar criterios
+                                                                <i class="bi bi-robot"></i>&nbsp; Generar criterios
                                                                 con IA
                                                             </button>
                                                         </div>
@@ -1383,7 +1380,7 @@
                                                         <!-- Botón de Sugerencia IA en la fila superior -->
                                                         <button class="btn btn-info align-self-start" type="button"
                                                             (click)="onGenerateQuestions()">
-                                                            <i class="bi bi-lightbulb"></i>&nbsp; Generar las preguntas
+                                                            <i class="bi bi-robot"></i>&nbsp; Generar las preguntas
                                                             con IA
                                                         </button>
                                                     </div>
