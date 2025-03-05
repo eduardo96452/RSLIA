@@ -451,6 +451,8 @@ export class PlanificacionComponent implements OnInit {
         }
       }
 
+      this.loadComponentsForSelect();
+
       Swal.fire({
         icon: 'success',
         title: 'Guardado',
