@@ -2,10 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { User } from '../../modelo/usuario.model';
 import { AuthService } from '../data-access/auth.service';
 import { SignUpWithPasswordCredentials } from '@supabase/supabase-js';
 import Swal from 'sweetalert2';
+import { environment } from '../../../environments/environment';
 
 
 @Component({
@@ -29,46 +31,93 @@ export class AuthSignUpComponent {
     specialChar: false,
   };
 
-  constructor(private _authService: AuthService, private router: Router) { }
+  // Variables para errores en el formulario
+  emailError: string = '';
+  otherErrors: string[] = [];
+  readonly myApiKey = environment.verificEmailApiKey;
 
+  constructor(private _authService: AuthService, private router: Router, private http: HttpClient) { }
+
+  // Función para validar el correo usando una API externa gratuita (ej. Mailboxlayer)
+  async validateEmailApi(email: string): Promise<{ valid: boolean, info: string }> {
+    const apiKey = this.myApiKey;
+    const url = `https://apilayer.net/api/check?access_key=${apiKey}&email=${encodeURIComponent(email)}`;
+    try {
+      const result: any = await this.http.get(url).toPromise();
+      // Ejemplo de validación: consideramos válido si el formato es correcto y se encontró un MX.
+      const valid = result.format_valid && result.mx_found;
+      return { valid, info: result.error ? result.error.info : '' };
+    } catch (err) {
+      console.error('Error al validar el correo:', err);
+      return { valid: false, info: 'Error al validar el correo' };
+    }
+  }
+
+  // Método para verificar si el correo ya existe en la base de datos
+  async emailAlreadyExists(email: string): Promise<boolean> {
+    const exists = await this._authService.verifyEmailExists(email); // Implementa este método en tu servicio
+    return exists;
+  }
+
+  // Función que se llama al enviar el formulario
   async handleEmailSignup() {
-    // 1. Validar campos básicos
-    if (!this.name || !this.email || !this.password) {
+    this.otherErrors = [];
+    this.emailError = '';
+
+    // Verificar que se hayan llenado los campos básicos
+    if (!this.name.trim() || !this.email.trim() || !this.password.trim()) {
       Swal.fire({
         icon: 'warning',
         title: 'Campos incompletos',
-        text: 'Por favor completa todos los campos.',
+        text: 'Por favor, completa todos los campos.'
       });
       return;
     }
-  
-    // 2. Validar políticas de contraseña
-    // (Asegúrate de haber llamado a checkPasswordPolicy() en (input) de tu password
-    // para que se actualicen las políticas cada vez que se escribe)
+
+    // Validar las políticas de contraseña
     if (!this.allPoliciesMet()) {
       Swal.fire({
         icon: 'error',
         title: 'Políticas de contraseña',
-        text: 'La contraseña no cumple con todas las políticas requeridas.',
+        text: 'La contraseña no cumple con todas las políticas requeridas.'
       });
       return;
     }
-  
+
+    // Validar el formato del correo mediante la API externa
+    const emailValidation = await this.validateEmailApi(this.email);
+    if (!emailValidation.valid) {
+      this.emailError = 'El correo ingresado no es válido: ' + emailValidation.info;
+      Swal.fire({
+        icon: 'error',
+        title: 'Correo inválido',
+        text: this.emailError
+      });
+      return;
+    }
+
+    // Verificar si el correo ya está registrado
+    if (await this.emailAlreadyExists(this.email)) {
+      this.emailError = 'El correo ya está registrado. Por favor, utiliza otro.';
+      Swal.fire({
+        icon: 'error',
+        title: 'Correo duplicado',
+        text: this.emailError
+      });
+      return;
+    }
+
+    // Si todo está correcto, procede con el registro
     try {
-      // 3. Configura las credenciales para el registro en Supabase
       const credentials: SignUpWithPasswordCredentials = {
         email: this.email,
         password: this.password,
         options: {
-          data: {
-            name: this.name
-          }
+          data: { name: this.name }
         }
       };
-  
-      // 4. Realiza el registro en Auth
+
       const { data: authData, error: authError } = await this._authService.signUp(credentials);
-  
       if (authError) {
         console.error('Error en el registro:', authError.message);
         Swal.fire({
@@ -78,18 +127,15 @@ export class AuthSignUpComponent {
         });
         return;
       }
-  
-      // 5. Si se creó el usuario correctamente, guardamos en la DB
+
       if (authData?.user) {
-        const id_usuario = authData.user.id; // UID en Supabase
-  
+        const id_usuario = authData.user.id;
         const { error: dbError } = await this._authService.addUserToDatabase(
           id_usuario,
           this.name,
           this.email,
           this.password
         );
-  
         if (dbError) {
           console.error('Error al guardar el usuario en la base de datos:', dbError.message);
           Swal.fire({
@@ -99,8 +145,7 @@ export class AuthSignUpComponent {
           });
           return;
         }
-  
-        // 6. Guarda la UID en localStorage y redirige
+
         localStorage.setItem('session_ID', id_usuario);
         Swal.fire({
           icon: 'success',
@@ -118,20 +163,12 @@ export class AuthSignUpComponent {
         text: 'Por favor, inténtalo nuevamente.',
       });
     }
-  }  
-
-  handleGoogleSignup() {
-    // TODO: Implement Google signup
-    console.log('Registro con Google iniciado.');
-    // For now, just show a success message
-    alert('¡Registro con Google exitoso!');
   }
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
 
-  // Verificar políticas de contraseña conforme el usuario escribe
   checkPasswordPolicy(): void {
     const pwd = this.password || '';
     this.policyChecks.minLength = pwd.length >= 8;
@@ -140,7 +177,6 @@ export class AuthSignUpComponent {
     this.policyChecks.specialChar = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
   }
 
-  // Validar que todas las políticas se cumplan
   allPoliciesMet(): boolean {
     return (
       this.policyChecks.minLength &&
@@ -148,5 +184,12 @@ export class AuthSignUpComponent {
       this.policyChecks.number &&
       this.policyChecks.specialChar
     );
+  }
+
+  handleGoogleSignup() {
+    // TODO: Implement Google signup
+    console.log('Registro con Google iniciado.');
+    // For now, just show a success message
+    alert('¡Registro con Google exitoso!');
   }
 }

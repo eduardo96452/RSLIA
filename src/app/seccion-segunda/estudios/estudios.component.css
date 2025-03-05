@@ -95,7 +95,7 @@
 
 .my-custom-select {
   background-color: #f8f9fa;
-  color: #333;
+  color: #c01414;
   /* Cualquier otro estilo que quieras aplicar */
   font-size: 16px;
   padding: 8px;
@@ -127,3 +127,20 @@ th .resizer {
     width: 100%;
   }
 }
+
+.modal-content, 
+.modal-body {
+  white-space: normal;         /* Permite el ajuste de línea */
+  word-wrap: break-word;       /* Rompe palabras largas */
+  word-break: break-all;       /* Rompe palabras si es necesario */
+  overflow-wrap: break-word;   /* Asegura el ajuste en navegadores modernos */
+}
+
+
+.criteria-text {
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+

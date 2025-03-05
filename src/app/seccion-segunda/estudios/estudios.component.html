@@ -302,99 +302,99 @@
                       <p class="mb-3">En esta sección se muestran únicamente los estudios que han sido aceptados tras
                         el proceso de preselección. Además, se presentan las preguntas de evaluación de calidad
                         correspondientes a cada artículo.</p>
-                        <div class="card shadow-sm">
-                          <div class="card-header text-black">
-                            <h5 class="mb-0">
-                              <i class="bi bi-list-check"></i>&nbsp; Evaluación de Estudios Aceptados
-                            </h5>
-                          </div>
-                          <div class="card-body">
-                            <table class="table table-hover mb-0" style="table-layout: fixed; width: 100%;">
-                              <colgroup>
-                                <col style="display:none;"> <!-- ID Estudio -->
-                                <col style="width: 60%;"> <!-- Título -->
-                                <col style="width: 20%;"> <!-- Puntuación Total -->
-                                <col style="width: 20%;"> <!-- Acciones -->
-                              </colgroup>
-                              <thead class="table-light">
-                                <tr>
-                                  <th style="display:none;">ID Estudio</th>
-                                  <th class="text-center">Título</th>
-                                  <th class="text-center">Puntuación total</th>
-                                  <th class="text-center">Acciones</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <ng-container *ngFor="let study of acceptedStudies">
-                                  <!-- Fila principal del estudio -->
-                                  <tr>
-                                    <td style="display:none;">{{ study.id_estudios }}</td>
-                                    <td>
-                                      {{ study.titulo }}
-                                      <span *ngIf="isEvaluationCompleteForStudy(study)">
-                                        &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
-                                      </span>
-                                    </td>
-                                    <td class="text-center">
-                                      {{ calculateTotalScore(study) }}
-                                    </td>
-                                    <td class="text-center">
-                                      <button class="btn btn-primary btn-sm" (click)="toggleEvaluation(study)">
-                                        Evaluar
-                                      </button>
-                                    </td>
-                                  </tr>
-                        
-                                  <!-- Sub-fila (acordeón) de evaluación -->
-                                  <tr *ngIf="openedStudy === study" class="bg-light">
-                                    <td colspan="4">
-                                      <div class="p-3">
-                                        <form>
-                                          <!-- Tabla de Preguntas / Respuestas -->
-                                          <table class="table table-sm">
-                                            <thead>
-                                              <tr>
-                                                <th>Pregunta</th>
-                                                <th>Respuestas</th>
-                                              </tr>
-                                            </thead>
-                                            <tbody>
-                                              <tr *ngFor="let question of qualityQuestions">
-                                                <td>{{ question.descripcion }}</td>
-                                                <td>
-                                                  <div *ngFor="let answer of qualityAnswers">
-                                                    <ng-container
-                                                      *ngIf="answer.id_detalles_revision === question.id_detalles_revision">
-                                                      <input type="radio" [name]="'resp_' + question.id_pregunta"
-                                                        [value]="answer.id_respuesta"
-                                                        (change)="selectAnswer(question.id_pregunta, answer)"
-                                                        [checked]="getCheckedAnswer(question.id_pregunta) === answer.id_respuesta" />
-                                                      {{ answer.descripcion }} (peso: {{ answer.peso }})
-                                                    </ng-container>
-                                                  </div>
-                                                </td>
-                                              </tr>
-                                            </tbody>
-                                          </table>
-                                          <div class="d-flex justify-content-end mt-3">
-                                            <button *ngIf="!currentEvaluationSaved" class="btn btn-success me-2"
-                                              (click)="saveEvaluation(study)">
-                                              Guardar Evaluación
-                                            </button>
-                                            <button class="btn btn-danger" (click)="cancelEvaluation()">
-                                              Cancelar
-                                            </button>
-                                          </div>
-                                        </form>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                </ng-container>
-                              </tbody>
-                            </table>
-                          </div>
+                      <div class="card shadow-sm">
+                        <div class="card-header text-black">
+                          <h5 class="mb-0">
+                            <i class="bi bi-list-check"></i>&nbsp; Evaluación de Estudios Aceptados
+                          </h5>
                         </div>
-                        
+                        <div class="card-body">
+                          <table class="table table-hover mb-0" style="table-layout: fixed; width: 100%;">
+                            <colgroup>
+                              <col style="display:none;"> <!-- ID Estudio -->
+                              <col style="width: 60%;"> <!-- Título -->
+                              <col style="width: 20%;"> <!-- Puntuación Total -->
+                              <col style="width: 20%;"> <!-- Acciones -->
+                            </colgroup>
+                            <thead class="table-light">
+                              <tr>
+                                <th style="display:none;">ID Estudio</th>
+                                <th class="text-center">Título</th>
+                                <th class="text-center">Puntuación total</th>
+                                <th class="text-center">Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <ng-container *ngFor="let study of acceptedStudies">
+                                <!-- Fila principal del estudio -->
+                                <tr>
+                                  <td style="display:none;">{{ study.id_estudios }}</td>
+                                  <td>
+                                    {{ study.titulo }}
+                                    <span *ngIf="isEvaluationCompleteForStudy(study)">
+                                      &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
+                                    </span>
+                                  </td>
+                                  <td class="text-center">
+                                    {{ calculateTotalScore(study) }}
+                                  </td>
+                                  <td class="text-center">
+                                    <button class="btn btn-primary btn-sm" (click)="toggleEvaluation(study)">
+                                      Evaluar
+                                    </button>
+                                  </td>
+                                </tr>
+
+                                <!-- Sub-fila (acordeón) de evaluación -->
+                                <tr *ngIf="openedStudy === study" class="bg-light">
+                                  <td colspan="4">
+                                    <div class="p-3">
+                                      <form>
+                                        <!-- Tabla de Preguntas / Respuestas -->
+                                        <table class="table table-sm">
+                                          <thead>
+                                            <tr>
+                                              <th>Pregunta</th>
+                                              <th>Respuestas</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            <tr *ngFor="let question of qualityQuestions">
+                                              <td>{{ question.descripcion }}</td>
+                                              <td>
+                                                <div *ngFor="let answer of qualityAnswers">
+                                                  <ng-container
+                                                    *ngIf="answer.id_detalles_revision === question.id_detalles_revision">
+                                                    <input type="radio" [name]="'resp_' + question.id_pregunta"
+                                                      [value]="answer.id_respuesta"
+                                                      (change)="selectAnswer(question.id_pregunta, answer)"
+                                                      [checked]="getCheckedAnswer(question.id_pregunta) === answer.id_respuesta" />
+                                                    {{ answer.descripcion }} (peso: {{ answer.peso }})
+                                                  </ng-container>
+                                                </div>
+                                              </td>
+                                            </tr>
+                                          </tbody>
+                                        </table>
+                                        <div class="d-flex justify-content-end mt-3">
+                                          <button *ngIf="!currentEvaluationSaved" class="btn btn-success me-2"
+                                            (click)="saveEvaluation(study)">
+                                            Guardar Evaluación
+                                          </button>
+                                          <button class="btn btn-danger" (click)="cancelEvaluation()">
+                                            Cancelar
+                                          </button>
+                                        </div>
+                                      </form>
+                                    </div>
+                                  </td>
+                                </tr>
+                              </ng-container>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
 
@@ -575,39 +575,35 @@
             </div>
 
             <!-- Sección para Selección de criterios -->
+            
+            <div class="modal-body criteria-text">
             <div class="mb-3" *ngIf="selectedStudy.status !== 'Duplicado'">
               <label class="form-label fw-bold">Selección de criterios</label>
-              <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle w-100 text-start" type="button" id="dropdownMenuButton"
-                  data-bs-toggle="dropdown" aria-expanded="false">
-                  {{ selectedCriterio || 'Seleccione un criterio' }}
-                </button>
+              <select class="form-select" [(ngModel)]="selectedCriterioId"
+                (change)="onCriterioChange(getSelectValue($event))">
 
-                <ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButton">
-                  <li>
-                    <h6 class="dropdown-header">Criterios de Inclusión</h6>
-                  </li>
-                  <li *ngFor="let criterio of inclusionCriterios">
-                    <button class="dropdown-item" type="button" data-bs-dismiss="dropdown"
-                      (click)="selectCriterio(criterio.id_criterios, criterio.descripcion)">
-                      {{ criterio.descripcion }}
-                    </button>
-                  </li>
-                  <li>
-                    <hr class="dropdown-divider" />
-                  </li>
-                  <li>
-                    <h6 class="dropdown-header">Criterios de Exclusión</h6>
-                  </li>
-                  <li *ngFor="let criterio of exclusionCriterios">
-                    <button class="dropdown-item" type="button" data-bs-dismiss="dropdown"
-                      (click)="selectCriterio(criterio.id_criterios, criterio.descripcion)">
-                      {{ criterio.descripcion }}
-                    </button>
-                  </li>
-                </ul>
-              </div>
+                <!-- Opción por defecto -->
+                <option [ngValue]="null">Seleccione un criterio</option>
+
+                <!-- Criterios de Inclusión -->
+                <optgroup label="Criterios de Inclusión">
+                  <option *ngFor="let criterio of inclusionCriterios" [ngValue]="criterio.id_criterios">
+                    {{ criterio.descripcion }}
+                  </option>
+                </optgroup>
+
+                <!-- Criterios de Exclusión -->
+                <optgroup label="Criterios de Exclusión">
+                  <option *ngFor="let criterio of exclusionCriterios" [ngValue]="criterio.id_criterios">
+                    {{ criterio.descripcion }}
+                  </option>
+                </optgroup>
+              </select>
             </div>
+          </div>
+
+
+
 
 
             <!-- Autor(es) (autores) -->

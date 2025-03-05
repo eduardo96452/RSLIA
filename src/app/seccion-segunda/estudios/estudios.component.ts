@@ -1511,9 +1511,47 @@ export class EstudiosComponent implements OnInit {
 
 
 
+  // Cambia cuando el usuario seleccione un criterio en el <select>
+  onCriterioChange(value: string) {
+    // value es un string, convertimos a número
+    const criterioId = Number(value);
+    if (!criterioId) {
+      // El usuario eligió "Seleccione un criterio"
+      this.selectedCriterio = 'Seleccione un criterio';
+      return;
+    }
 
+    // Buscar la descripción en los arreglos
+    let found = this.inclusionCriterios.find(c => c.id_criterios === criterioId)
+              || this.exclusionCriterios.find(c => c.id_criterios === criterioId);
 
+    let descripcion = found ? found.descripcion : 'Seleccione un criterio';
+    // Llamamos a la función que asigna el criterio en la BD
+    this.selectCriterio(criterioId, descripcion);
+  }
 
+  // Asigna el criterio en la BD y muestra un alert
+  async selectCriterio(criterioId: number, descripcion: string) {
+    if (!this.selectedStudy || !this.selectedStudy.id_estudios) {
+      Swal.fire('Atención', 'No se ha seleccionado ningún estudio para asignarle el criterio.', 'info');
+      return;
+    }
+
+    try {
+      await this.authService.updateEstudioWithCriterio(this.selectedStudy.id_estudios, criterioId);
+      this.selectedCriterio = descripcion;
+      Swal.fire({
+        title: 'Criterio asignado',
+        text: `Se asignó "${descripcion}" al estudio #${this.selectedStudy.id_estudios}.`,
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      console.error('Error al guardar el criterio en el estudio:', err);
+      Swal.fire('Error', 'No se pudo asignar el criterio al estudio.', 'error');
+    }
+  }
 
   async loadCriterios() {
     try {
@@ -1532,66 +1570,32 @@ export class EstudiosComponent implements OnInit {
     }
 
     try {
-      // 1. Obtener el ID del criterio guardado
-      const idCriterio = await this.authService.getIdCriterioDeEstudio(
-        this.selectedStudy.id_estudios
-      );
-
-      // 2. Si no hay criterio asignado, mostrar "Seleccione un criterio"
+      const idCriterio = await this.authService.getIdCriterioDeEstudio(this.selectedStudy.id_estudios);
       if (!idCriterio) {
         this.selectedCriterio = 'Seleccione un criterio';
         return;
       }
-
-      // 3. Buscar en los arrays de criterios para encontrar la descripción
+      // Buscamos la descripción en los arrays
       const found = this.inclusionCriterios.find(c => c.id_criterios === idCriterio)
-        || this.exclusionCriterios.find(c => c.id_criterios === idCriterio);
+                  || this.exclusionCriterios.find(c => c.id_criterios === idCriterio);
 
-      // 4. Si encontramos la descripción, mostrarla, si no, "Seleccione un criterio"
       if (found) {
         this.selectedCriterio = found.descripcion;
+        this.selectedCriterioId = found.id_criterios; // Ajustar el <select>
       } else {
         this.selectedCriterio = 'Seleccione un criterio';
       }
     } catch (error) {
       console.error('Error al obtener/seleccionar criterio:', error);
-      // Ante cualquier error, mostramos también "Seleccione un criterio"
       this.selectedCriterio = 'Seleccione un criterio';
     }
   }
 
-  /**
-   * Se llama al hacer click en un criterio dentro del dropdown.
-   */
-  async selectCriterio(criterioId: number, descripcion: string) {
-    // Verificar que exista un estudio seleccionado
-    if (!this.selectedStudy || !this.selectedStudy.id_estudios) {
-      Swal.fire('Atención', 'No se ha seleccionado ningún estudio para asignarle el criterio.', 'info');
-      return;
-    }
-
-    try {
-      // Actualiza en la BD
-      await this.authService.updateEstudioWithCriterio(this.selectedStudy.id_estudios, criterioId);
-
-      // (Opcional) si mantienes la ID en tu objeto local:
-      // this.selectedStudy.id_criterios = criterioId;
-
-      // Actualiza la descripción en el botón
-      this.selectedCriterio = descripcion;
-
-      Swal.fire({
-        title: 'Criterio asignado',
-        text: `Se asignó "${descripcion}" al estudio #${this.selectedStudy.id_estudios}.`,
-        icon: 'success',
-        timer: 1500,
-        showConfirmButton: false
-      });
-    } catch (err) {
-      console.error('Error al guardar el criterio en el estudio:', err);
-      Swal.fire('Error', 'No se pudo asignar el criterio al estudio.', 'error');
-    }
+  getSelectValue(event: Event): string {
+    return (event.target as HTMLSelectElement).value;
   }
+
+
 
 
 

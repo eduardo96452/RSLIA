@@ -17,10 +17,10 @@
           <label for="email" class="form-label">Correo electrónico</label>
           <input type="email" id="email" name="email" [(ngModel)]="email" required email #emailInput="ngModel"
             class="form-control"
-            [ngClass]="{'is-invalid': emailInput.invalid && (emailInput.dirty || emailInput.touched)}"
+            [ngClass]="{'is-invalid': (emailInput.invalid && (emailInput.dirty || emailInput.touched)) || emailError}"
             placeholder="you@example.com">
-          <div *ngIf="emailInput.invalid && (emailInput.dirty || emailInput.touched)" class="invalid-feedback">
-            Por favor, ingrese una dirección de correo electrónico válida.
+          <div *ngIf="(emailInput.invalid && (emailInput.dirty || emailInput.touched)) || emailError" class="invalid-feedback">
+            {{ emailError || 'Por favor, ingrese una dirección de correo electrónico válida.' }}
           </div>
         </div>
         <div class="mb-4">
@@ -37,18 +37,13 @@
                 class="text-muted"></i>
             </button>
           </div>
-
           <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="invalid-feedback">
             La contraseña debe tener al menos 8 caracteres.
           </div>
-
-          <!-- Botón que muestra/oculta el menú desplegable (políticas de contraseña) -->
           <button class="btn btn-link mt-2 p-0" type="button" data-bs-toggle="collapse" data-bs-target="#policyCollapse"
             aria-expanded="false" aria-controls="policyCollapse">
             Ver políticas de contraseña
           </button>
-
-          <!-- Menú desplegable con la lista de políticas -->
           <div class="collapse mt-2" id="policyCollapse">
             <ul class="list-group">
               <li class="list-group-item d-flex align-items-center"
@@ -68,8 +63,7 @@
               </li>
               <li class="list-group-item d-flex align-items-center"
                 [ngClass]="policyChecks.specialChar ? 'text-success' : 'text-danger'">
-                <i class="bi"
-                  [ngClass]="policyChecks.specialChar ? 'bi-check-circle-fill me-2' : 'bi-x-circle me-2'"></i>
+                <i class="bi" [ngClass]="policyChecks.specialChar ? 'bi-check-circle-fill me-2' : 'bi-x-circle me-2'"></i>
                 Contiene al menos un caracter especial (&#64;, #, $, etc.)
               </li>
             </ul>

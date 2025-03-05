@@ -294,6 +294,22 @@ export class AuthService {
     return this._supabaseClient.auth.signUp(credentials);
   }
 
+  async verifyEmailExists(email: string): Promise<boolean> {
+    const { data, error } = await this._supabaseClient
+      .from('usuarios')
+      .select('id')
+      .eq('correo', email)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error al verificar correo:', error);
+      return false;
+    }
+    
+    return !!data;
+  }
+  
+
 
   logIn(credentials: { email: string; password: string }) {
     return this._supabaseClient.auth.signInWithPassword(credentials);
