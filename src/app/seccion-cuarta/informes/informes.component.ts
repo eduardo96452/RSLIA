@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
@@ -10,6 +10,7 @@ import { saveAs } from 'file-saver';
 import Swal from 'sweetalert2';
 import { jsPDF } from "jspdf";
 import { SupabaseService } from '../../conexion/supabase.service';
+import SignaturePad from 'signature_pad';
 
 @Component({
   selector: 'app-informes',
@@ -379,15 +380,15 @@ export class InformesComponent implements OnInit {
       console.error('Error al cargar informes generados:', err);
     }
   }
+  firmaBase64: string = ''; 
 
   async downloadDraftPdf(): Promise<void> {
     try {
       // 1. Crear una instancia de jsPDF
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
-      let y = 20; // Posición vertical inicial
+      let y = 20;
   
-      // Agregar título principal centrado
       doc.setFontSize(16);
       doc.setFont("helvetica", "bold");
       doc.text("Uso de Inteligencia Artificial para Diagnóstico Médico Basado en Imágenes", pageWidth / 2, y, { align: "center" });
@@ -427,8 +428,20 @@ export class InformesComponent implements OnInit {
       }
   
       // 2. Generar el documento PDF en un Blob
-      const pdfBlob: Blob = doc.output("blob");
   
+      // 🔹 Agregar firma si está disponible
+      if (this.firmaBase64) {
+        y += 20;
+        doc.setFontSize(14);
+        doc.text("Firma:", 10, y);
+        y += 10;
+        doc.addImage(this.firmaBase64, 'PNG', 10, y, 50, 25);  
+      } else {
+        console.warn("No se ha guardado una firma.");
+      }
+  
+      const pdfBlob: Blob = doc.output("blob");
+        
       // 3. Crear un nombre único para el archivo PDF
       const fileName = `Borrador_de_Articulo_${Date.now()}.pdf`;
   
@@ -485,6 +498,28 @@ export class InformesComponent implements OnInit {
         text: "Ocurrió un problema al generar el informe PDF."
       });
     }
+  }
+  
+
+  @ViewChild('firmaCanvas', { static: false }) firmaCanvas!: ElementRef<HTMLCanvasElement>;
+  private signaturePad!: SignaturePad;
+
+  ngAfterViewInit() {
+    const canvas = this.firmaCanvas.nativeElement;
+    this.signaturePad = new SignaturePad(canvas);
+  }
+
+  limpiarFirma() {
+    this.signaturePad.clear();
+  }
+
+  guardarFirma() {
+    if (!this.signaturePad.isEmpty()) {
+    this.firmaBase64 = this.signaturePad.toDataURL('image/png'); 
+    console.log('Firma guardada:', this.firmaBase64);
+  } else {
+    console.log('No hay firma para guardar.');
+  }
   }
 
 }

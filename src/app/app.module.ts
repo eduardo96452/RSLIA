@@ -13,9 +13,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule } from '@angular/material/button';
 import { ReactiveFormsModule } from '@angular/forms';
 import { GojsAngularModule } from 'gojs-angular';
+import { AngularSignaturePadModule } from '@almothafar/angular-signature-pad';
 
 @NgModule({
-  declarations: [
+  declarations: [ 
     // Tus componentes
   ],
   
@@ -31,6 +32,7 @@ import { GojsAngularModule } from 'gojs-angular';
     MatSelectModule,
     MatButtonModule,    
     ReactiveFormsModule,
+    AngularSignaturePadModule, 
     GojsAngularModule
   ],
   exports: [RouterModule]
