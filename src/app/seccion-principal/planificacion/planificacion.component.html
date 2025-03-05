@@ -1028,8 +1028,10 @@
                                                                                 </colgroup>
                                                                                 <thead>
                                                                                     <tr>
-                                                                                        <th class="text-center">Incluidos</th>
-                                                                                        <th class="text-center">Acción</th>
+                                                                                        <th class="text-center">
+                                                                                            Incluidos</th>
+                                                                                        <th class="text-center">Acción
+                                                                                        </th>
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
@@ -1102,8 +1104,10 @@
                                                                                 </colgroup>
                                                                                 <thead>
                                                                                     <tr>
-                                                                                        <th class="text-center">Excluidos</th>
-                                                                                        <th class="text-center">Acción</th>
+                                                                                        <th class="text-center">
+                                                                                            Excluidos</th>
+                                                                                        <th class="text-center">Acción
+                                                                                        </th>
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
@@ -1334,8 +1338,8 @@
                                                             <div class="col-md-6 mb-3">
                                                                 <label for="maxScore" class="form-label">
                                                                     <strong>
-                                                                    Puntuación
-                                                                    máxima</strong></label>
+                                                                        Puntuación
+                                                                        máxima</strong></label>
                                                                 <!-- Se usa [value]="getMaxScore()" para mostrar la puntuación calculada -->
                                                                 <input type="number" id="maxScore" class="form-control"
                                                                     [value]="getMaxScore()" readonly />
@@ -1343,8 +1347,9 @@
 
                                                             <!-- Puntuación Límite -->
                                                             <div class="col-md-6 mb-3">
-                                                                <label for="limitScore" class="form-label"><strong>Puntuación
-                                                                    mínima de aceptación</strong></label>
+                                                                <label for="limitScore"
+                                                                    class="form-label"><strong>Puntuación
+                                                                        mínima de aceptación</strong></label>
                                                                 <div class="input-group">
                                                                     <input type="number" id="limitScore"
                                                                         class="form-control" [(ngModel)]="limitScore1"
@@ -1395,105 +1400,107 @@
                                                         <!-- Botón de Sugerencia IA en la fila superior -->
                                                         <button class="btn btn-info align-self-start" type="button"
                                                             (click)="onGenerateQuestions()">
-                                                            <i class="bi bi-robot"></i>&nbsp; Generar las preguntas
-                                                            con IA
+                                                            <i class="bi bi-robot"></i>&nbsp; Generar las preguntas con
+                                                            IA
                                                         </button>
                                                     </div>
-                                                    <table class="table table-bordered mt-3">
-                                                        <colgroup>
-                                                            <col style="width: 10%;">
-                                                            <col style="width: 50%;">
-                                                            <col style="width: 20%;">
-                                                            <col style="width: 20%;">
-                                                        </colgroup>
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Orden</th>
-                                                                <th>Descripción</th>
-                                                                <th>Tipo</th>
-                                                                <th>Acciones</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr *ngFor="let field of fields; let i = index">
-                                                                <td>
-                                                                    <div class="d-flex">
-                                                                        <button
-                                                                            class="btn btn-secondary btn-sm w-50 me-1"
-                                                                            (click)="moveUp(i)">
-                                                                            <strong>↑</strong>
-                                                                        </button>
-                                                                        <button class="btn btn-secondary btn-sm w-50"
-                                                                            (click)="moveDown(i)">
-                                                                            <strong>↓</strong>
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                                <!-- Columna de Descripción -->
-                                                                <td>
-                                                                    <!-- Modo edición -->
-                                                                    <ng-container
-                                                                        *ngIf="field.isEditing; else viewDescription">
-                                                                        <textarea type="text" class="form-control"
-                                                                            [(ngModel)]="field.descripcion"
-                                                                            placeholder="Descripción"></textarea>
-                                                                    </ng-container>
-                                                                    <!-- Modo vista -->
-                                                                    <ng-template #viewDescription>
-                                                                        {{ field.descripcion }}
-                                                                    </ng-template>
-                                                                </td>
-
-                                                                <!-- Columna de Tipo -->
-                                                                <td>
-                                                                    <!-- Modo edición -->
-                                                                    <ng-container
-                                                                        *ngIf="field.isEditing; else viewType">
-                                                                        <select class="form-select"
-                                                                            [(ngModel)]="field.tipo">
-                                                                            <option value="Booleano">Booleano</option>
-                                                                            <option value="Texto">Texto</option>
-                                                                            <option value="Decimal">Decimal</option>
-                                                                            <option value="Entero">Entero</option>
-                                                                            <option value="Fecha">Fecha</option>
-                                                                        </select>
-                                                                    </ng-container>
-                                                                    <!-- Modo vista -->
-                                                                    <ng-template #viewType>
-                                                                        {{ field.tipo }}
-                                                                    </ng-template>
-                                                                </td>
-
-                                                                <!-- Columna de Acciones -->
-                                                                <td>
-                                                                    <!-- Si está en edición: mostrar Guardar/Cancelar -->
-                                                                    <ng-container
-                                                                        *ngIf="field.isEditing; else normalActions">
-                                                                        <button class="btn btn-success btn-sm me-1"
-                                                                            (click)="saveField(i)">
-                                                                            Guardar
-                                                                        </button>
-                                                                        <button class="btn btn-secondary btn-sm"
-                                                                            (click)="cancelEdit(i)">
-                                                                            Cancelar
-                                                                        </button>
-                                                                    </ng-container>
-
-                                                                    <!-- Si NO está en edición: mostrar Editar/Eliminar -->
-                                                                    <ng-template #normalActions>
-                                                                        <button class="btn btn-warning btn-sm me-1"
-                                                                            (click)="editField(i)">
-                                                                            Editar
-                                                                        </button>
-                                                                        <button class="btn btn-danger btn-sm"
-                                                                            (click)="removeField(i)">
-                                                                            Eliminar
-                                                                        </button>
-                                                                    </ng-template>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
+                                                    <!-- Envolver la tabla en un contenedor responsive -->
+                                                    <div class="table-responsive mt-3">
+                                                        <table class="table table-bordered">
+                                                            <colgroup>
+                                                                <col style="width: 10%;">
+                                                                <col style="width: 50%;">
+                                                                <col style="width: 20%;">
+                                                                <col style="width: 20%;">
+                                                            </colgroup>
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Orden</th>
+                                                                    <th>Descripción</th>
+                                                                    <th>Tipo</th>
+                                                                    <th>Acciones</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr *ngFor="let field of fields; let i = index">
+                                                                    <td>
+                                                                        <div class="d-flex">
+                                                                            <button
+                                                                                class="btn btn-secondary btn-sm w-50 me-1"
+                                                                                (click)="moveUp(i)">
+                                                                                <strong>↑</strong>
+                                                                            </button>
+                                                                            <button
+                                                                                class="btn btn-secondary btn-sm w-50"
+                                                                                (click)="moveDown(i)">
+                                                                                <strong>↓</strong>
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                    <!-- Columna de Descripción -->
+                                                                    <td>
+                                                                        <!-- Modo edición -->
+                                                                        <ng-container
+                                                                            *ngIf="field.isEditing; else viewDescription">
+                                                                            <textarea type="text" class="form-control"
+                                                                                [(ngModel)]="field.descripcion"
+                                                                                placeholder="Descripción"></textarea>
+                                                                        </ng-container>
+                                                                        <!-- Modo vista -->
+                                                                        <ng-template #viewDescription>
+                                                                            {{ field.descripcion }}
+                                                                        </ng-template>
+                                                                    </td>
+                                                                    <!-- Columna de Tipo -->
+                                                                    <td>
+                                                                        <!-- Modo edición -->
+                                                                        <ng-container
+                                                                            *ngIf="field.isEditing; else viewType">
+                                                                            <select class="form-select"
+                                                                                [(ngModel)]="field.tipo">
+                                                                                <option value="Booleano">Booleano
+                                                                                </option>
+                                                                                <option value="Texto">Texto</option>
+                                                                                <option value="Decimal">Decimal</option>
+                                                                                <option value="Entero">Entero</option>
+                                                                                <option value="Fecha">Fecha</option>
+                                                                            </select>
+                                                                        </ng-container>
+                                                                        <!-- Modo vista -->
+                                                                        <ng-template #viewType>
+                                                                            {{ field.tipo }}
+                                                                        </ng-template>
+                                                                    </td>
+                                                                    <!-- Columna de Acciones -->
+                                                                    <td>
+                                                                        <!-- Si está en edición: mostrar Guardar/Cancelar -->
+                                                                        <ng-container
+                                                                            *ngIf="field.isEditing; else normalActions">
+                                                                            <button class="btn btn-success btn-sm me-1"
+                                                                                (click)="saveField(i)">
+                                                                                Guardar
+                                                                            </button>
+                                                                            <button class="btn btn-secondary btn-sm"
+                                                                                (click)="cancelEdit(i)">
+                                                                                Cancelar
+                                                                            </button>
+                                                                        </ng-container>
+                                                                        <!-- Si NO está en edición: mostrar Editar/Eliminar -->
+                                                                        <ng-template #normalActions>
+                                                                            <button class="btn btn-warning btn-sm me-1"
+                                                                                (click)="editField(i)">
+                                                                                Editar
+                                                                            </button>
+                                                                            <button class="btn btn-danger btn-sm"
+                                                                                (click)="removeField(i)">
+                                                                                Eliminar
+                                                                            </button>
+                                                                        </ng-template>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

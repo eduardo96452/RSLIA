@@ -1004,6 +1004,86 @@ export class EstudiosComponent implements OnInit {
     }
   }
 
+
+
+
+  async searchWithOpenAlex() {
+    try {
+      // Mostrar alerta de carga mientras se realiza la búsqueda
+      Swal.fire({
+        title: 'Buscando estudios...',
+        text: 'Por favor, espera un momento.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading(Swal.getConfirmButton());
+        }
+      });
+  
+      // Primero obtenemos la cadena de búsqueda desde el backend
+      const { data: cadenaData, error: cadenaError } = await this.authService.getCadenaBusqueda(this.reviewId);
+      if (cadenaError || !cadenaData) {
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo obtener la cadena de búsqueda.'
+        });
+        return;
+      }
+  
+      // Se asume que el registro tiene el campo "cadena_busqueda"
+      const cadena = cadenaData[0]?.cadena_busqueda;
+      if (!cadena || !cadena.trim()) {
+        Swal.close();
+        Swal.fire({
+          icon: 'warning',
+          title: 'Cadena vacía',
+          text: 'La cadena de búsqueda está vacía.'
+        });
+        return;
+      }
+  
+      // Construir la URL para llamar a OpenAlex, codificando la cadena
+      const url = `https://api.openalex.org/works?search=${encodeURIComponent(cadena)}&filter=type:article`;
+  
+      // Llamada a la API de OpenAlex
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const openAlexData = await response.json();
+  
+      // Cerrar la alerta de carga
+      Swal.close();
+  
+      // Obtener la cantidad de estudios encontrados (generalmente en meta.count)
+      const count = openAlexData.meta?.count || 0;
+  
+      // Mostrar el resultado mediante SweetAlert
+      Swal.fire({
+        icon: 'success',
+        title: 'Resultados encontrados',
+        text: `Se encontraron ${count} estudios con la cadena de búsqueda.`,
+        //timer: 2500,
+        showConfirmButton: true
+      });
+    } catch (err) {
+      console.error('Error en búsqueda automática con OpenAlex:', err);
+      Swal.close();
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un error al realizar la búsqueda en OpenAlex.'
+      });
+    }
+  }
+  
+  
+
+
+
+
+
   /**
    * Guarda los cambios del modal (actualización del estudio).
    * Si el estado es "Aceptado" y se sube un archivo, se hace la subida

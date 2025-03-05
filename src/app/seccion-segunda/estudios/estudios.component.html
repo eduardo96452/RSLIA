@@ -51,7 +51,7 @@
           </div>
           <br />
         </div>
-        
+
 
         <div class="col col-sm col-md-10">
           <div class="card">
@@ -83,16 +83,19 @@
               </ul>
             </div>
             <div class="card-body">
-              <div class="container">
+              <div class="">
                 <!-- Contenido de las páginas -->
                 <div class="tab-content" id="myTabContent">
                   <!-- Contenido Página 1 -->
                   <div class="tab-pane fade show active p-2" id="pagina1" role="tabpanel" aria-labelledby="tab1">
-                    <div class="container mt-4">
-                      <h6>En esta sección podra ingresar los articulos que ha encontrado con la
-                        cadena de busqueda.</h6>
+                    <div class="container">
+                      <p>En esta sección podrá ingresar y revisar los artículos identificados a partir de la cadena de
+                        búsqueda. Se listarán todos los estudios encontrados, permitiéndole seleccionar aquellos que
+                        cumplan con los criterios de inclusión establecidos para la revisión. Además, tendrá acceso a
+                        información básica de cada artículo, facilitando la evaluación preliminar y la posterior
+                        selección final para el análisis.</p>
                       <br>
-                      <div class="container">
+                      <div class="">
                         <div class="row align-items-center">
                           <!-- Columna para el botón "Importar archivo" -->
                           <div class="col-12 col-md-4 d-flex justify-content-start mb-3 mb-md-0">
@@ -110,7 +113,7 @@
 
                           <!-- Columna para el botón "Búsqueda Automática con OpenAlex" -->
                           <div class="col-12 col-md-4 d-flex justify-content-end">
-                            <button class="btn btn-success w-100 w-md-auto">
+                            <button class="btn btn-success w-100 w-md-auto" (click)="searchWithOpenAlex()">
                               <i class="bi bi-robot"></i>&nbsp; Búsqueda Automática con OpenAlex
                             </button>
                           </div>
@@ -159,7 +162,7 @@
                             <col style="width: 150px;" /> <!-- Autor -->
                             <col style="width: 140px;" /> <!-- Título del libro -->
                             <col style="width: 180px;" /> <!-- Título -->
-                            <col style="width: 70px;" />  <!-- Año -->
+                            <col style="width: 70px;" /> <!-- Año -->
                             <col style="width: 80px; display:none;" /> <!-- ID Estudios (oculto) -->
                             <col style="width: 80px; display:none;" /> <!-- Volumen (oculto) -->
                             <col style="width: 80px; display:none;" /> <!-- Número (oculto) -->
@@ -167,9 +170,10 @@
                             <col style="width: 150px;" /> <!-- Palabras clave -->
                             <col style="width: 130px;" /> <!-- DOI -->
                           </colgroup>
-                      
+
                           <!-- THEAD sticky -->
-                          <thead class="text-center" style="position: sticky; top: 0; background-color: #fff; z-index: 1;">
+                          <thead class="text-center"
+                            style="position: sticky; top: 0; background-color: #fff; z-index: 1;">
                             <tr>
                               <!-- Ejemplo para el primer encabezado -->
                               <th>
@@ -295,165 +299,176 @@
                   <!-- Contenido Página 2 -->
                   <div class="tab-pane fade" id="pagina2" role="tabpanel" aria-labelledby="tab2">
                     <div class="container my-4">
-                      <h5 class="mb-3">Estudios en estado "Aceptado" y sus preguntas de calidad</h5>
-                      <div class="card shadow-sm">
-                        <div class="card-header bg-primary text-white">
-                          Lista de Estudios Aceptados
-                        </div>
-                        <div class="card-body p-0">
-                          <table class="table table-hover mb-0" style="table-layout: fixed; width: 100%;">
-                            <colgroup>
-                              <col style="display:none;"> <!-- ID Estudio -->
-                              <col style="width: 60%;"> <!-- Título -->
-                              <col style="width: 20%;"> <!-- Puntuación Total -->
-                              <col style="width: 20%;"> <!-- Acciones -->
-                            </colgroup>
-                            <thead class="table-light">
-                              <tr>
-                                <th style="display:none;">ID Estudio</th>
-                                <th class="text-center">Título</th>
-                                <th class="text-center">Puntuación total</th>
-                                <th class="text-center">Acciones</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <ng-container *ngFor="let study of acceptedStudies">
-                                <!-- Fila principal del estudio -->
+                      <p class="mb-3">En esta sección se muestran únicamente los estudios que han sido aceptados tras
+                        el proceso de preselección. Además, se presentan las preguntas de evaluación de calidad
+                        correspondientes a cada artículo.</p>
+                        <div class="card shadow-sm">
+                          <div class="card-header text-black">
+                            <h5 class="mb-0">
+                              <i class="bi bi-list-check"></i>&nbsp; Evaluación de Estudios Aceptados
+                            </h5>
+                          </div>
+                          <div class="card-body">
+                            <table class="table table-hover mb-0" style="table-layout: fixed; width: 100%;">
+                              <colgroup>
+                                <col style="display:none;"> <!-- ID Estudio -->
+                                <col style="width: 60%;"> <!-- Título -->
+                                <col style="width: 20%;"> <!-- Puntuación Total -->
+                                <col style="width: 20%;"> <!-- Acciones -->
+                              </colgroup>
+                              <thead class="table-light">
                                 <tr>
-                                  <td style="display:none;">{{ study.id_estudios }}</td>
-                                  <td>
-                                    {{ study.titulo }}
-                                    <!-- Mostrar el check si el estudio abierto es este y la evaluación está completa -->
-                                    <span *ngIf="isEvaluationCompleteForStudy(study)">
-                                      &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
-                                    </span>
-                                  </td>
-                                  <td class="text-center">
-                                    {{ calculateTotalScore(study) }}
-                                  </td>
-                                  <td class="text-center">
-                                    <button class="btn btn-primary btn-sm" (click)="toggleEvaluation(study)">
-                                      Evaluar
-                                    </button>
-                                  </td>
+                                  <th style="display:none;">ID Estudio</th>
+                                  <th class="text-center">Título</th>
+                                  <th class="text-center">Puntuación total</th>
+                                  <th class="text-center">Acciones</th>
                                 </tr>
-
-                                <!-- Sub-fila (acordeón) de evaluación -->
-                                <tr *ngIf="openedStudy === study" class="bg-light">
-                                  <td colspan="4">
-                                    <div class="p-3">
-                                      <!-- <p><strong>Título:</strong> {{ study.titulo }}</p>-->
-                                      <form>
-                                        <!-- Tabla de Preguntas / Respuestas -->
-                                        <table class="table table-sm">
-                                          <thead>
-                                            <tr>
-                                              <th>Pregunta</th>
-                                              <th>Respuestas</th>
-                                            </tr>
-                                          </thead>
-                                          <tbody>
-                                            <tr *ngFor="let question of qualityQuestions">
-                                              <td>{{ question.descripcion }}</td>
-                                              <td>
-                                                <div *ngFor="let answer of qualityAnswers">
-                                                  <ng-container
-                                                    *ngIf="answer.id_detalles_revision === question.id_detalles_revision">
-                                                    <input type="radio" [name]="'resp_' + question.id_pregunta"
-                                                      [value]="answer.id_respuesta"
-                                                      (change)="selectAnswer(question.id_pregunta, answer)"
-                                                      [checked]="getCheckedAnswer(question.id_pregunta) === answer.id_respuesta" />
-                                                    {{ answer.descripcion }} (peso: {{ answer.peso }})
-                                                  </ng-container>
-                                                </div>
-                                              </td>
-                                            </tr>
-                                          </tbody>
-                                        </table>
-                                        <div class="d-flex justify-content-end mt-3">
-                                          <!-- Mostrar botón Guardar Evaluación solo si currentEvaluationSaved es false -->
-                                          <button *ngIf="!currentEvaluationSaved" class="btn btn-success me-2"
-                                            (click)="saveEvaluation(study)">
-                                            Guardar Evaluación
-                                          </button>
-                                          <button class="btn btn-danger" (click)="cancelEvaluation()">
-                                            Cancelar
-                                          </button>
-                                        </div>
-                                      </form>
-                                    </div>
-                                  </td>
-                                </tr>
-                              </ng-container>
-                            </tbody>
-
-                          </table>
+                              </thead>
+                              <tbody>
+                                <ng-container *ngFor="let study of acceptedStudies">
+                                  <!-- Fila principal del estudio -->
+                                  <tr>
+                                    <td style="display:none;">{{ study.id_estudios }}</td>
+                                    <td>
+                                      {{ study.titulo }}
+                                      <span *ngIf="isEvaluationCompleteForStudy(study)">
+                                        &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
+                                      </span>
+                                    </td>
+                                    <td class="text-center">
+                                      {{ calculateTotalScore(study) }}
+                                    </td>
+                                    <td class="text-center">
+                                      <button class="btn btn-primary btn-sm" (click)="toggleEvaluation(study)">
+                                        Evaluar
+                                      </button>
+                                    </td>
+                                  </tr>
+                        
+                                  <!-- Sub-fila (acordeón) de evaluación -->
+                                  <tr *ngIf="openedStudy === study" class="bg-light">
+                                    <td colspan="4">
+                                      <div class="p-3">
+                                        <form>
+                                          <!-- Tabla de Preguntas / Respuestas -->
+                                          <table class="table table-sm">
+                                            <thead>
+                                              <tr>
+                                                <th>Pregunta</th>
+                                                <th>Respuestas</th>
+                                              </tr>
+                                            </thead>
+                                            <tbody>
+                                              <tr *ngFor="let question of qualityQuestions">
+                                                <td>{{ question.descripcion }}</td>
+                                                <td>
+                                                  <div *ngFor="let answer of qualityAnswers">
+                                                    <ng-container
+                                                      *ngIf="answer.id_detalles_revision === question.id_detalles_revision">
+                                                      <input type="radio" [name]="'resp_' + question.id_pregunta"
+                                                        [value]="answer.id_respuesta"
+                                                        (change)="selectAnswer(question.id_pregunta, answer)"
+                                                        [checked]="getCheckedAnswer(question.id_pregunta) === answer.id_respuesta" />
+                                                      {{ answer.descripcion }} (peso: {{ answer.peso }})
+                                                    </ng-container>
+                                                  </div>
+                                                </td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                          <div class="d-flex justify-content-end mt-3">
+                                            <button *ngIf="!currentEvaluationSaved" class="btn btn-success me-2"
+                                              (click)="saveEvaluation(study)">
+                                              Guardar Evaluación
+                                            </button>
+                                            <button class="btn btn-danger" (click)="cancelEvaluation()">
+                                              Cancelar
+                                            </button>
+                                          </div>
+                                        </form>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </ng-container>
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
-                      </div>
+                        
                     </div>
                   </div>
 
                   <!-- Contenido Página 3 -->
                   <div class="tab-pane fade" id="pagina3" role="tabpanel" aria-labelledby="tab3">
                     <div class="container mt-4">
-                      <p>En esta sección puede gestionar los documento cientificos mediante las opciones para visualizar
-                        o eliminar el PDF.</p>
-                      <table class="table table-striped table-hover" style="table-layout: fixed; width: 100%;">
-                        <colgroup>
-                          <col style="display: none;"> <!-- ID Estudio -->
-                          <col style="width: 40%;"> <!-- Título -->
-                          <col style="width: 30%;"> <!-- Ver PDF -->
-                          <col style="width: 30%;"> <!-- Eliminar/Subir PDF -->
-                        </colgroup>
-                        <thead class="text-center" style="background-color: #f8f9fa;">
-                          <tr>
-                            <th style="display:none;">ID Estudio</th>
-                            <th>Título</th>
-                            <th>Ver PDF</th>
-                            <th>Acción</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <ng-container *ngFor="let study of acceptedStudies">
-                            <tr>
-                              <td style="display:none;">{{ study.id_estudios }}</td>
-                              <td>
-                                {{ study.titulo }}
-                                <span *ngIf="study.url_pdf_articulo">
-                                  &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
-                                </span>
-                              </td>
-                              <!-- Columna Ver PDF -->
-                              <td class="text-center">
-                                <ng-container *ngIf="study.url_pdf_articulo; else noPdf">
-                                  <a [href]="study.url_pdf_articulo" target="_blank" title="Ver PDF"
-                                    style="text-decoration: none;">
-                                    <i class="bi bi-file-earmark-pdf" style="font-size: 1.5rem; color: #dc3545;"></i>
-                                  </a>
-                                </ng-container>
-                                <ng-template #noPdf>
-                                  <span class="text-muted">-</span>
-                                </ng-template>
-                              </td>
-                              <!-- Columna Acción: Eliminar o Subir PDF -->
-                              <td class="text-center">
-                                <ng-container *ngIf="study.url_pdf_articulo; else uploadPdf">
-                                  <i class="bi bi-trash text-danger" style="font-size: 1.5rem; cursor: pointer;"
-                                    title="Eliminar PDF" (click)="deletePDF1(study)"></i>
-                                </ng-container>
-                                <ng-template #uploadPdf>
-                                  <button class="btn btn-primary btn-sm" (click)="uploadPDFForStudy(study)">
-                                    Subir PDF
-                                  </button>
-                                </ng-template>
-                              </td>
-                            </tr>
-                          </ng-container>
-                        </tbody>
-                      </table>
+                      <p>En esta sección, puede administrar los documentos científicos de manera eficiente. Utilice las
+                        opciones disponibles para visualizar o eliminar los archivos PDF según sea necesario.</p>
+                      <div class="card shadow-sm">
+                        <div class="card-header text-black">
+                          <h5 class="mb-0">
+                            <i class="bi bi-file-earmark-text"></i>&nbsp; Gestión de Documentos Científicos
+                          </h5>
+                        </div>
+                        <div class="card-body">
+                          <table class="table table-striped table-hover" style="table-layout: fixed; width: 100%;">
+                            <colgroup>
+                              <col style="display: none;"> <!-- ID Estudio -->
+                              <col style="width: 40%;"> <!-- Título -->
+                              <col style="width: 30%;"> <!-- Ver PDF -->
+                              <col style="width: 30%;"> <!-- Eliminar/Subir PDF -->
+                            </colgroup>
+                            <thead class="text-center" style="background-color: #f8f9fa;">
+                              <tr>
+                                <th style="display:none;">ID Estudio</th>
+                                <th>Título</th>
+                                <th>Ver PDF</th>
+                                <th>Acción</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <ng-container *ngFor="let study of acceptedStudies">
+                                <tr>
+                                  <td style="display:none;">{{ study.id_estudios }}</td>
+                                  <td>
+                                    {{ study.titulo }}
+                                    <span *ngIf="study.url_pdf_articulo">
+                                      &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
+                                    </span>
+                                  </td>
+                                  <!-- Columna Ver PDF -->
+                                  <td class="text-center">
+                                    <ng-container *ngIf="study.url_pdf_articulo; else noPdf">
+                                      <a [href]="study.url_pdf_articulo" target="_blank" title="Ver PDF"
+                                        style="text-decoration: none;">
+                                        <i class="bi bi-file-earmark-pdf"
+                                          style="font-size: 1.5rem; color: #dc3545;"></i>
+                                      </a>
+                                    </ng-container>
+                                    <ng-template #noPdf>
+                                      <span class="text-muted">-</span>
+                                    </ng-template>
+                                  </td>
+                                  <!-- Columna Acción: Eliminar o Subir PDF -->
+                                  <td class="text-center">
+                                    <ng-container *ngIf="study.url_pdf_articulo; else uploadPdf">
+                                      <i class="bi bi-trash text-danger" style="font-size: 1.5rem; cursor: pointer;"
+                                        title="Eliminar PDF" (click)="deletePDF1(study)"></i>
+                                    </ng-container>
+                                    <ng-template #uploadPdf>
+                                      <button class="btn btn-primary btn-sm" (click)="uploadPDFForStudy(study)">
+                                        Subir PDF
+                                      </button>
+                                    </ng-template>
+                                  </td>
+                                </tr>
+                              </ng-container>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
