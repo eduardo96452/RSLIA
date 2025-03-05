@@ -1012,29 +1012,27 @@ export class PlanificacionComponent implements OnInit {
 
   async saveSynonymAndKeyword(row: KeywordRow) {
     try {
-
       console.log('row:', row);
       // Asegúrate de que row.synonyms esté definido
       if (!row.synonyms) {
         row.synonyms = [];
       }
   
-      // Si deseas insertar un solo sinónimo, por ejemplo el primero del arreglo:
+      // Unir los sinónimos en una cadena separada por comas (descartando vacíos)
       const sinonimoToInsert = row.synonyms
-        .filter(s => s.trim() !== '') // descartar sinónimos vacíos
+        .filter(s => s.trim() !== '')
         .join(', ');
   
       const palabraClaveToInsert = row.keyword;
       const fechaIngreso = new Date().toISOString();
   
-      // ID del componente (asegúrate de que sea un número o un string convertible)
+      // Obtener el id del componente desde row.related
       const componenteId = row.related?.id;
-      
       if (!componenteId) {
         throw new Error('No se ha seleccionado ningún componente.');
       }
-
-      // Llamar al servicio
+  
+      // Llamar al servicio para registrar la palabra clave y el sinónimo
       const { data, error } = await this.authService.registerSynonymThenKeyword(
         sinonimoToInsert,
         palabraClaveToInsert,
@@ -1053,6 +1051,18 @@ export class PlanificacionComponent implements OnInit {
         return;
       }
   
+      // Actualiza la fila con los datos retornados por el servicio
+      if (data && data.keyword) {
+        // Si es un registro nuevo, se asigna el id_palabras_clave retornado
+        if (!row.id_palabras_clave && data.keyword.id_palabras_clave) {
+          row.id_palabras_clave = data.keyword.id_palabras_clave;
+        }
+      }
+      // Si el servicio retorna también datos del sinónimo, actualízalo si existe
+      if (data && data.synonym && data.synonym.id_sinonimos) {
+        row.id_sinonimos = data.synonym.id_sinonimos;
+      }
+  
       Swal.fire({
         icon: 'success',
         title: '¡Guardado!',
@@ -1061,14 +1071,10 @@ export class PlanificacionComponent implements OnInit {
         showConfirmButton: false
       });
   
-      // Si es un registro nuevo, actualizamos row.id_palabras_clave con el valor retornado
-      if (!row.id_palabras_clave && data && data.keyword && data.keyword.id_palabras_clave) {
-        row.id_palabras_clave = data.keyword.id_palabras_clave;
-      }
-      // Salir del modo edición para mostrar el botón "Editar"
+      // Salir del modo edición para que se muestre el botón "Editar"
       row.isEditing = false;
+      // Se actualiza la fila en tableData automáticamente (ya que row es una referencia)
       this.keywordsUpdated = true;
-      
     } catch (err) {
       console.error('Error inesperado:', err);
       Swal.fire({
@@ -1078,6 +1084,7 @@ export class PlanificacionComponent implements OnInit {
       });
     }
   }
+  
 
   async loadKeywordsAndSynonyms() {
     try {
@@ -1259,10 +1266,19 @@ export class PlanificacionComponent implements OnInit {
   async deleteRow(index: number) {
     try {
       const row = this.tableData[index];
-      // Confirmación antes de eliminar
+      let confirmText = "";
+      
+      // Si no tiene id_palabras_clave, se asume que es un registro local.
+      if (!row.id_palabras_clave) {
+        confirmText = "¿Desea eliminar la palabra clave de forma local?";
+      } else {
+        confirmText = "Esta acción eliminará la palabra clave y sus sinónimos de forma permanente.";
+      }
+      
+      // Mostrar confirmación
       const result = await Swal.fire({
         title: '¿Estás seguro?',
-        text: "Esta acción eliminará la palabra clave y sus sinónimos de forma permanente.",
+        text: confirmText,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Sí, eliminar',
@@ -1270,28 +1286,39 @@ export class PlanificacionComponent implements OnInit {
       });
   
       if (result.isConfirmed) {
-        // Llamar al servicio para eliminar la palabra clave y sus sinónimos
-        const { data, error } = await this.authService.deleteKeyword(row.id_palabras_clave!, row.id_sinonimos!);
-        
-        if (error) {
-          console.error('Error al eliminar la palabra clave:', error);
+        // Si es registro local (sin id), se elimina solo del array
+        if (!row.id_palabras_clave) {
+          this.tableData.splice(index, 1);
           Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo eliminar la palabra clave.'
+            icon: 'success',
+            title: 'Eliminado',
+            text: 'La palabra clave se eliminó localmente.',
+            timer: 2000,
+            showConfirmButton: false
           });
-          return;
+        } else {
+          // Llamar al servicio para eliminar la palabra clave y sus sinónimos (según la relación definida)
+          const { data, error } = await this.authService.deleteKeyword(row.id_palabras_clave!, row.id_sinonimos!);
+          if (error) {
+            console.error('Error al eliminar la palabra clave:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'No se pudo eliminar la palabra clave.'
+            });
+            return;
+          }
+          // Remover la fila del array
+          this.tableData.splice(index, 1);
+          Swal.fire({
+            icon: 'success',
+            title: 'Eliminado',
+            text: 'La palabra clave y sus sinónimos se eliminaron correctamente.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.keywordsUpdated = false;
         }
-        
-        // Remover la fila de tableData
-        this.tableData.splice(index, 1);
-        Swal.fire({
-          icon: 'success',
-          title: 'Eliminado',
-          text: 'La palabra clave y sus sinónimos se eliminaron correctamente.',
-          timer: 2000,
-          showConfirmButton: false
-        });
       }
     } catch (err) {
       console.error('Error inesperado al eliminar:', err);
