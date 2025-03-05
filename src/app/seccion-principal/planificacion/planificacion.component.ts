@@ -1464,39 +1464,40 @@ export class PlanificacionComponent implements OnInit {
     }
   
     try {
-      // Llamar al servicio para actualizar la cadena de búsqueda
-      const { data, error } = await this.authService.actualizarCadenaBusqueda(this.cadenaBusqueda, this.reviewId);
+      const { data, error } = await this.authService.upsertCadenaBusqueda(this.cadenaBusqueda, this.reviewId);
   
       if (error) {
-        console.error('Error al actualizar la cadena de búsqueda:', error);
+        console.error('Error al guardar la cadena de búsqueda:', error);
         Swal.fire({
           icon: 'error',
           title: 'Error al guardar',
-          text: error.message || 'No se pudo actualizar la cadena de búsqueda.',
+          text: error.message || 'No se pudo guardar la cadena de búsqueda.',
         });
         return;
       }
   
       Swal.fire({
         icon: 'success',
-        title: '¡Actualizado!',
-        text: 'La cadena de búsqueda se ha actualizado correctamente.',
-        timer: 1500
+        title: '¡Guardado!',
+        text: 'La cadena de búsqueda se ha guardado correctamente.',
+        timer: 1500,
+        showConfirmButton: false
       });
   
       this.cadenaGuardada = true;
   
-      // Opcional: recargar los datos de la cadena de búsqueda desde la BD
+      // Opcional: recargar los datos desde la BD
       // this.loadCadena();
     } catch (err) {
       console.error('Error inesperado:', err);
       Swal.fire({
         icon: 'error',
         title: 'Error inesperado',
-        text: 'Ocurrió un problema al actualizar la cadena de búsqueda.',
+        text: 'Ocurrió un problema al guardar la cadena de búsqueda.',
       });
     }
-  }  
+  }
+  
 
   async loadCadena() {
     const { data, error } = await this.authService.getCadenaBusqueda(this.reviewId);

@@ -1191,18 +1191,36 @@ export class AuthService {
     return { data, error };
   }
 
-  async actualizarCadenaBusqueda(cadenaBusqueda: string, idDetallesRevision: string) {
-    // Actualiza el registro existente filtrando por id_detalles_revision
-    const { data, error } = await this._supabaseClient
+  async upsertCadenaBusqueda(cadenaBusqueda: string, idDetallesRevision: string): Promise<{ data: any; error: any }> {
+    // Intentamos obtener el registro existente para la revisión
+    const { data: existing, error: existingError } = await this._supabaseClient
       .from('cadenas_busqueda')
-      .update({ cadena_busqueda: cadenaBusqueda })
-      .eq('id_detalles_revision', idDetallesRevision);
-      
-    if (error) {
-      console.error('Error al actualizar cadena de búsqueda:', error.message);
+      .select('*')
+      .eq('id_detalles_revision', idDetallesRevision)
+      .maybeSingle();
+  
+    if (existingError) {
+      return { data: null, error: existingError };
     }
-    return { data, error };
+  
+    if (existing) {
+      // Actualiza el registro existente
+      const { data, error } = await this._supabaseClient
+        .from('cadenas_busqueda')
+        .update({ cadena_busqueda: cadenaBusqueda })
+        .eq('id_detalles_revision', idDetallesRevision)
+        .maybeSingle();
+      return { data, error };
+    } else {
+      // Inserta un nuevo registro
+      const { data, error } = await this._supabaseClient
+        .from('cadenas_busqueda')
+        .insert([{ cadena_busqueda: cadenaBusqueda, id_detalles_revision: idDetallesRevision }])
+        .maybeSingle();
+      return { data, error };
+    }
   }
+  
 
   async getCadenaBusqueda(idDetallesRevision: string) {
     const { data, error } = await this._supabaseClient
