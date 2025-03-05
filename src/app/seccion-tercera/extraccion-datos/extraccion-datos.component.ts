@@ -243,6 +243,21 @@ export class ExtraccionDatosComponent implements OnInit {
     }
   }
 
+  updateBooleanField(
+    value: boolean,
+    studyId: string | number,
+    fieldId: string | number,
+    study: any
+  ): void {
+    // Actualiza la respuesta para el estudio y campo indicados
+    if (!this.extractionData[studyId]) {
+      this.extractionData[studyId] = {};
+    }
+    this.extractionData[studyId][fieldId] = value;
+    // Marca que la extracción ya no está guardada
+    study.extractionSaved = false;
+  }
+
   // Función para exportar la información a Excel
   exportToExcel(): void {
     // 1. Crear un nuevo libro de trabajo
@@ -251,16 +266,14 @@ export class ExtraccionDatosComponent implements OnInit {
     const worksheet = workbook.addWorksheet('Extracción');
 
     // 3. Construir la lista de columnas (encabezados) para la tabla
-    //    La primera columna será "article" (o "Título del Estudio"),
+    //    La primera columna será "Articulo" (o "Título del Estudio"),
     //    y las siguientes serán cada pregunta de extracción.
     const columns = ['Articulo', ...this.extractionFields.map(f => f.descripcion)];
 
     // 4. Agregar la primera fila con un TÍTULO unificado
-    //    (fila 1 en Excel, índice 0 internamente)
     const titleRow = worksheet.addRow(['Uso de Inteligencia Artificial para Diagnóstico Médico Basado en Imágenes']);
     // Combinar celdas desde la A1 hasta la última columna
     worksheet.mergeCells(1, 1, 1, columns.length);
-    // Estilos para la celda combinada
     const titleCell = titleRow.getCell(1);
     titleCell.font = { bold: true, size: 14 };
     titleCell.alignment = { horizontal: 'center' };
@@ -270,39 +283,35 @@ export class ExtraccionDatosComponent implements OnInit {
 
     // 6. Fila de encabezados (fila 3 en Excel)
     const headerRow = worksheet.addRow(columns);
-    // Estilos en negrita para cada celda de la fila de encabezados
     headerRow.eachCell(cell => {
       cell.font = { bold: true };
       cell.alignment = { horizontal: 'center' };
     });
 
     // 7. Agregar filas de datos para cada estudio
-    //    Cada fila tiene:
-    //      - Columna 1: study.titulo
-    //      - Las siguientes columnas: 1..n => respuesta al campo i
     this.getFilteredStudies().forEach(study => {
-      // Construimos un array con la primera posición = título
       const rowValues: any[] = [study.titulo];
-
-      // Para cada pregunta, añadimos la respuesta
       this.extractionFields.forEach(field => {
-        const answer = this.extractionData[study.id_estudios][field.id_campo_extraccion] || '';
+        let answer = this.extractionData[study.id_estudios][field.id_campo_extraccion] || '';
+        // Si la respuesta es booleana, convertirla a texto
+        if (typeof answer === 'boolean') {
+          answer = answer ? 'Sí' : 'No';
+        }
         rowValues.push(answer);
       });
-
-      // Agregamos la fila al worksheet
       worksheet.addRow(rowValues);
     });
 
     // 8. Ajustar ancho de columnas (opcional)
-    //    Por ejemplo, ancho automático para cada columna
     worksheet.columns?.forEach((col, index) => {
-      if (index === 0) {
-        // Primera columna (article)
-        col.width = 40;
-      } else {
-        col.width = 30;
-      }
+      col.width = index === 0 ? 40 : 30;
+    });
+
+    // 8.5. Configurar todas las celdas para que ajusten el texto (wrapText = true)
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        cell.alignment = { ...cell.alignment, wrapText: true };
+      });
     });
 
     // 9. Generar el archivo Excel y descargarlo
@@ -312,10 +321,172 @@ export class ExtraccionDatosComponent implements OnInit {
     }).catch(err => console.error('Error al generar Excel:', err));
   }
 
-  generateAISuggestions(): void {
-    // Aquí implementa la lógica para generar sugerencias de IA para cada estudio
-    // Por ejemplo, podrías iterar sobre this.acceptedStudiesThreshold y enviar los títulos a un servicio de IA
-    console.log("Generar sugerencia de IA para todos los artículos.");
-    // Implementa la llamada a tu servicio de IA, muestra un SweetAlert o actualiza la interfaz según necesites.
+
+  async generateAISuggestionsForStudy(study: any) {
+    try {
+      // Verifica que el estudio tenga URL de PDF
+      if (!study.url_pdf_articulo) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Sin URL',
+          text: 'El estudio no tiene una URL de PDF asociada.'
+        });
+        return;
+      }
+
+      // Construir el payload para la IA:
+      // Se recorre el arreglo de extractionFields para obtener la descripción y el tipo de respuesta esperado.
+      const questionsPayload = this.extractionFields.map(field => ({
+        pregunta: field.descripcion,
+        tipoRespuesta: field.tipo  // Ej.: "Texto", "Decimal", etc.
+      }));
+
+      const payload = {
+        url: study.url_pdf_articulo,
+        questions: questionsPayload
+      };
+
+      // Mostrar alerta de carga mientras se generan las sugerencias
+      Swal.fire({
+        title: 'Generando sugerencias de IA...',
+        text: 'Por favor, espera un momento.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading(Swal.getConfirmButton());
+        }
+      });
+
+      // Llamar al servicio para obtener las sugerencias
+      const response = await this.openAiService.generateExtractionSuggestions(payload).toPromise();
+
+      // Cerrar alerta de carga
+      Swal.close();
+
+      // Si se generaron sugerencias, se espera que el response contenga un arreglo "suggestions"
+      if (response && response.suggestions && Array.isArray(response.suggestions)) {
+        // Asigna cada sugerencia a la respuesta correspondiente en extractionData para ese estudio.
+        response.suggestions.forEach((suggestion: any, index: number) => {
+          // Suponemos que cada suggestion tiene una propiedad "answer"
+          this.extractionData[study.id_estudios][this.extractionFields[index].id_campo_extraccion] = suggestion.answer;
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Sugerencias generadas',
+          text: 'Las respuestas sugeridas se han asignado a las preguntas correspondientes.',
+          timer: 2500,
+          showConfirmButton: false
+        });
+      } else {
+        Swal.fire({
+          icon: 'info',
+          title: 'Sin sugerencias',
+          text: 'No se generaron sugerencias de IA para este estudio.'
+        });
+      }
+    } catch (error) {
+      console.error('Error al generar sugerencias de IA:', error);
+      Swal.close();
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al generar las sugerencias de IA.'
+      });
+    }
   }
+
+  async generateAISuggestions() {
+    try {
+      // Verificar que TODOS los estudios tengan la URL de PDF
+      const studiesMissingPDF = this.acceptedStudiesThreshold.filter(
+        study => !study.url_pdf_articulo || !study.url_pdf_articulo.trim()
+      );
+      if (studiesMissingPDF.length > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Artículos incompletos',
+          text: 'Debe subir el PDF de todos los artículos antes de generar las sugerencias de IA.'
+        });
+        return;
+      }
+
+      // Mostrar alerta de carga mientras se generan las sugerencias
+      Swal.fire({
+        title: 'Generando sugerencias para todos los estudios...',
+        text: 'Por favor, espere un momento.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading(Swal.getConfirmButton());
+        }
+      });
+
+      // Preparar y ejecutar las peticiones para cada estudio
+      const suggestionsPromises = this.acceptedStudiesThreshold.map(study => {
+        // Construir el payload para el estudio
+        const questionsPayload = this.extractionFields.map(field => ({
+          pregunta: field.descripcion,
+          tipoRespuesta: field.tipo  // Por ejemplo: "Texto", "Decimal", etc.
+        }));
+
+        const payload = {
+          url: study.url_pdf_articulo,
+          questions: questionsPayload
+        };
+
+        // Llamar al servicio que genera sugerencias para ese estudio.
+        return this.openAiService.generateExtractionSuggestions(payload).toPromise()
+          .then(response => ({
+            studyId: study.id_estudios,
+            suggestions: response.suggestions  // Se espera que sea un arreglo
+          }))
+          .catch(err => {
+            console.error('Error generando sugerencias para estudio:', study.id_estudios, err);
+            return { studyId: study.id_estudios, suggestions: [] };
+          });
+      });
+
+      // Esperar que se completen todas las peticiones
+      const results = await Promise.all(suggestionsPromises);
+
+      // Actualizar la variable de respuestas de extracción para cada estudio
+      results.forEach(result => {
+        if (this.extractionData[result.studyId]) {
+          // Se asume que la cantidad y orden de las sugerencias corresponden a extractionFields
+          result.suggestions.forEach((suggestion: any, index: number) => {
+            // Actualiza la respuesta para el campo correspondiente en el estudio
+            const fieldId = this.extractionFields[index].id_campo_extraccion;
+            this.extractionData[result.studyId][fieldId] = suggestion.answer;
+          });
+        }
+      });
+
+      Swal.close();
+      Swal.fire({
+        icon: 'success',
+        title: 'Sugerencias generadas',
+        text: 'Se han generado las sugerencias de IA para todos los estudios.',
+        timer: 2500,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      console.error('Error en generación de sugerencias de IA:', err);
+      Swal.close();
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al generar las sugerencias de IA.'
+      });
+    }
+  }
+
+  get allStudiesHavePdf(): boolean {
+    return this.acceptedStudiesThreshold && this.acceptedStudiesThreshold.every(study =>
+      study.url_pdf_articulo && study.url_pdf_articulo.trim().length > 0
+    );
+  }
+
+  isGenerateAISuggestionsDisabled(): boolean {
+    return this.acceptedStudiesThreshold.some(study => !study.url_pdf_articulo || !study.url_pdf_articulo.trim());
+  }
+
 }

@@ -106,7 +106,9 @@
                     <button class="btn btn-primary me-2" (click)="exportToExcel()">
                       <i class="bi bi-file-earmark-excel"></i>&nbsp; Exportar a Excel
                     </button>
-                    <button class="btn btn-info" (click)="generateAISuggestions()">
+                    <button class="btn btn-info"
+                      [disabled]="isGenerateAISuggestionsDisabled()"
+                      (click)="generateAISuggestions()">
                       <i class="bi bi-robot"></i>&nbsp; Generar todas las sugerencias de IA
                     </button>
                   </div>
@@ -118,7 +120,7 @@
                   <!-- Título del estudio y botones -->
                   <div class="mb-2 d-flex justify-content-between align-items-center">
                     <!-- Título y puntaje -->
-                    <div class="d-flex align-items-center">
+                    <div class="align-items-center">
                       <strong>{{ study.titulo }}</strong>
                       <span class="badge ms-2 bg-info">Puntaje: {{ study.totalPeso }}</span>
                     </div>
@@ -126,7 +128,7 @@
                     &nbsp;
                     <!-- Botones -->
                     <div class="d-flex">
-                      <button class="btn btn-info me-2" (click)="generateAISuggestions()">
+                      <button class="btn btn-info me-2" (click)="generateAISuggestionsForStudy(study)">
                         <i class="bi bi-robot"></i>&nbsp; Generar sugerencia de IA
                       </button>
                       <button type="button" class="btn btn-sm"
@@ -174,25 +176,24 @@
                                 [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
                                 (ngModelChange)="study.extractionSaved = false" />
 
-                              <!-- Booleano -->
-                              <div *ngSwitchCase="'Booleano'">
-                                <label class="me-3" style="display: inline-flex; align-items: center;">
-                                  <input type="radio" [value]="true"
-                                    [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                    [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
-                                    style="transform: scale(1.5); margin-right: 6px;"
-                                    (ngModelChange)="study.extractionSaved = false" />
-                                  Sí
-                                </label>
-                                <label style="display: inline-flex; align-items: center;">
-                                  <input type="radio" [value]="false"
-                                    [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                    [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
-                                    style="transform: scale(1.5); margin-right: 6px;"
-                                    (ngModelChange)="study.extractionSaved = false" />
-                                  No
-                                </label>
-                              </div>
+                                <div *ngSwitchCase="'Booleano'">
+                                  <label class="me-3" style="display: inline-flex; align-items: center;">
+                                    <input type="radio" [value]="true"
+                                      [ngModel]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                      [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                      style="transform: scale(1.5); margin-right: 6px;"
+                                      (change)="updateBooleanField(true, study.id_estudios, field.id_campo_extraccion, study)" />
+                                    Sí
+                                  </label>
+                                  <label style="display: inline-flex; align-items: center;">
+                                    <input type="radio" [value]="false"
+                                      [ngModel]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                      [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                      style="transform: scale(1.5); margin-right: 6px;"
+                                      (change)="updateBooleanField(false, study.id_estudios, field.id_campo_extraccion, study)" />
+                                    No
+                                  </label>
+                                </div>
 
                               <!-- Default -->
                               <input *ngSwitchDefault type="text" class="form-control"

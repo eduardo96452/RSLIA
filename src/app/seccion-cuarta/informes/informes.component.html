@@ -103,12 +103,12 @@
                         Referencias
                      </button>
                   </li>
-                  &nbsp;
                   <li class="nav-item" role="presentation">
-                     <button class="btn btn-outline-primary" id="referencias-btn" type="button" (click)="downloadDraftWord()">
-                       Descargar borrador de artículo
+                     <button class="nav-link" id="descarga-tab" data-bs-toggle="tab" data-bs-target="#descarga"
+                        type="button" role="tab" aria-controls="descarga" aria-selected="false">
+                        Descargas
                      </button>
-                   </li>
+                  </li>
                </ul>
 
                <!-- Contenido de cada pestaña -->
@@ -135,10 +135,11 @@
                            </div>
                            <div class="d-flex justify-content-between mt-2">
                               <!-- Botón para guardar el borrador de Introducción -->
-                              <button class="btn btn-success" title="Guardar borrador de Introducción" (click)="saveIntroductionDraft()">
-                                Guardar introducción
+                              <button class="btn btn-success" title="Guardar borrador de Introducción"
+                                 (click)="saveIntroductionDraft()">
+                                 Guardar introducción
                               </button>
-                            </div>
+                           </div>
                         </div>
                      </div>
                   </div>
@@ -328,6 +329,79 @@
                                  Guardar retodología
                               </button>
                            </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  <!-- Descarga -->
+                  <div class="tab-pane fade" id="descarga" role="tabpanel" aria-labelledby="descarga-tab">
+                     <!-- Tarjeta para generar y subir informe DOCX -->
+                     <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                           <h5 class="mb-0">
+                              <i class="bi bi-file-earmark-word"></i>&nbsp; Generar Informe (DOCX)
+                           </h5>
+                        </div>
+                        <div class="card-body">
+                           <p class="text-muted">
+                              Haga clic en el botón para generar el borrador del artículo en formato DOCX. El archivo se
+                              subirá automáticamente al storage de Supabase y se registrará en la base de datos.
+                           </p>
+                           <button class="btn btn-outline-primary" (click)="downloadDraftWord()">
+                              <i class="bi bi-file-earmark-word"></i>&nbsp; Generar y Subir Informe DOCX
+                           </button>
+                        </div>
+                     </div>
+
+                     <!-- Tarjeta para generar y subir informe PDF (opcional) -->
+                     <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                           <h5 class="mb-0">
+                              <i class="bi bi-file-earmark-pdf"></i>&nbsp; Generar Informe (PDF)
+                           </h5>
+                        </div>
+                        <div class="card-body">
+                           <p class="text-muted">
+                              Haga clic en el botón para generar el borrador del artículo en formato PDF. El archivo se
+                              subirá automáticamente al storage de Supabase y se registrará en la base de datos.
+                           </p>
+                           <button class="btn btn-outline-primary" (click)="downloadDraftPdf()">
+                              <i class="bi bi-file-earmark-pdf"></i>&nbsp; Generar y Subir Informe PDF
+                           </button>
+                        </div>
+                     </div>
+
+                     <!-- Opcional: Tabla de informes generados (si deseas mostrar un listado de archivos ya subidos) -->
+                     <div class="card mb-3">
+                        <div class="card-header bg-secondary text-white">
+                           <h5 class="mb-0">
+                              <i class="bi bi-archive"></i>&nbsp; Informes Generados
+                           </h5>
+                        </div>
+                        <div class="card-body">
+                           <table class="table table-striped table-hover" style="width: 100%;">
+                              <thead>
+                                 <tr>
+                                    <th>Nombre del archivo</th>
+                                    <th>Fecha de generación</th>
+                                    <th class="text-center">Acciones</th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 <tr *ngFor="let informe of informesGenerados">
+                                    <td>{{ informe.nombre_informe }}</td>
+                                    <td>{{ informe.fecha_generacion | date:'short' }}</td>
+                                    <td class="text-center">
+                                       <button class="btn btn-sm btn-primary me-1" (click)="downloadFile(informe)">
+                                          Descargar
+                                       </button>
+                                       <button class="btn btn-sm btn-danger" (click)="deleteInforme(informe)">
+                                          Eliminar
+                                       </button>
+                                    </td>
+                                 </tr>
+                              </tbody>
+                           </table>
                         </div>
                      </div>
                   </div>

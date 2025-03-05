@@ -181,6 +181,14 @@ export interface DataField {
   isEditing: boolean;
 }
 
+export interface Informe {
+  id_informes_generados: number;
+  id_detalles_revision: string;
+  nombre_informe: string;
+  ruta_archivo: string;
+  fecha_generacion: string;
+}
+
 
 
 @Injectable({
@@ -2241,7 +2249,133 @@ export class AuthService {
     return { data, error };
   }
 
+  async uploadInformeDocx(file: Blob, idDetallesRevision: string): Promise<{ publicUrl: string, fileName: string } | null> {
+    // Genera un nombre único para el archivo DOCX
+    const randomNum = Math.floor(Math.random() * 10000);
+    const fileName = `Borrador_de_Articulo_${Date.now()}-${randomNum}.docx`;
+    // Construye la ruta: carpeta "informes" dentro del bucket "documentos"
+    const filePath = `informes/${idDetallesRevision}/${fileName}`;
+    
+    // Subir el archivo al bucket "documentos"
+    const { data, error } = await this._supabaseClient
+      .storage
+      .from('documentos')
+      .upload(filePath, file, { cacheControl: '3600', upsert: false });
+    
+    if (error) {
+      console.error('Error al subir el archivo:', error);
+      return null;
+    }
+    
+    // Obtener la URL pública del archivo; getPublicUrl retorna solo un objeto con data
+    const publicUrlResult = this._supabaseClient
+      .storage
+      .from('documentos')
+      .getPublicUrl(filePath);
+    
+    const publicUrl = publicUrlResult.data.publicUrl;
+    return { publicUrl, fileName };
+  }
+  
+  async insertInformeGenerado(
+    idDetallesRevision: string,
+    nombreInforme: string,
+    rutaArchivo: string,
+    fechaGeneracion: string
+  ): Promise<{ data: any; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('informes_generados')
+      .insert([
+        {
+          id_detalles_revision: idDetallesRevision,
+          nombre_informe: nombreInforme,
+          ruta_archivo: rutaArchivo,
+          fecha_generacion: fechaGeneracion
+        }
+      ])
+      .maybeSingle();
+    return { data, error };
+  }
+  
+  async deleteInformeGenerado(idInforme: number): Promise<{ data: any; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('informes_generados')
+      .delete()
+      .eq('id_informes_generados', idInforme);
+    return { data, error };
+  }
+  
+  async getInformesGenerados(idDetallesRevision: string): Promise<any[]> {
+    const { data, error } = await this._supabaseClient
+      .from('informes_generados')
+      .select('*')
+      .eq('id_detalles_revision', idDetallesRevision);
+    if (error) {
+      console.error('Error al cargar informes generados:', error);
+      return [];
+    }
+    return data;
+  }
+  
 
+
+
+
+
+
+  async uploadInforme(fileName: string, file: Blob, idDetallesRevision: string): Promise<{ data: any; error: any }> {
+    // Construye la ruta: carpeta "informes" dentro del bucket "documentos"
+    const path = `informes/${idDetallesRevision}/${fileName}`;
+    const { data, error } = await this._supabaseClient
+      .storage
+      .from('documentos')
+      .upload(path, file, { cacheControl: '3600', upsert: false });
+    if (error) {
+      return { data: null, error };
+    }
+    // Obtener la URL pública del archivo
+    const { data: publicUrlData } = this._supabaseClient
+      .storage
+      .from('documentos')
+      .getPublicUrl(path);
+    const publicUrl = publicUrlData.publicUrl;
+    if (!publicUrlData) {
+      return { data: null, error: new Error('Failed to get public URL') };
+    }
+    return { data: { publicUrl }, error: null };
+  }
+  
+  
+  async uploadInformePdf(fileName: string, file: Blob, idDetallesRevision: string): Promise<{ data: any; error: any }> {
+    // Define la ruta en el bucket, por ejemplo: informes/{idDetallesRevision}/{fileName}
+    const path = `informes/${idDetallesRevision}/${fileName}`;
+    const { data, error } = await this._supabaseClient
+      .storage
+      .from('documentos')
+      .upload(path, file, { cacheControl: '3600', upsert: false });
+    return { data, error };
+  }
+
+  async insertInformeGeneradopdf(
+    idDetallesRevision: string,
+    nombreInforme: string,
+    rutaArchivo: string,
+    fechaGeneracion: string
+  ): Promise<{ data: any; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .from('informes_generados')
+      .insert([
+        {
+          id_detalles_revision: idDetallesRevision,
+          nombre_informe: nombreInforme,
+          ruta_archivo: rutaArchivo,
+          fecha_generacion: fechaGeneracion
+        }
+      ])
+      .maybeSingle();
+    return { data, error };
+  }
+  
 
 
 

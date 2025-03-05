@@ -15,6 +15,7 @@ export class OpenAiService {
   private criteriaUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-criteria';
   private dataExtractionQuestionsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-data-extraction-questions';
   private introductionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-introduction';
+  private extractionSuggestionsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-extraction-suggestions';
 
   constructor(private http: HttpClient) { }
 
@@ -84,6 +85,13 @@ export class OpenAiService {
     const body = { title, objective, numberOfQuestions };
     return this.http.post<any>(this.dataExtractionQuestionsUrl, body);
   }
+
+  generateExtractionSuggestions(payload: any): Observable<any> {
+    return this.http.post<any>(this.extractionSuggestionsUrl, payload);
+  }
+
+
+
 
   generateIntroduction(data: {
     title: string;

@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs';
-import { AuthService } from '../../auth/data-access/auth.service';
+import { AuthService, Informe } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
 import { Document, Packer, Paragraph, HeadingLevel, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 import Swal from 'sweetalert2';
+import { jsPDF } from "jspdf";
+import { SupabaseService } from '../../conexion/supabase.service';
 
 @Component({
   selector: 'app-informes',
@@ -33,10 +35,12 @@ export class InformesComponent implements OnInit {
   limitacionesText = 'Contenido de las Limitaciones...';
   conclusionText = 'Contenido de la Conclusión...';
   referenciasText = 'Contenido de las Referencias...';
+  informesGenerados: Informe[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
+    private supabase: SupabaseService,
     private fb: FormBuilder,
     private router: Router,
     private openAiService: OpenAiService
@@ -59,6 +63,8 @@ export class InformesComponent implements OnInit {
 
     this.introductionText = ''; // o con algún valor predeterminado
     await this.loadSectionDraft();
+
+    this.loadInformesGenerados();
   }
 
 
@@ -105,7 +111,7 @@ export class InformesComponent implements OnInit {
         Swal.showLoading(Swal.getConfirmButton());
       }
     });
-  
+
     // Prepara el payload con los datos necesarios
     const payload = {
       title: this.reviewData.titulo_revision || '',
@@ -117,7 +123,7 @@ export class InformesComponent implements OnInit {
 
     console.log('Payload para generar la Introducción:', payload
     );
-  
+
     this.openAiService.generateIntroduction(payload).subscribe({
       next: (res) => {
         // Cierra el popup de carga y muestra la notificación de éxito
@@ -147,7 +153,7 @@ export class InformesComponent implements OnInit {
       }
     });
   }
-  
+
   async saveIntroductionDraft(): Promise<void> {
     try {
       // Muestra un SweetAlert de carga
@@ -203,98 +209,282 @@ export class InformesComponent implements OnInit {
     }
   }
 
+  // Función para generar y subir el DOCX
+  async downloadDraftWord(): Promise<void> {
+    try {
+      // 1. Crear el documento DOCX
+      const doc = new Document({
+        sections: [
+          {
+            children: [
+              new Paragraph({
+                text: "Introducción",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 200 }
+              }),
+              new Paragraph({ children: [new TextRun(this.introductionText)] }),
+              new Paragraph({
+                text: "Trabajos relacionados",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 200 }
+              }),
+              new Paragraph({ children: [new TextRun(this.trabajosText)] }),
+              new Paragraph({
+                text: "Metodología",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 200 }
+              }),
+              new Paragraph({ children: [new TextRun(this.metodologiaText)] }),
+              new Paragraph({
+                text: "Resultados",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 200 }
+              }),
+              new Paragraph({ children: [new TextRun(this.resultadosText)] }),
+              new Paragraph({
+                text: "Discusión",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 200 }
+              }),
+              new Paragraph({ children: [new TextRun(this.discusionText)] }),
+              new Paragraph({
+                text: "Limitaciones",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 200 }
+              }),
+              new Paragraph({ children: [new TextRun(this.limitacionesText)] }),
+              new Paragraph({
+                text: "Conclusión",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 200 }
+              }),
+              new Paragraph({ children: [new TextRun(this.conclusionText)] }),
+              new Paragraph({
+                text: "Referencias",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 200 }
+              }),
+              new Paragraph({ children: [new TextRun(this.referenciasText)] })
+            ]
+          }
+        ]
+      });
 
+      // 2. Generar el documento en un Blob
+      const blob: Blob = await Packer.toBlob(doc);
 
+      // 3. Subir el documento al bucket "documentos" en la carpeta "informes"
+      const uploadResult = await this.authService.uploadInformeDocx(blob, this.reviewId);
+      if (!uploadResult) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo subir el informe DOCX al storage.'
+        });
+        return;
+      }
 
+      const { publicUrl, fileName } = uploadResult;
+      const fechaGeneracion = new Date().toISOString();
 
+      // 4. Registrar el informe generado en la tabla "informes_generados"
+      const { data: dbData, error: dbError } = await this.authService.insertInformeGenerado(
+        this.reviewId,
+        fileName,
+        publicUrl,
+        fechaGeneracion
+      );
+      if (dbError) {
+        console.error('Error al insertar informe generado:', dbError);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo registrar el informe en la base de datos.'
+        });
+        return;
+      }
 
-
-  downloadDraftWord(): void {
-    const doc = new Document({
-      sections: [
-        {
-          children: [
-            // Introducción
-            new Paragraph({
-              text: "Introducción",
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              children: [ new TextRun(this.introductionText) ]
-            }),
-            // Trabajos relacionados
-            new Paragraph({
-              text: "Trabajos relacionados",
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              children: [ new TextRun(this.trabajosText) ]
-            }),
-            // Metodología
-            new Paragraph({
-              text: "Metodología",
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              children: [ new TextRun(this.metodologiaText) ]
-            }),
-            // Resultados
-            new Paragraph({
-              text: "Resultados",
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              children: [ new TextRun(this.resultadosText) ]
-            }),
-            // Discusión
-            new Paragraph({
-              text: "Discusión",
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              children: [ new TextRun(this.discusionText) ]
-            }),
-            // Limitaciones
-            new Paragraph({
-              text: "Limitaciones",
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              children: [ new TextRun(this.limitacionesText) ]
-            }),
-            // Conclusión
-            new Paragraph({
-              text: "Conclusión",
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              children: [ new TextRun(this.conclusionText) ]
-            }),
-            // Referencias
-            new Paragraph({
-              text: "Referencias",
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              children: [ new TextRun(this.referenciasText) ]
-            })
-          ]
-        }
-      ]
-    });
-
-    // Genera el documento en un Blob y lo descarga
-    Packer.toBlob(doc).then((blob) => {
-      saveAs(blob, 'Borrador_de_Articulo.docx');
-    });
+      Swal.fire({
+        icon: 'success',
+        title: '¡Subido!',
+        text: 'El informe DOCX se ha subido y registrado correctamente.',
+        timer: 2500,
+        showConfirmButton: false
+      });
+      // 7. Actualizar la tabla de informes generados en la UI
+      await this.loadInformesGenerados();
+    } catch (err) {
+      console.error('Error inesperado al generar el DOCX:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error inesperado',
+        text: 'Ocurrió un problema al generar el informe DOCX.'
+      });
+    }
   }
+
+  // Método para descargar un informe (abre la URL en una nueva pestaña)
+  downloadFile(informe: Informe): void {
+    window.open(informe.ruta_archivo, '_blank');
+  }
+
+  // Método para eliminar un informe
+  async deleteInforme(informe: Informe): Promise<void> {
+    try {
+      const result = await Swal.fire({
+        title: '¿Estás seguro?',
+        text: 'Esta acción eliminará el informe generado de forma permanente.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (result.isConfirmed) {
+        // Llamar al servicio para eliminar el informe de la base de datos
+        const { data, error } = await this.authService.deleteInformeGenerado(informe.id_informes_generados);
+        if (error) {
+          console.error('Error al eliminar el informe:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo eliminar el informe.'
+          });
+          return;
+        }
+        // Eliminar el informe del array local
+        this.informesGenerados = this.informesGenerados.filter(i => i.id_informes_generados !== informe.id_informes_generados);
+        Swal.fire({
+          icon: 'success',
+          title: 'Eliminado',
+          text: 'El informe se eliminó correctamente.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      }
+    } catch (err) {
+      console.error('Error inesperado al eliminar el informe:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error inesperado',
+        text: 'Ocurrió un problema al eliminar el informe.'
+      });
+    }
+  }
+
+  async loadInformesGenerados() {
+    try {
+      this.informesGenerados = await this.authService.getInformesGenerados(this.reviewId);
+    } catch (err) {
+      console.error('Error al cargar informes generados:', err);
+    }
+  }
+
+  async downloadDraftPdf(): Promise<void> {
+    try {
+      // 1. Crear una instancia de jsPDF
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      let y = 20; // Posición vertical inicial
   
+      // Agregar título principal centrado
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Uso de Inteligencia Artificial para Diagnóstico Médico Basado en Imágenes", pageWidth / 2, y, { align: "center" });
+      y += 10;
+  
+      // Definir secciones y contenidos
+      const sections = [
+        { title: "Introducción", content: this.introductionText },
+        { title: "Trabajos relacionados", content: this.trabajosText },
+        { title: "Metodología", content: this.metodologiaText },
+        { title: "Resultados", content: this.resultadosText },
+        { title: "Discusión", content: this.discusionText },
+        { title: "Limitaciones", content: this.limitacionesText },
+        { title: "Conclusión", content: this.conclusionText },
+        { title: "Referencias", content: this.referenciasText }
+      ];
+  
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+  
+      for (const section of sections) {
+        y += 10;
+        // Agregar título de la sección en negrita
+        doc.setFont("helvetica", "bold");
+        doc.text(section.title, 10, y);
+        y += 6;
+        // Agregar el contenido de la sección con ajuste de texto
+        doc.setFont("helvetica", "normal");
+        const textLines = doc.splitTextToSize(section.content || "", pageWidth - 20);
+        doc.text(textLines, 10, y);
+        y += textLines.length * 10 + 10;
+        // Si nos acercamos al final de la página, agregar una nueva página
+        if (y > doc.internal.pageSize.getHeight() - 20) {
+          doc.addPage();
+          y = 20;
+        }
+      }
+  
+      // 2. Generar el documento PDF en un Blob
+      const pdfBlob: Blob = doc.output("blob");
+  
+      // 3. Crear un nombre único para el archivo PDF
+      const fileName = `Borrador_de_Articulo_${Date.now()}.pdf`;
+  
+      // 4. Subir el archivo al bucket "documentos" en la carpeta "informes"
+      const { data: uploadData, error: uploadError } = await this.authService.uploadInforme(fileName, pdfBlob, this.reviewId);
+      if (uploadError) {
+        console.error("Error al subir el informe PDF:", uploadError);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo subir el informe PDF al storage."
+        });
+        return;
+      }
+  
+      // 5. Obtener la URL pública del archivo subido
+      if (!uploadData) {
+        throw new Error("Upload data is null");
+      }
+      const publicUrl = uploadData.publicUrl;
+      const fechaGeneracion = new Date().toISOString();
+  
+      // 6. Registrar el informe generado en la tabla "informes_generados"
+      const { data: dbData, error: dbError } = await this.authService.insertInformeGeneradopdf(
+        this.reviewId,
+        fileName,
+        publicUrl,
+        fechaGeneracion
+      );
+      if (dbError) {
+        console.error("Error al insertar informe generado:", dbError);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo registrar el informe en la base de datos."
+        });
+        return;
+      }
+  
+      Swal.fire({
+        icon: "success",
+        title: "¡Subido!",
+        text: "El informe PDF se ha subido y registrado correctamente.",
+        timer: 2500,
+        showConfirmButton: false
+      });
+      // 7. Actualizar la tabla de informes generados en la UI
+      await this.loadInformesGenerados();
+    } catch (err) {
+      console.error("Error inesperado al generar el PDF:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Error inesperado",
+        text: "Ocurrió un problema al generar el informe PDF."
+      });
+    }
+  }
+
 }

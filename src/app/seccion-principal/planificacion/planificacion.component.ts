@@ -1497,7 +1497,6 @@ export class PlanificacionComponent implements OnInit {
       });
     }
   }
-  
 
   async loadCadena() {
     const { data, error } = await this.authService.getCadenaBusqueda(this.reviewId);
