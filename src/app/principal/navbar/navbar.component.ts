@@ -3,6 +3,7 @@ import { AuthService } from '../../auth/data-access/auth.service';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
+
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -16,7 +17,7 @@ export class NavbarComponent implements OnInit {
   isLoggedIn: boolean = false;
   isLargeScreen: boolean = true;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) { }
 
   ngOnInit(): void {
     // Suscribirse al estado de autenticación
@@ -31,11 +32,28 @@ export class NavbarComponent implements OnInit {
       }
     });
     this.checkScreenSize();
+
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+    }
   }
 
   @HostListener('window:resize', ['$event'])
   onResize(): void {
     this.checkScreenSize();
+  }
+
+  toggleDarkMode(event: Event): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    console.log('Modo nocturno:', isChecked);
+    if (isChecked) {
+      document.body.classList.add('dark-mode');
+      localStorage.setItem('darkMode', 'true');
+    } else {
+      document.body.classList.remove('dark-mode');
+      localStorage.setItem('darkMode', 'false');
+    }
   }
 
   private checkScreenSize(): void {

@@ -20,6 +20,7 @@ export interface DetallesRevision {
   area_conocimiento?: string;
   tipo_investigacion?: string;
   institucion?: string | null;
+  
 }
 
 export interface Metodologia {
@@ -446,6 +447,19 @@ export class AuthService {
 
     return count || 0; // Retorna el conteo obtenido
   }
+
+  async countUserInformes(userId: string): Promise<number> {
+    const { count, error } = await this._supabaseClient
+      .from('informes_generados')
+      .select('*, detalles_revision:detalles_revision!inner(id_usuarios)', { count: 'exact', head: true })
+      .eq('detalles_revision.id_usuarios', userId);
+    
+    if (error) {
+      console.error('Error al contar informes generados del usuario:', error);
+      return 0;
+    }
+    return count || 0;
+  }  
 
   async countUserDocuments(userId: string): Promise<number> {
     try {

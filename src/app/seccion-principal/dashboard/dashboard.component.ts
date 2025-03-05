@@ -4,57 +4,73 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { Chart } from 'chart.js/auto';
-import { filter } from 'rxjs';
+import { Subscription, filter, forkJoin } from 'rxjs';
 import Swal from 'sweetalert2';
-
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [RouterLink, CommonModule, FormsModule],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
+  styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
 
+  // Propiedades
   userReviewCount: number = 0;
   userReviews: any[] = [];
+  userInformeCount: number = 0;
   slug: string | null = null;
   isLargeScreen: boolean = true;
-  userDocumentCount: number = 0; // Almacena el conteo de documentos procesados
-  @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
-  chart: Chart | null = null;
   isLoading = true;
   errorMessage: string | null = null;
   distributionData: { [key: string]: number } | null = null;
-  private checkInterval: any;
+  chart: Chart | null = null;
 
-  constructor(private authService: AuthService, private router: Router, private route: ActivatedRoute) { }
+  // Suscripciones
+  private routerSubscription!: Subscription;
+
+  // Cache de usuario
+  private userId: string | null = localStorage.getItem('user_id');
+
+  @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) { }
 
   async ngOnInit() {
-    await this.loadUserReviewCount();
-    await this.loadUserReviews();
-    this.slug = this.route.snapshot.paramMap.get('slug');
-    this.loadRevisionBySlug(this.slug);
-    this.checkScreenSize();
-    await this.loadUserDocumentCount();
+    // Si el usuario no está autenticado, maneja el error o redirige.
+    if (!this.userId) {
+      console.warn('Usuario no autenticado');
+      this.isLoading = false;
+      return;
+    }
+
+    // Ejecuta en paralelo las cargas asíncronas que no dependen una de otra
     try {
+      await Promise.all([
+        this.loadUserReviewCount(),
+        this.loadUserReviews(),
+        this.loadUserInformesCount()
+      ]);
+      this.slug = this.route.snapshot.paramMap.get('slug');
+      this.loadRevisionBySlug(this.slug);
+      this.checkScreenSize();
       this.distributionData = await this.authService.getEstudiosDistributionByDatabase();
-      
-    } catch (error) {
-      console.error('Error en ngOnInit:', error); // Debug
-      this.errorMessage = 'Error al cargar los datos: ' + (error as Error).message;
+    } catch (error: any) {
+      console.error('Error en ngOnInit:', error);
+      this.errorMessage = 'Error al cargar los datos: ' + error.message;
     } finally {
       this.isLoading = false;
     }
 
-    // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
-    this.router.events
+    // Suscribirse a NavigationEnd para reiniciar el scroll
+    this.routerSubscription = this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => {
-        // Llevamos el scroll al tope
-        window.scrollTo(0, 0);
-      });
+      .subscribe(() => window.scrollTo(0, 0));
   }
 
   @HostListener('window:resize', ['$event'])
@@ -63,62 +79,51 @@ export class DashboardComponent implements OnInit {
   }
 
   private checkScreenSize(): void {
-    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
+    this.isLargeScreen = window.innerWidth >= 768;
   }
 
+  // Simulación de loadRevisionBySlug; implementar según tu lógica.
   loadRevisionBySlug(slug: string | null): void {
-    // Lógica para obtener la revisión desde la base de datos utilizando el slug
-    
-    
-    // Ejemplo: Llama a tu servicio para buscar la revisión
+    // Lógica para obtener la revisión a partir del slug
   }
 
   async loadUserReviews() {
-    const userId = localStorage.getItem('user_id');
-
-    if (!userId) {
+    if (!this.userId) {
       console.error('No se encontró un usuario autenticado');
       return;
     }
-
-    this.userReviews = await this.authService.getUserReviews(userId);
-
-    // 2. Para cada revisión, obten la cantidad de documentos y guárdala en la propiedad docCount
-    for (const review of this.userReviews) {
-      review.docCount = await this.authService.countUserDocumentsByRevision( userId, review.id_detalles_revision);
+    try {
+      this.userReviews = await this.authService.getUserReviews(this.userId);
+      // Para cada revisión, obtener la cantidad de documentos
+      await Promise.all(this.userReviews.map(async review => {
+        review.docCount = await this.authService.countUserDocumentsByRevision(this.userId!, review.id_detalles_revision);
+      }));
+    } catch (err) {
+      console.error('Error al cargar revisiones:', err);
     }
   }
 
   slugify(title: string): string {
-    return title
-      .toLowerCase()
-      .replace(/ /g, '-')   // Reemplaza espacios con guiones
-      .replace(/[^\w-]+/g, '');  // Elimina caracteres especiales
+    return title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
   }
 
-  navigateToReviewDetail() {
-    this.router.navigate(['/detalle_revision']); // Redirige al detalle
+  navigateToReviewDetail(): void {
+    this.router.navigate(['/detalle_revision']);
   }
 
   async loadUserReviewCount() {
-    const userId = localStorage.getItem('user_id');
-
-    if (userId) {
-      this.userReviewCount = await this.authService.countUserReviews(userId);
+    if (this.userId) {
+      this.userReviewCount = await this.authService.countUserReviews(this.userId);
     } else {
-      console.warn('Usuario no autenticado');
       this.userReviewCount = 0;
     }
   }
 
-  async loadUserDocumentCount(): Promise<void> {
-    const userId = localStorage.getItem('user_id');
-
-    if (userId) {
-      this.userDocumentCount = await this.authService.countUserDocuments(userId);
+  async loadUserInformesCount() {
+    if (this.userId) {
+      this.userInformeCount = await this.authService.countUserInformes(this.userId);
     } else {
-      console.warn('Usuario no autenticado');
-      this.userDocumentCount = 0;
+      this.userInformeCount = 0;
     }
   }
 
@@ -131,23 +136,18 @@ export class DashboardComponent implements OnInit {
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
     });
-  
     if (!confirmResult.isConfirmed) return;
-  
     try {
       const { error } = await this.authService.eliminarRevision(idRevision);
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       Swal.fire({
         icon: 'success',
         title: 'Revisión eliminada',
         text: 'La revisión se eliminó correctamente.'
       });
-      // Actualizamos la lista y el contador
+      // Actualizar lista y contador
       await this.loadUserReviews();
-      // userReviewCount se actualiza en loadUserReviews, por ejemplo:
-      this.userReviewCount = this.userReviews.length;      
+      this.userReviewCount = this.userReviews.length;
     } catch (err) {
       console.error('Error inesperado:', err);
       Swal.fire({
@@ -157,7 +157,10 @@ export class DashboardComponent implements OnInit {
       });
     }
   }
-  
-  
 
+  ngOnDestroy(): void {
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
+    }
+  }
 }
