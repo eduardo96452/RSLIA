@@ -178,7 +178,14 @@ export class InformesComponent implements OnInit {
 
       const { data, error } = await this.authService.saveSectionDraft({
         id_detalles_revision: this.reviewId,
-        introduccion: this.introductionText
+        introduccion: this.introductionText,
+        trabajos_relacionados: this.introductionText,
+        metodologia: this.introductionText,
+        resultados: this.introductionText,
+        discusion: this.introductionText,
+        limitaciones: this.introductionText,
+        conclusion: this.introductionText,
+        referencias: this.introductionText,
       });
 
       Swal.close();
@@ -213,6 +220,13 @@ export class InformesComponent implements OnInit {
       } else if (data) {
         // Asigna el contenido de la introducción al input (puedes usar replace para los saltos de línea si es necesario)
         this.introductionText = data.introduccion || '';
+        this.trabajosText= data.trabajos_relacionados;
+        this.metodologiaText= data.metodologia;
+        this.resultadosText= data.resultados;
+        this.discusionText = data.discusion;
+        this.limitacionesText = data.limitaciones;
+        this.conclusionText = data.conclusion;
+        this.referenciasText = data.referencias;
       }
     } catch (err) {
       console.error('Excepción al cargar el borrador de sección:', err);
@@ -389,7 +403,7 @@ export class InformesComponent implements OnInit {
       console.error('Error al cargar informes generados:', err);
     }
   }
-  firmaBase64: string = ''; 
+  firmaBase64: string = '';
 
   async generateQRText(data: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -406,12 +420,12 @@ export class InformesComponent implements OnInit {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       let y = 20;
-  
+
       doc.setFontSize(16);
       doc.setFont("helvetica", "bold");
       doc.text("Uso de Inteligencia Artificial para Diagnóstico Médico Basado en Imágenes", pageWidth / 2, y, { align: "center" });
       y += 10;
-  
+
       // Definir secciones y contenidos
       const sections = [
         { title: "Introducción", content: this.introductionText },
@@ -423,10 +437,10 @@ export class InformesComponent implements OnInit {
         { title: "Conclusión", content: this.conclusionText },
         { title: "Referencias", content: this.referenciasText }
       ];
-  
+
       doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
-  
+
       for (const section of sections) {
         y += 10;
         // Agregar título de la sección en negrita
@@ -444,9 +458,9 @@ export class InformesComponent implements OnInit {
           y = 20;
         }
       }
-  
+
       // 2. Generar el documento PDF en un Blob
-      const qrData = `${this.nombreUsuario} - ${this.cargoUsuario}`; 
+      const qrData = `${this.nombreUsuario} - ${this.cargoUsuario}`;
       const qrText = await this.generateQRText(qrData);
 
       // 🔹 Agregar firma si está disponible
@@ -455,34 +469,33 @@ export class InformesComponent implements OnInit {
         doc.setFontSize(14);
         doc.text("Firma:", 10, y);
         y += 10;
-        doc.addImage(this.firmaBase64, 'PNG', 10, y, 50, 25);  
+        doc.addImage(this.firmaBase64, 'PNG', 10, y, 50, 25);
       } else {
-        if(qrData)
-        {
+        if (qrData) {
           y += 10;
           const qrSize = 50; // Tamaño del QR
           doc.addImage(this.qrImageUrl, 'PNG', (pageWidth - qrSize) / 2, y, qrSize, qrSize);
           y += qrSize + 10;
-          
+
           // Agregar el nombre y cargo debajo del QR
           doc.setFontSize(12);
           doc.setFont("helvetica", "bold");
           // Línea divisoria
           doc.setLineWidth(0.5);
-          doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y); 
+          doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
           y += 8;
           const textoUsuario = `${this.cargoUsuario.toUpperCase()} ${this.nombreUsuario.toUpperCase()}`;
           doc.text(textoUsuario, pageWidth / 2, y, { align: "center" });
           y += 8;
-          doc.text("INVESTIGADOR", pageWidth / 2, y, { align: "center" }); 
-            }         
+          doc.text("INVESTIGADOR", pageWidth / 2, y, { align: "center" });
+        }
       }
-  
+
       const pdfBlob: Blob = doc.output("blob");
-        
+
       // 3. Crear un nombre único para el archivo PDF
       const fileName = `Borrador_de_Articulo_${Date.now()}.pdf`;
-  
+
       // 4. Subir el archivo al bucket "documentos" en la carpeta "informes"
       const { data: uploadData, error: uploadError } = await this.authService.uploadInforme(fileName, pdfBlob, this.reviewId);
       if (uploadError) {
@@ -494,14 +507,14 @@ export class InformesComponent implements OnInit {
         });
         return;
       }
-  
+
       // 5. Obtener la URL pública del archivo subido
       if (!uploadData) {
         throw new Error("Upload data is null");
       }
       const publicUrl = uploadData.publicUrl;
       const fechaGeneracion = new Date().toISOString();
-  
+
       // 6. Registrar el informe generado en la tabla "informes_generados"
       const { data: dbData, error: dbError } = await this.authService.insertInformeGeneradopdf(
         this.reviewId,
@@ -518,7 +531,7 @@ export class InformesComponent implements OnInit {
         });
         return;
       }
-  
+
       Swal.fire({
         icon: "success",
         title: "¡Subido!",
@@ -537,7 +550,7 @@ export class InformesComponent implements OnInit {
       });
     }
   }
-  
+
 
   @ViewChild('firmaCanvas', { static: false }) firmaCanvas!: ElementRef<HTMLCanvasElement>;
   private signaturePad!: SignaturePad;
@@ -547,8 +560,7 @@ export class InformesComponent implements OnInit {
     this.signaturePad = new SignaturePad(canvas);
   }
 
-  generarQR()
-  {
+  generarQR() {
 
   }
 
@@ -566,7 +578,7 @@ export class InformesComponent implements OnInit {
       reader.readAsDataURL(file);
     }
   }
-   
+
 
   limpiarFirma() {
     this.signaturePad.clear();
@@ -574,11 +586,11 @@ export class InformesComponent implements OnInit {
 
   guardarFirma() {
     if (!this.signaturePad.isEmpty()) {
-    this.firmaBase64 = this.signaturePad.toDataURL('image/png'); 
-    console.log('Firma guardada:', this.firmaBase64);
-  } else {
-    console.log('No hay firma para guardar.');
-  }
+      this.firmaBase64 = this.signaturePad.toDataURL('image/png');
+      console.log('Firma guardada:', this.firmaBase64);
+    } else {
+      console.log('No hay firma para guardar.');
+    }
   }
 
   qrData: string = ''; // Datos para el código QR 
@@ -587,7 +599,7 @@ export class InformesComponent implements OnInit {
   async generateQR(): Promise<void> {
     this.nombreUsuario = this.nombreInput.nativeElement.value.trim();
     this.cargoUsuario = this.cargoInput.nativeElement.value.trim();
-  
+
 
     const qrData = `${this.nombreUsuario} - ${this.cargoUsuario}`;
 
