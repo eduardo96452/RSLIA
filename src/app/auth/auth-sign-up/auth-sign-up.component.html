@@ -29,7 +29,7 @@
             <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" [(ngModel)]="password"
               required minlength="8" #passwordInput="ngModel" class="form-control"
               [ngClass]="{'is-invalid': passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)}"
-              (input)="checkPasswordPolicy()" />
+              (focus)="showPolicies = true" (blur)="showPolicies = false" (input)="checkPasswordPolicy()" />
             <button type="button" (click)="togglePasswordVisibility()"
               class="position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
               aria-label="Toggle password visibility">
@@ -40,11 +40,8 @@
           <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="invalid-feedback">
             La contraseña debe tener al menos 8 caracteres.
           </div>
-          <button class="btn btn-link mt-2 p-0" type="button" data-bs-toggle="collapse" data-bs-target="#policyCollapse"
-            aria-expanded="false" aria-controls="policyCollapse">
-            Ver políticas de contraseña
-          </button>
-          <div class="collapse mt-2" id="policyCollapse">
+          <!-- Se despliegan las políticas al hacer focus en el input -->
+          <div class="mt-2 collapse" [ngClass]="{'show': showPolicies}">
             <ul class="list-group">
               <li class="list-group-item d-flex align-items-center"
                 [ngClass]="policyChecks.minLength ? 'text-success' : 'text-danger'">
@@ -69,6 +66,7 @@
             </ul>
           </div>
         </div>
+        
         <button type="submit" [disabled]="!allPoliciesMet() || signupForm.form.invalid" class="w-100 btn btn-primary py-2 rounded-3">
           Crear cuenta
         </button>

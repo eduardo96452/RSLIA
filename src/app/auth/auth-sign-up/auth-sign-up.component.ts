@@ -22,6 +22,7 @@ export class AuthSignUpComponent {
   email: string = '';
   password: string = '';
   showPassword: boolean = false;
+  showPolicies: boolean = false;
 
   // Objeto para almacenar el estado (true/false) de cada política
   policyChecks = {
@@ -52,6 +53,7 @@ export class AuthSignUpComponent {
       return { valid: false, info: 'Error al validar el correo' };
     }
   }
+
 
   // Método para verificar si el correo ya existe en la base de datos
   async emailAlreadyExists(email: string): Promise<boolean> {

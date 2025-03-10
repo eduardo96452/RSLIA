@@ -2406,8 +2406,4 @@ export class AuthService {
     return { data, error };
   }
   
-
-
-
-
 }
