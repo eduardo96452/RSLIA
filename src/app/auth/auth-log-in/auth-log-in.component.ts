@@ -22,9 +22,19 @@ export class AuthLogInComponent {
   email: string = '';
   password: string = '';
   showPassword: boolean = false;
+  acceptTerms: boolean = false;
+  isModalOpen: boolean = false;
 
   constructor(private _authService: AuthService, private router: Router) { }
+  
+  openTermsModal(event: Event): void {
+    event.preventDefault(); // Evita que el enlace recargue la página
+    this.isModalOpen = true; // Abre el modal
+  }
 
+  closeTermsModal(): void {
+    this.isModalOpen = false; // Cierra el modal
+  }
 
   async handleEmailLogin() {
     if (this.email && this.password) {

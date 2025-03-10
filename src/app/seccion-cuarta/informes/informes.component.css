@@ -89,3 +89,28 @@
     width: 100%;
   }
 }
+ 
+.input-container {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  padding: 8px;
+  background-color: white;
+}
+ 
+.input-icon {
+  font-size: 1.2rem;
+  color: #6c757d; 
+  margin-right: 10px;  
+}
+ 
+.input-field {
+  border: none;
+  outline: none;
+  flex: 1;  
+  background-color: transparent;
+} 
+.input-field:focus {
+  box-shadow: none;
+}
