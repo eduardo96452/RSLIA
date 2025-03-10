@@ -32,7 +32,7 @@ import { AngularSignaturePadModule } from '@almothafar/angular-signature-pad';
     MatSelectModule,
     MatButtonModule,    
     ReactiveFormsModule,
-    AngularSignaturePadModule, 
+    AngularSignaturePadModule,
     GojsAngularModule
   ],
   exports: [RouterModule]
