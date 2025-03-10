@@ -11,6 +11,7 @@ import Swal from 'sweetalert2';
 import { jsPDF } from "jspdf";
 import { SupabaseService } from '../../conexion/supabase.service';
 import SignaturePad from 'signature_pad';
+import QRCode from 'qrcode';
 
 @Component({
   selector: 'app-informes',
@@ -37,6 +38,14 @@ export class InformesComponent implements OnInit {
   conclusionText = 'Contenido de la Conclusión...';
   referenciasText = 'Contenido de las Referencias...';
   informesGenerados: Informe[] = [];
+  modoFirma: 'manual' | 'qr' | null = null;
+  firmaQr: any;
+  nombreUsuario: string = '';
+  cargoUsuario: string = '';
+  qrImageUrl: any;
+
+  @ViewChild('nombreInput') nombreInput!: ElementRef;
+  @ViewChild('cargoInput') cargoInput!: ElementRef;
 
   constructor(
     private route: ActivatedRoute,
@@ -382,6 +391,15 @@ export class InformesComponent implements OnInit {
   }
   firmaBase64: string = ''; 
 
+  async generateQRText(data: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      QRCode.toString(data, { type: "utf8" }, (err, qr) => {
+        if (err) reject(err);
+        else resolve(qr);
+      });
+    });
+  }
+
   async downloadDraftPdf(): Promise<void> {
     try {
       // 1. Crear una instancia de jsPDF
@@ -428,7 +446,9 @@ export class InformesComponent implements OnInit {
       }
   
       // 2. Generar el documento PDF en un Blob
-  
+      const qrData = `${this.nombreUsuario} - ${this.cargoUsuario}`; 
+      const qrText = await this.generateQRText(qrData);
+
       // 🔹 Agregar firma si está disponible
       if (this.firmaBase64) {
         y += 20;
@@ -437,7 +457,28 @@ export class InformesComponent implements OnInit {
         y += 10;
         doc.addImage(this.firmaBase64, 'PNG', 10, y, 50, 25);  
       } else {
-        console.warn("No se ha guardado una firma.");
+        if(qrData)
+        {
+          y += 10;
+          const qrSize = 50; // Tamaño del QR
+          doc.addImage(this.qrImageUrl, 'PNG', (pageWidth - qrSize) / 2, y, qrSize, qrSize);
+          y += qrSize + 10;
+          
+          // Agregar el nombre y cargo debajo del QR
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          const textoUsuario = `${this.cargoUsuario.toUpperCase()} ${this.nombreUsuario.toUpperCase()}`;
+          doc.text(textoUsuario, pageWidth / 2, y, { align: "center" });
+          
+          y += 6;
+          doc.text("INVESTIGADOR", pageWidth / 2, y, { align: "center" });
+          
+          y += 10;
+          
+          // Línea divisoria
+          doc.setLineWidth(0.5);
+          doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
+          }
       }
   
       const pdfBlob: Blob = doc.output("blob");
@@ -509,6 +550,27 @@ export class InformesComponent implements OnInit {
     this.signaturePad = new SignaturePad(canvas);
   }
 
+  generarQR()
+  {
+
+  }
+
+  seleccionarModo(modo: 'manual' | 'qr') {
+    this.modoFirma = modo;
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.firmaQr = reader.result as string; // Convertir a Base64
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+   
+
   limpiarFirma() {
     this.signaturePad.clear();
   }
@@ -522,4 +584,20 @@ export class InformesComponent implements OnInit {
   }
   }
 
+  qrData: string = ''; // Datos para el código QR 
+
+  // Método para generar el código QR
+  async generateQR(): Promise<void> {
+    this.nombreUsuario = this.nombreInput.nativeElement.value.trim();
+    this.cargoUsuario = this.cargoInput.nativeElement.value.trim();
+  
+
+    const qrData = `${this.nombreUsuario} - ${this.cargoUsuario}`;
+
+    try {
+      this.qrImageUrl = await QRCode.toDataURL(qrData);
+    } catch (err) {
+      console.error('Error generando el QR:', err);
+    }
+  }
 }
