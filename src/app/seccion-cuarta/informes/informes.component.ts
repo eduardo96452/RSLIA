@@ -467,18 +467,15 @@ export class InformesComponent implements OnInit {
           // Agregar el nombre y cargo debajo del QR
           doc.setFontSize(12);
           doc.setFont("helvetica", "bold");
-          const textoUsuario = `${this.cargoUsuario.toUpperCase()} ${this.nombreUsuario.toUpperCase()}`;
-          doc.text(textoUsuario, pageWidth / 2, y, { align: "center" });
-          
-          y += 6;
-          doc.text("INVESTIGADOR", pageWidth / 2, y, { align: "center" });
-          
-          y += 10;
-          
           // Línea divisoria
           doc.setLineWidth(0.5);
-          doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
-          }
+          doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y); 
+          y += 8;
+          const textoUsuario = `${this.cargoUsuario.toUpperCase()} ${this.nombreUsuario.toUpperCase()}`;
+          doc.text(textoUsuario, pageWidth / 2, y, { align: "center" });
+          y += 8;
+          doc.text("INVESTIGADOR", pageWidth / 2, y, { align: "center" }); 
+            }         
       }
   
       const pdfBlob: Blob = doc.output("blob");

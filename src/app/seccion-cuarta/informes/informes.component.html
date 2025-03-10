@@ -395,7 +395,7 @@
                     <div class="card mb-3">
                      <div class="card-header bg-primary text-white">
                        <h5 class="mb-0">
-                         <i class="bi bi-pencil"></i>&nbsp; Firma Digital
+                         <i class="bi bi-pencil"></i>&nbsp; Firma Electronica
                        </h5>
                      </div>
                     <div class="d-flex justify-content-center card-body text-center">
@@ -403,17 +403,23 @@
                        <h2 class="mb-4">Generador de Código QR</h2>
                  
                        <!-- Campos de entrada dinámicos -->
-                       <input
-                       #nombreInput
-                       placeholder="Introduce tu nombre"
-                       class="form-control mb-3"
-                     />
-                     
-                     <input
-                       #cargoInput
-                       placeholder="Introduce tu cargo"
-                       class="form-control mb-3"
-                     />
+                       <div class="input-container mb-3">
+                        <i class="bi bi-person-fill input-icon"></i> <!-- Ícono para el nombre -->
+                        <input
+                          #nombreInput
+                          placeholder="Introduce tu nombre"
+                          class="form-control input-field"
+                        />
+                      </div>
+                      
+                      <div class="input-container mb-3">
+                        <i class="bi bi-briefcase-fill input-icon"></i> <!-- Ícono para el cargo -->
+                        <input
+                          #cargoInput
+                          placeholder="Introduce tu cargo"
+                          class="form-control input-field"
+                        />
+                      </div>
                  
                        <!-- Botón para generar QR -->
                        <div class="mt-3">
