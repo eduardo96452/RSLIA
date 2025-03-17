@@ -2,7 +2,7 @@
   <div class="card w-100" style="max-width: 30rem; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
     <div class="card-body">
       <h2 class="text-center fs-4 fw-bold text-dark mb-2">Crear una cuenta</h2>
-      <p class="text-center text-muted mb-4">Únete a OlwReview para Revisiones Sistemáticas de Literatura</p>
+      <p class="text-center text-muted mb-4">Únete a LiterIA, tu aliado para realizar revisiones sistemáticas de literatura.</p>
       <form (ngSubmit)="handleEmailSignup()" #signupForm="ngForm">
         <div class="mb-3">
           <label for="name" class="form-label">Nombre completo</label>
@@ -31,10 +31,10 @@
               [ngClass]="{'is-invalid': passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)}"
               (focus)="showPolicies = true" (blur)="showPolicies = false" (input)="checkPasswordPolicy()" />
             <button type="button" (click)="togglePasswordVisibility()"
-              class="position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
+              [ngStyle]="{'right': (passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)) ? '1.6rem' : '0.5rem'}"
+              class="position-absolute top-50 translate-middle-y border-0 bg-transparent"
               aria-label="Toggle password visibility">
-              <i [class]="'bi ' + (showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill') + ' fs-2'"
-                class="text-muted"></i>
+              <i [class]="'bi ' + (showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill') + ' fs-2 text-muted'"></i>
             </button>
           </div>
           <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="invalid-feedback">
@@ -66,6 +66,7 @@
             </ul>
           </div>
         </div>
+        
         
         <button type="submit" [disabled]="!allPoliciesMet() || signupForm.form.invalid" class="w-100 btn btn-primary py-2 rounded-3">
           Crear cuenta

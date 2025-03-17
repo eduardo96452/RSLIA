@@ -27,19 +27,20 @@ export class HomeRevisionComponent implements OnInit {
   isLargeScreen: boolean = true;
   form!: FormGroup;
   formSubmitted: boolean = false;
+  isDarkModeEnabled: boolean = false;
 
   constructor(private fb: FormBuilder, private router: Router, private authService: AuthService) { }
 
-  validateFields(): { 
-    title: boolean; 
-    tipoRevision: boolean; 
-    alcance: boolean; 
-    areaConocimiento: boolean; 
-    tipoInvestigacion: boolean; 
-    description: boolean; 
-    pais: boolean; 
-    ciudad: boolean; 
-    institucion: boolean; 
+  validateFields(): {
+    title: boolean;
+    tipoRevision: boolean;
+    alcance: boolean;
+    areaConocimiento: boolean;
+    tipoInvestigacion: boolean;
+    description: boolean;
+    pais: boolean;
+    ciudad: boolean;
+    institucion: boolean;
   } {
     return {
       title: !!this.title.trim(),
@@ -49,11 +50,11 @@ export class HomeRevisionComponent implements OnInit {
       tipoInvestigacion: !!this.tipoInvestigacion,
       description: !!this.description.trim(),
       pais: (this.alcance === 'Internacional' || this.alcance === 'Nacional' || this.alcance === 'Nivel institucional')
-            ? !!this.pais.trim() : true,
+        ? !!this.pais.trim() : true,
       ciudad: (this.alcance === 'Alcance local (Ciudad(es) o unidades territoriales)')
-            ? !!this.ciudad.trim() : true,
+        ? !!this.ciudad.trim() : true,
       institucion: (this.alcance === 'Nivel institucional')
-            ? !!this.institucion.trim() : true
+        ? !!this.institucion.trim() : true
     };
   }
 
@@ -72,6 +73,10 @@ export class HomeRevisionComponent implements OnInit {
         // Llevamos el scroll al tope
         window.scrollTo(0, 0);
       });
+
+    // Recupera el valor del localStorage y actualiza la variable
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    this.isDarkModeEnabled = darkMode;
   }
 
   @HostListener('window:resize', ['$event'])
@@ -102,7 +107,6 @@ export class HomeRevisionComponent implements OnInit {
     }
     const userId = await this.authService.getSession().then(session => session?.user?.id);
     if (!userId) {
-      console.error('No se pudo obtener el ID del usuario.');
       return;
     }
 

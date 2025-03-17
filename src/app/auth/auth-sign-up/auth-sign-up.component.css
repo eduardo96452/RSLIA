@@ -1,0 +1,12 @@
+/* Para IE y Edge */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* Para navegadores basados en WebKit (Chrome, Safari) */
+/* Nota: puede variar según la versión del navegador */
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}
+

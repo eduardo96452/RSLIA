@@ -1,50 +1,96 @@
+/* Para IE y Edge */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+/* Para navegadores basados en WebKit (Chrome, Safari) */
+/* Nota: esta regla puede no funcionar en todas las versiones */
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none !important;
+}
+
+
+/* Fondo semi-transparente y centrado del modal */
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Contenedor principal del modal */
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90%;
+  overflow-y: auto;
+  position: relative;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Cabecera del modal con botón de cierre */
+.modal-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Botón de cierre */
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* Título principal centrado */
+.modal-title {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Estilos para el contenido de los términos */
+.terms-content h2 {
+  font-size: 1.2rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.terms-content p {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+.terms-content ul {
+  list-style: disc;
+  margin-left: 20px;
+  margin-bottom: 1rem;
+}
+
+/* Adaptación para dispositivos móviles */
+@media (max-width: 480px) {
   .modal-content {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 800px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    font-size: 12px;
+    width: 95%;
+    padding: 15px;
   }
-  
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 10px;
-    margin-bottom: 10px;
-  }
-  
   .modal-title {
-    margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
   }
-  
-  .close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
+  .terms-content h2 {
+    font-size: 1.1rem;
   }
-  
-  .modal-footer {
-    border-top: 1px solid #ddd;
-    padding-top: 10px;
-    margin-top: 10px;
-    text-align: right;
+  .terms-content p, 
+  .terms-content li {
+    font-size: 0.95rem;
   }
+}

@@ -1,22 +1,398 @@
-/* You can add global styles to this file, and also import other style files */
+
 
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body { margin: 0; font-family: 'Open Sans', Arial, sans-serif; }
 
 
-/* styles.css */
+/* Estilos generales */
 body.dark-mode {
-    background-color: #121212;
-    color: #e0e0e0;
-  }
-  
-  /* Sobrescribir estilos de Bootstrap o de otros componentes si es necesario */
-  .dark-mode .navbar {
-    background-color: #333 !important;
-  }
-  .dark-mode .card {
-    background-color: #1e1e1e;
-    color: #e0e0e0;
-    border-color: #333;
-  }
-  
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+/* Ajuste de textos (títulos, párrafos, etc.) */
+.dark-mode ::placeholder,
+.dark-mode h1, 
+.dark-mode h2, 
+.dark-mode h3, 
+.dark-mode h4, 
+.dark-mode h5, 
+.dark-mode h6,
+.dark-mode p {
+  color: #e0e0e0;
+}
+
+.dark-mode .p65456 {
+  color: #e0e0e0;
+  opacity: 60%;
+}
+
+/* Estilos para botones verdes en modo oscuro */
+.dark-mode .btn-success {
+  background-color: #28a745 !important; /* Verde base */
+  border-color: #28a745 !important;
+  color: #fff !important;
+}
+
+.dark-mode .btn-success:hover,
+.dark-mode .btn-success:focus,
+.dark-mode .btn-success:active {
+  background-color: #218838 !important; /* Verde un poco más oscuro en hover/focus */
+  border-color: #1e7e34 !important;
+  color: #fff !important;
+}
+
+/* Estilos para botones rojos en modo oscuro */
+body.dark-mode .btn-danger {
+  background-color: #dc3545 !important; /* Rojo base */
+  border-color: #dc3545 !important;
+  color: #fff !important;
+}
+
+body.dark-mode .btn-danger:hover,
+body.dark-mode .btn-danger:focus,
+body.dark-mode .btn-danger:active {
+  background-color: #c82333 !important; /* Rojo un poco más oscuro en hover/focus */
+  border-color: #bd2130 !important;
+  color: #fff !important;
+}
+
+/* -----------------------------
+   Botón Warning en modo oscuro
+------------------------------ */
+body.dark-mode .btn-warning {
+  background-color: #e0a800 !important; /* tono amarillo más oscuro */
+  border-color: #d39e00 !important;
+  color: #fff !important;
+}
+body.dark-mode .btn-warning:hover,
+body.dark-mode .btn-warning:focus,
+body.dark-mode .btn-warning:active {
+  background-color: #d39e00 !important;
+  border-color: #c69500 !important;
+  color: #fff !important;
+}
+
+/* -----------------------------
+   Botón Info en modo oscuro
+------------------------------ */
+body.dark-mode .btn-info {
+  background-color: #138496 !important; /* tono azul verdoso oscuro */
+  border-color: #117a8b !important;
+  color: #fff !important;
+}
+body.dark-mode .btn-info:hover,
+body.dark-mode .btn-info:focus,
+body.dark-mode .btn-info:active {
+  background-color: #117a8b !important;
+  border-color: #10707f !important;
+  color: #fff !important;
+}
+
+/* -----------------------------
+   Botón Secondary en modo oscuro
+------------------------------ */
+body.dark-mode .btn-secondary {
+  background-color: #5a6268 !important; /* tono gris azulado oscuro */
+  border-color: #545b62 !important;
+  color: #fff !important;
+}
+body.dark-mode .btn-secondary:hover,
+body.dark-mode .btn-secondary:focus,
+body.dark-mode .btn-secondary:active {
+  background-color: #545b62 !important;
+  border-color: #4e555b !important;
+  color: #fff !important;
+}
+
+/* -----------------------------
+   Botón Primary en modo oscuro
+------------------------------ */
+body.dark-mode .btn-primary {
+  background-color: #0b5ed7 !important; /* tono azul oscuro */
+  border-color: #0a58ca !important;
+  color: #fff !important;
+}
+body.dark-mode .btn-primary:hover,
+body.dark-mode .btn-primary:focus,
+body.dark-mode .btn-primary:active {
+  background-color: #0a58ca !important;
+  border-color: #095abf !important;
+  color: #fff !important;
+}
+
+body.dark-mode .list-group-item {
+  background-color: #1e1e1e !important; /* Fondo oscuro para cada item */
+  color: #e0e0e0 !important;           /* Texto claro */
+  border-color: #333 !important;       /* Borde acorde */
+}
+
+/* Opcional: si usas íconos de Bootstrap Icons, asegúrate de que tengan buen contraste */
+body.dark-mode .list-group-item .bi {
+  color: inherit; /* Hereda el color del item */
+}
+
+/* Si deseas que los elementos "text-success" o "text-danger" se mantengan o se adapten en modo oscuro, puedes definirlos */
+body.dark-mode .text-success {
+  color: #28a745 !important;  /* Puedes ajustar el tono si lo prefieres */
+}
+body.dark-mode .text-danger {
+  color: #dc3545 !important;
+}
+
+/* Modo oscuro: ajusta los colores para que resalten sobre fondo oscuro */
+body.dark-mode .card-revision {
+  background-color: #00695C !important; /* Teal más oscuro o más apagado */
+  border-color: #004D40 !important;
+  color: #fff;
+}
+
+body.dark-mode .card-report {
+  background-color: #EF6C00 !important; /* Naranja oscuro */
+  border-color: #E65100 !important;
+  color: #fff;
+}
+
+/* Navbar en modo oscuro */
+.dark-mode .navbar {
+  background-color: #333 !important;
+  border-bottom: 1px solid #444;
+}
+
+.dark-mode .input-group-text {
+  background-color: #333 !important; /* Fondo oscuro, pero no negro absoluto */
+  color: #fff !important;            /* Texto claro para alto contraste */
+  border-color: #444 !important;     /* Borde acorde al fondo */
+  font-weight: 600;                  /* Seminegrita, se ve más nítida */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+.dark-mode .navbar .nav-link .text-dark {
+  color: #e0e0e0 !important;
+}
+.dark-mode .navbar .nav-link.active,
+.dark-mode .navbar .nav-link:hover {
+  color: #fff !important;
+}
+
+/* Cards en modo oscuro */
+.dark-mode .card {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #333;
+}
+
+/* Botones en modo oscuro */
+.dark-mode .btn {
+  color: #e0e0e0;
+  background-color: #333;
+  border-color: #444;
+}
+.dark-mode .btn:hover {
+  background-color: #444;
+  border-color: #555;
+}
+/* Para btn-outline, puedes redefinir colores de borde y texto */
+.dark-mode .btn-outline-primary {
+  color: #1e90ff;
+  border-color: #1e90ff;
+}
+.dark-mode .btn-outline-primary:hover {
+  background-color: #1e90ff;
+  color: #fff;
+}
+
+/* Enlaces y estados activos */
+.dark-mode a {
+  color: #1e90ff;
+}
+.dark-mode a:hover {
+  color: #63b3ed;
+}
+
+/* Dropdowns en modo oscuro */
+.dark-mode .dropdown-menu {
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+}
+.dark-mode .dropdown-item {
+  color: #e0e0e0;
+}
+.dark-mode .dropdown-item:hover {
+  background-color: #333;
+}
+
+/* Formularios en modo oscuro */
+.dark-mode .form-control {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  border: 1px solid #444;
+}
+.dark-mode .form-control:focus {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+  border-color: #555;
+  box-shadow: 0 0 0 0.2rem rgba(128,128,128,0.25);
+}
+
+/* Tablas en modo oscuro */
+.dark-mode .table {
+  background-color: #1e1e1e; /* Fondo de la tabla */
+  color: #e0e0e0;           /* Texto */
+  border-color: #333;       /* Borde de la tabla */
+}
+
+/* Encabezado (thead) */
+.dark-mode .table thead th {
+  background-color: #333;
+  color: #e0e0e0;
+  border-color: #444;
+}
+
+/* Filas del tbody */
+.dark-mode .table tbody {
+  background-color: #1e1e1e; /* Mismo color que la tabla */
+}
+
+.dark-mode .table tbody td {
+  color: #e0e0e0;     
+  border-color: #333; /* Bordes entre celdas */
+}
+
+
+
+
+
+/* Nav-tabs en modo oscuro */
+.dark-mode .nav-tabs .nav-link {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #333;
+}
+.dark-mode .nav-tabs .nav-link.active {
+  background-color: #333;
+  color: #fff;
+  border-color: #333 #333 #fff;
+}
+.dark-mode .tab-content {
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+}
+
+/* Ejemplo de sidebar o panel lateral (si lo usas) */
+.dark-mode .sidebar {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border-right: 1px solid #333;
+}
+
+/* Footer en modo oscuro */
+.dark-mode .footer {
+  background-color: #333;
+  color: #e0e0e0;
+  border-top: 1px solid #444;
+}
+
+
+/* ==============================
+   FLOATING MENU (Modo Oscuro)
+============================== */
+
+.dark-mode .floating-menu .menu-item {
+  /* Texto claro */
+  color: #e0e0e0;
+  /* Espaciado vertical y horizontal */
+  padding: 0.75rem 1rem;
+  /* Separación entre elementos */
+  border-bottom: 1px solid #333;
+  /* Para que todo el área sea clicable */
+  display: block;
+  text-decoration: none;
+  /* Cursor tipo "mano" */
+  cursor: pointer;
+}
+
+.dark-mode .floating-menu .menu-item:hover {
+  background-color: #333; /* Efecto hover */
+}
+
+.dark-mode .floating-menu .menu-item.active {
+  background-color: #444; /* Fondo resaltado */
+  font-weight: bold;      /* Negrita para enfatizar */
+}
+
+/* ==============================
+   ACORDEÓN (Modo Oscuro)
+   (Asumiendo uso de Bootstrap 5)
+============================== */
+/* Asegúrate de aplicar .dark-mode en el body o contenedor raíz */
+.dark-mode .accordion-item {
+  background-color: #1e1e1e !important;
+  border: 1px solid #333 !important;
+}
+
+.dark-mode .accordion-button {
+  background-color: #2a2a2a !important;
+  color: #e0e0e0 !important;
+  border: none !important;
+}
+
+.dark-mode .accordion-button.collapsed {
+  background-color: #1e1e1e !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .accordion-body {
+  background-color: #1e1e1e !important;
+  color: #e0e0e0 !important;
+}
+
+/* Modo oscuro básico para el header y contenedor */
+.dark-mode header,
+.dark-mode {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+.dark-mode .navbar,
+.dark-mode .border-bottom {
+  border-color: #333 !important;
+}
+
+.dark-mode .form-select,
+.dark-mode .dropdown-menu {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #333;
+}
+
+/* Botón outline en modo oscuro */
+.dark-mode .btn-outline-danger {
+  color: #ff7675;
+  border-color: #ff7675;
+}
+.dark-mode .btn-outline-danger:hover {
+  background-color: #ff7675;
+  color: #fff;
+}
+
+
+/* Footer en modo claro */
+footer {
+  background-color: #ffffff;
+  color: #6c757d; /* color de texto gris (text-muted) */
+}
+
+/* Footer en modo oscuro */
+.dark-mode footer{
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+/* Opcional: asegurar que el párrafo también cambie de color */
+.dark-mode footer{
+  color: #e0e0e0;
+}
+

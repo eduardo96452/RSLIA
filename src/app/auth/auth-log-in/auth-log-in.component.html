@@ -1,8 +1,8 @@
 <div class="d-flex align-items-center justify-content-center bg-light">
   <div class="card w-100" style="max-width: 30rem; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
     <div class="card-body">
-      <h2 class="text-center fs-4 fw-bold text-dark">Iniciar sesión en OlwReview</h2>
-      <p class="text-center text-muted">Accede a tu espacio de trabajo de Revisión Sistemática de Literatura</p>
+      <h2 class="text-center fs-4 fw-bold text-dark">Iniciar sesión</h2>
+      <p class="text-center text-muted">Accede a tu espacio de trabajo para revisiones sistemáticas de literatura.</p>
       <form (ngSubmit)="handleEmailLogin()" #loginForm="ngForm">
         <div class="mb-4">
           <label for="email" class="form-label">Correo electrónico</label>
@@ -21,10 +21,10 @@
               required #passwordInput="ngModel" class="form-control"
               [ngClass]="{'is-invalid': passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)}">
             <button type="button" (click)="togglePasswordVisibility()"
-              class="position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
+              [ngStyle]="{'right': (passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)) ? '1.6rem' : '0.5rem'}"
+              class="position-absolute top-50 translate-middle-y border-0 bg-transparent"
               aria-label="Toggle password visibility">
-              <i [class]="'bi ' + (showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill')  + ' fs-2'"
-                class="text-muted"></i>
+              <i [class]="'bi ' + (showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill')  + ' fs-2 text-muted'"></i>
             </button>
           </div>
           <div *ngIf="passwordInput.invalid && (passwordInput.dirty || passwordInput.touched)" class="invalid-feedback">
@@ -33,10 +33,12 @@
           <br>
           <a routerLink="/forgot-password">Olvidé mi contraseña</a>
         </div>
+        
 
         <!-- Checkbox y botón para términos y condiciones -->
         <div class="mb-4 form-check">
-          <input type="checkbox" class="form-check-input" id="termsCheckbox" [(ngModel)]="acceptTerms" name="acceptTerms" required>
+          <input type="checkbox" class="form-check-input" id="termsCheckbox" [(ngModel)]="acceptTerms"
+            name="acceptTerms" required>
           <label class="form-check-label" for="termsCheckbox">
             Acepto los <a href="#" (click)="openTermsModal($event)">términos y condiciones</a>.
           </label>
@@ -55,44 +57,55 @@
   </div>
 </div>
 
-<!-- Modal personalizado -->
+
+<!-- Modal de los terminos y condiciones -->
 <div class="modal-overlay" *ngIf="isModalOpen" (click)="closeTermsModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header"> 
+    <div class="modal-header">
       <button type="button" class="close-btn" (click)="closeTermsModal()">&times;</button>
     </div>
     <div class="modal-body">
-    
-        <h1 class="text-center mb-4">Términos y Condiciones de Uso</h1>
+      <h1 class="modal-title">Términos y Condiciones de Uso</h1>
+      <div class="terms-content">
+        <h2>1. Aceptación de los Términos</h2>
+        <p>
+          Al acceder y utilizar este sistema de asistencia para la elaboración de artículos científicos, usted acepta
+          cumplir con estos Términos y Condiciones (en adelante, "los Términos"). Si no está de acuerdo, le solicitamos
+          que se abstenga de utilizar el Sistema.
+        </p>
 
-        <div class="card p-4">
-          <h5 class="mb-2">1. Aceptación de los Términos</h5>
-          <p>Al acceder y utilizar este sistema de ayuda para la creación de artículos científicos, usted acepta cumplir con estos Términos y Condiciones de Uso (en adelante, "los Términos"). Si no está de acuerdo con alguno de estos términos, no utilice el Sistema.</p>
-      
-          <h5 class="mt-3 mb-2">2. Descripción del Servicio</h5>
-          <p>El Sistema proporciona herramientas y recursos para asistir en la redacción y estructuración de artículos científicos. Esto incluye, pero no se limita a, generación de ideas, sugerencias de contenido, formatos de citación y revisión gramatical.</p>
-      
-          <h5 class="mt-3 mb-2">3. Uso Adecuado</h5>
-          <p>El Usuario se compromete a utilizar el Sistema de manera ética y legal. Esto incluye:</p>
-          <ul>
-              <li>No utilizar el Sistema para plagiar o infringir derechos de autor.</li>
-              <li>No distribuir contenido falso o engañoso.</li>
-              <li>No intentar dañar o interrumpir el funcionamiento del Sistema.</li>
-              <li>Utilizar el sistema solo para fines academicos y de investigacion.</li>
-          </ul>
-      
-          <h5 class="mt-3 mb-2">4. Propiedad Intelectual</h5>
-          <ul>
-              <li>El contenido generado por el Sistema es una herramienta de apoyo. El Usuario es el único responsable de la originalidad y precisión de su artículo.</li>
-              <li>Todos los derechos de propiedad intelectual del Sistema (software, diseño, etc.) pertenecen a [Nombre de la Empresa/Desarrollador].</li>
-          </ul>
-      
-          <h5 class="mt-3 mb-2">5. Privacidad</h5>
-          <ul>
-              <li>La información personal del Usuario se manejará de acuerdo con nuestra Política de Privacidad [enlace a la Política de Privacidad].</li>
-              <li>No compartiremos su información con terceros sin su consentimiento, excepto cuando sea requerido por la ley.</li>
-          </ul>
+        <h2>2. Descripción del Servicio</h2>
+        <p>
+          El Sistema ofrece herramientas y recursos diseñados para apoyar la creación y estructuración de artículos
+          científicos, incluyendo generación de ideas, sugerencias de contenido, formatos de citación y revisión
+          gramatical.
+        </p>
+
+        <h2>3. Uso Adecuado</h2>
+        <p>
+          El Usuario se compromete a utilizar el Sistema de forma ética y legal. Esto implica:
+        </p>
+        <ul>
+          <li>No utilizar el Sistema para plagiar ni infringir derechos de autor.</li>
+          <li>No distribuir información falsa o engañosa.</li>
+          <li>No intentar dañar, interferir o interrumpir el funcionamiento del Sistema.</li>
+          <li>Utilizar el sistema únicamente para fines académicos y de investigación.</li>
+        </ul>
+
+        <h2>4. Propiedad Intelectual</h2>
+        <p>
+          El contenido generado por el Sistema es únicamente una herramienta de apoyo; el Usuario es el responsable de
+          la originalidad y veracidad de su trabajo. Todos los derechos de propiedad intelectual del Sistema (software,
+          diseño, etc.) pertenecen a [LiterIA].
+        </p>
+
+        <h2>5. Privacidad</h2>
+        <p>
+          La información personal del Usuario se gestionará conforme a nuestra Política de Privacidad, la cual puede
+          consultarse en [enlace a la Política de Privacidad]. No se compartirá su información con terceros sin su
+          consentimiento, salvo que la ley lo requiera.
+        </p>
       </div>
-    </div> 
+    </div>
   </div>
 </div>

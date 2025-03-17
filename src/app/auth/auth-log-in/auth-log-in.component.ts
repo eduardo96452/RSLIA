@@ -41,18 +41,17 @@ export class AuthLogInComponent {
       try {
         this._authService.logIn({ email: this.email, password: this.password })
           .then(({ data, error }) => {
-            // Verificar si Supabase retorna error en la respuesta
             if (error) {
-              // Manejar la presencia de error
+              const errorMsg = this.getErrorMessage(error);
               Swal.fire({
                 icon: 'error',
                 title: 'Error en el inicio de sesión',
-                text: error.message,
+                text: errorMsg,
               });
-              return; 
+              return;
             }
             
-            // Si no hay error, significa que el login fue exitoso
+            // Si llega aquí, significa que no hubo error
             Swal.fire({
               icon: 'success',
               title: '¡Inicio de sesión exitoso!',
@@ -62,12 +61,12 @@ export class AuthLogInComponent {
             });
           })
           .catch(error => {
-            // Este catch se ejecutará si ocurre un error inesperado en la comunicación
-            console.error('Error en el inicio de sesión:', error.message);
+            const errorMsg = this.getErrorMessage(error);
+            console.error('Error en el inicio de sesión:', errorMsg);
             Swal.fire({
               icon: 'error',
               title: 'Error en el inicio de sesión',
-              text: error.message,
+              text: errorMsg,
             });
           });
       } catch (error) {
@@ -86,6 +85,29 @@ export class AuthLogInComponent {
       });
     }
   }
+  
+  // Función para traducir los mensajes de error
+  private getErrorMessage(error: any): string {
+    // Si no existe el objeto error o no tiene message, retornamos un mensaje genérico
+    if (!error || !error.message) {
+      return 'Error desconocido. Por favor, inténtalo nuevamente.';
+    }
+  
+    // Dependiendo del mensaje de error original, devolvemos su traducción
+    switch (error.message) {
+      case 'Invalid login credentials':
+        return 'Credenciales de inicio de sesión inválidas.';
+      case 'Email not confirmed':
+        return 'El correo electrónico no está confirmado.';
+      // Agrega más casos si detectas otros mensajes en inglés que quieras traducir
+      default:
+        // Si no coincide con ningún caso, podrías devolver el mensaje original
+        // o un mensaje genérico en español
+        return 'Ocurrió un error al iniciar sesión. Por favor, revisa tus datos.';
+    }
+  }
+  
+  
   
 
 

@@ -3,7 +3,7 @@
     <!-- Card Header -->
     <div class="card-header">
       <h2 class="card-title mb-0">
-        <i class="fa-solid fa-pencil"></i>&nbsp; Crear nueva reseña
+        <i class="fa-solid fa-pencil"></i>&nbsp; Crear nueva revisión
       </h2>
     </div>
     <!-- Card Body -->
@@ -11,10 +11,9 @@
       <form>
         <!-- Campo Título -->
         <div class="mb-3">
-          <label for="title" class="form-label"><strong>Título de la reseña</strong></label>
-          <input type="text" class="form-control" id="title" placeholder="Escribe el título de la reseña"
-                 [(ngModel)]="title" name="title"
-                 [class.is-invalid]="formSubmitted && !validateFields().title" />
+          <label for="title" class="form-label"><strong>Título de la revisión</strong></label>
+          <input type="text" class="form-control" id="title" placeholder="Escribe el título de la revisión"
+            [(ngModel)]="title" name="title" [class.is-invalid]="formSubmitted && !validateFields().title" />
           <div *ngIf="formSubmitted && !validateFields().title" class="invalid-feedback">
             El título es obligatorio.
           </div>
@@ -22,7 +21,7 @@
 
         <!-- Selección de Metodología -->
         <div class="input-group mb-3">
-          <label class="input-group-text" for="metodologiaSelect"><strong>Metodología de reseña</strong></label>
+          <label class="input-group-text" for="metodologiaSelect"><strong>Metodología de revisión</strong></label>
           <select class="form-select" id="metodologiaSelect" [(ngModel)]="tipoRevision" name="tipoRevision"
             [ngClass]="{'is-invalid': formSubmitted && !tipoRevision}">
             <option value="" disabled selected>Seleccione la metodología...</option>
@@ -37,7 +36,7 @@
 
         <!-- Alcance -->
         <div class="input-group mb-3">
-          <label class="input-group-text" for="alcanceSelect"><strong>Alcance</strong></label>
+          <label class="input-group-text fw-bold" for="alcanceSelect">Alcance</label>
           <select class="form-select" id="alcanceSelect" [(ngModel)]="alcance" name="alcance"
             [ngClass]="{'is-invalid': formSubmitted && !alcance}">
             <option value="" disabled selected>Seleccione un alcance...</option>
@@ -72,7 +71,9 @@ alcance === 'Nivel institucional'" class="mb-3">
           </div>
 
           <!-- Si se selecciona Alcance local o Nivel institucional: se muestran los campos País y Ciudad -->
-          <div *ngIf="alcance === 'Alcance local (Ciudad(es) o unidades territoriales)' || alcance === 'Nivel institucional'" class="mb-3">
+          <div
+            *ngIf="alcance === 'Alcance local (Ciudad(es) o unidades territoriales)' || alcance === 'Nivel institucional'"
+            class="mb-3">
             <label class="form-label"><strong>Unidad territorial</strong></label>
             <div class="mb-2">
               <label for="paisLocal" class="form-label">País</label>
@@ -101,7 +102,6 @@ alcance === 'Nivel institucional'" class="mb-3">
               La institución es obligatoria.
             </div>
           </div>
-
           <hr>
         </div>
 
@@ -109,7 +109,8 @@ alcance === 'Nivel institucional'" class="mb-3">
         <div class="mb-3">
           <label for="areaConocimiento" class="form-label"><strong>Área de conocimiento (disciplina)</strong></label>
           <input type="text" class="form-control" id="areaConocimiento" placeholder="Ingrese el área de conocimiento"
-            [(ngModel)]="areaConocimiento" name="areaConocimiento" [ngClass]="{'is-invalid': formSubmitted && !areaConocimiento}">
+            [(ngModel)]="areaConocimiento" name="areaConocimiento"
+            [ngClass]="{'is-invalid': formSubmitted && !areaConocimiento}">
           <div *ngIf="formSubmitted && !areaConocimiento" class="invalid-feedback">
             El área de conocimiento es obligatoria.
           </div>
@@ -130,12 +131,12 @@ alcance === 'Nivel institucional'" class="mb-3">
             Seleccione un tipo de investigación.
           </div>
         </div>
-        
+
         <!-- Descripción -->
         <div class="mb-3">
-          <label for="description" class="form-label"><strong>Descripción de la reseña</strong></label>
+          <label for="description" class="form-label"><strong>Descripción de la revisión</strong></label>
           <textarea class="form-control" id="description" rows="5"
-            placeholder="Ingrese una descripción detallada de la reseña" [(ngModel)]="description" name="description"
+            placeholder="Ingrese una descripción detallada de la revisión" [(ngModel)]="description" name="description"
             (ngModelChange)="onTextChange($event)" maxlength="800"
             [ngClass]="{'is-invalid': formSubmitted && !description}"></textarea>
           <div class="text-end text-muted mt-1">
@@ -153,7 +154,7 @@ alcance === 'Nivel institucional'" class="mb-3">
         <i class="bi bi-x me-1"></i>Cancelar
       </button>
       <button (click)="createReview()" class="btn btn-success" type="button">
-        <i class="fa-solid fa-paper-plane"></i>&nbsp; Crear reseña
+        <i class="fa-solid fa-paper-plane"></i>&nbsp; Crear revisión
       </button>
     </div>
   </div>

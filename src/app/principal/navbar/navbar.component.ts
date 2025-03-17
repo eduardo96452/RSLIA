@@ -1,13 +1,14 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { AuthService } from '../../auth/data-access/auth.service';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, CommonModule],
+  imports: [RouterLink, CommonModule, RouterModule, FormsModule],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
 })
@@ -16,6 +17,7 @@ export class NavbarComponent implements OnInit {
   userData: any = null;
   isLoggedIn: boolean = false;
   isLargeScreen: boolean = true;
+  isDarkModeEnabled: boolean = false;
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -33,10 +35,10 @@ export class NavbarComponent implements OnInit {
     });
     this.checkScreenSize();
 
+    // Recupera el valor del localStorage y actualiza la variable
     const darkMode = localStorage.getItem('darkMode') === 'true';
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
-    }
+    this.isDarkModeEnabled = darkMode;
+    this.applyDarkMode(this.isDarkModeEnabled);
   }
 
   @HostListener('window:resize', ['$event'])
@@ -44,15 +46,17 @@ export class NavbarComponent implements OnInit {
     this.checkScreenSize();
   }
 
-  toggleDarkMode(event: Event): void {
-    const isChecked = (event.target as HTMLInputElement).checked;
-    console.log('Modo nocturno:', isChecked);
-    if (isChecked) {
+  toggleDarkMode(): void {
+    // Como estamos usando [(ngModel)], la variable ya se actualizó
+    localStorage.setItem('darkMode', this.isDarkModeEnabled.toString());
+    this.applyDarkMode(this.isDarkModeEnabled);
+  }
+
+  applyDarkMode(enabled: boolean): void {
+    if (enabled) {
       document.body.classList.add('dark-mode');
-      localStorage.setItem('darkMode', 'true');
     } else {
       document.body.classList.remove('dark-mode');
-      localStorage.setItem('darkMode', 'false');
     }
   }
 

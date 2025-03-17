@@ -44,7 +44,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     // Si el usuario no está autenticado, maneja el error o redirige.
     if (!this.userId) {
-      console.warn('Usuario no autenticado');
       this.isLoading = false;
       return;
     }
@@ -61,7 +60,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.checkScreenSize();
       this.distributionData = await this.authService.getEstudiosDistributionByDatabase();
     } catch (error: any) {
-      console.error('Error en ngOnInit:', error);
       this.errorMessage = 'Error al cargar los datos: ' + error.message;
     } finally {
       this.isLoading = false;
@@ -89,7 +87,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   async loadUserReviews() {
     if (!this.userId) {
-      console.error('No se encontró un usuario autenticado');
       return;
     }
     try {
@@ -99,7 +96,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         review.docCount = await this.authService.countUserDocumentsByRevision(this.userId!, review.id_detalles_revision);
       }));
     } catch (err) {
-      console.error('Error al cargar revisiones:', err);
     }
   }
 
@@ -149,7 +145,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       await this.loadUserReviews();
       this.userReviewCount = this.userReviews.length;
     } catch (err) {
-      console.error('Error inesperado:', err);
       Swal.fire({
         icon: 'error',
         title: 'Error',

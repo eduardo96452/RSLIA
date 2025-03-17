@@ -1,0 +1,17 @@
+/* Footer en modo claro */
+footer {
+    background-color: #ffffff;
+    color: #6c757d; /* color de texto gris (text-muted) */
+  }
+  
+  /* Footer en modo oscuro */
+  .dark-mode footer {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+  }
+  
+  /* Opcional: asegurar que el párrafo también cambie de color */
+  .dark-mode footer p {
+    color: #e0e0e0;
+  }
+  

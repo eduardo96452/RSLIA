@@ -40,11 +40,6 @@ ul {
   background-color: #f1f1f1;
 }
 
-
-
-
-
-
 ::ng-deep .mat-autocomplete-panel {
   max-height: 80px;
   overflow-y: auto;

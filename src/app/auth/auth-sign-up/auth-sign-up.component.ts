@@ -49,7 +49,6 @@ export class AuthSignUpComponent {
       const valid = result.format_valid && result.mx_found;
       return { valid, info: result.error ? result.error.info : '' };
     } catch (err) {
-      console.error('Error al validar el correo:', err);
       return { valid: false, info: 'Error al validar el correo' };
     }
   }
@@ -65,7 +64,7 @@ export class AuthSignUpComponent {
   async handleEmailSignup() {
     this.otherErrors = [];
     this.emailError = '';
-
+  
     // Verificar que se hayan llenado los campos básicos
     if (!this.name.trim() || !this.email.trim() || !this.password.trim()) {
       Swal.fire({
@@ -75,7 +74,7 @@ export class AuthSignUpComponent {
       });
       return;
     }
-
+  
     // Validar las políticas de contraseña
     if (!this.allPoliciesMet()) {
       Swal.fire({
@@ -85,7 +84,7 @@ export class AuthSignUpComponent {
       });
       return;
     }
-
+  
     // Validar el formato del correo mediante la API externa
     const emailValidation = await this.validateEmailApi(this.email);
     if (!emailValidation.valid) {
@@ -97,7 +96,7 @@ export class AuthSignUpComponent {
       });
       return;
     }
-
+  
     // Verificar si el correo ya está registrado
     if (await this.emailAlreadyExists(this.email)) {
       this.emailError = 'El correo ya está registrado. Por favor, utiliza otro.';
@@ -108,7 +107,7 @@ export class AuthSignUpComponent {
       });
       return;
     }
-
+  
     // Si todo está correcto, procede con el registro
     try {
       const credentials: SignUpWithPasswordCredentials = {
@@ -118,18 +117,20 @@ export class AuthSignUpComponent {
           data: { name: this.name }
         }
       };
-
+  
+      // Supabase signUp
       const { data: authData, error: authError } = await this._authService.signUp(credentials);
       if (authError) {
-        console.error('Error en el registro:', authError.message);
+        const errorMsg = this.translateSignupError(authError);
         Swal.fire({
           icon: 'error',
           title: 'Error en el registro',
-          text: authError.message,
+          text: errorMsg,
         });
         return;
       }
-
+  
+      // Si se crea el usuario en Supabase, guardarlo también en tu base de datos
       if (authData?.user) {
         const id_usuario = authData.user.id;
         const { error: dbError } = await this._authService.addUserToDatabase(
@@ -138,16 +139,18 @@ export class AuthSignUpComponent {
           this.email,
           this.password
         );
+  
         if (dbError) {
-          console.error('Error al guardar el usuario en la base de datos:', dbError.message);
+          const errorMsg = this.translateSignupError(dbError);
           Swal.fire({
             icon: 'error',
             title: 'Error al guardar el usuario',
-            text: dbError.message,
+            text: errorMsg,
           });
           return;
         }
-
+  
+        // Si todo sale bien, guardamos el ID en localStorage y mostramos un mensaje de éxito
         localStorage.setItem('session_ID', id_usuario);
         Swal.fire({
           icon: 'success',
@@ -158,7 +161,6 @@ export class AuthSignUpComponent {
         });
       }
     } catch (error) {
-      console.error('Error en el registro:', error);
       Swal.fire({
         icon: 'error',
         title: 'Ocurrió un error inesperado',
@@ -166,6 +168,39 @@ export class AuthSignUpComponent {
       });
     }
   }
+  
+
+  private translateSignupError(error: any): string {
+    // Si no existe el error o su mensaje, devolvemos algo genérico
+    if (!error || !error.message) {
+      return 'Error desconocido. Por favor, inténtalo nuevamente.';
+    }
+  
+    // Revisamos si el mensaje contiene ciertas palabras clave para identificar el error
+    if (error.message.includes('duplicate key value violates unique constraint')) {
+      return 'Ya existe una cuenta registrada con este correo.';
+    }
+  
+    if (error.message.includes('email rate limit exceeded')) {
+      return 'Se ha excedido el límite de envíos de correo. Por favor, intenta más tarde.';
+    }
+
+    // Caso 1: Correo duplicado
+    if (error.message.includes('duplicate key value violates unique constraint "usuarios_correo_electronico_key"')) {
+      return 'Ya existe un usuario registrado con este correo electrónico.';
+    }
+    
+    // Caso 2: Límite de frecuencia
+    if (error.message.includes('For security purposes, you can only request this after')) {
+      return 'Por razones de seguridad, debes esperar 48 segundos antes de volver a intentarlo.';
+    }
+    
+  
+    // Si no coincide con ninguno de los anteriores, puedes:
+    //  - Devolver el mensaje original
+    //  - O bien, devolver un mensaje genérico en español
+    return error.message; 
+  }  
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;

@@ -599,7 +599,6 @@ export class AuthService {
   }
 
   async getUserReviews(userId: string) {
-    console.log('Fetching reviews for user:', userId);
 
     const { data, error } = await this._supabaseClient
       .from('detalles_revision')
@@ -611,7 +610,6 @@ export class AuthService {
       return [];
     }
 
-    console.log('Data received:', data);
     return data || [];
   }
 

@@ -1,52 +1,11 @@
-
-  .navbar-brand {
-    font-weight: bold;
-  }
-  .card {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .floating-menu {
-    width: 200px;
+/* Tarjeta de Revisiones - Azul verdoso (Teal) */
+.card-revision {
+    background-color: #00897B !important; /* Teal oscuro */
+    color: #fff;
   }
   
-  .menu-item {
-    padding: 10px;
-    cursor: pointer;
-    border-left: 3px solid transparent;
-    transition: background-color 0.3s, border-color 0.3s;
-  }
-  
-  .menu-item.active {
-    background-color: #f8f9fa;
-    border-color: #007bff;
-    font-weight: bold;
-  }
-  
-  .menu-item:hover {
-    background-color: #f1f1f1;
-  }
-
-
-
-
-
-  
-  .loading, .error {
-    text-align: center;
-    padding: 20px;
-    font-size: 1.1em;
-  }
-  
-  .error {
-    color: #dc3545;
-    border: 1px solid #dc3545;
-    border-radius: 4px;
-    background-color: #f8d7da;
-  }
-  
-  canvas {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
+  /* Tarjeta de Informes - Naranja */
+  .card-report {
+    background-color: #FB8C00 !important; /* Naranja vibrante */
+    color: #fff;
   }

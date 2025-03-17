@@ -59,7 +59,7 @@
             <div class="card-header position-relative">
               <!-- Título a la izquierda -->
               <h2 class="card-title mb-0">
-                <i class="fa-solid fa-pencil"></i>&nbsp; Editar reseña
+                <i class="fa-solid fa-pencil"></i>&nbsp; Editar revisión
               </h2>
 
               <!-- Ícono de interrogación en la esquina superior derecha -->
@@ -71,7 +71,7 @@
               <!-- Tooltip que aparece cuando showExplanation es true -->
               <div *ngIf="showExplanation" class="custom-tooltip">
                 <p class="mb-0">
-                  En esta sección puedes ajustar detalles de tu reseña, como el título, la metodología, el alcance y
+                  En esta sección puedes ajustar detalles de tu revisión, como el título, la metodología, el alcance y
                   otros campos relevantes.
                 </p>
               </div>
@@ -81,16 +81,16 @@
               <form [formGroup]="form">
                 <!-- Campo Título -->
                 <div class="mb-3">
-                  <label for="title" class="form-label"><strong>Título de la reseña</strong></label>
+                  <label for="title" class="form-label"><strong>Título de la revisión</strong></label>
                   <input type="text" class="form-control" id="title" formControlName="titulo_revision"
-                    placeholder="Escribe el título de la reseña" [(ngModel)]="reviewData.titulo_revision"
+                    placeholder="Escribe el título de la revisión" [(ngModel)]="reviewData.titulo_revision"
                     name="titulo_revision" (ngModelChange)="onFieldChange($event)" />
                 </div>
 
                 <!-- Campo Selección de Metodología -->
                 <div class="input-group mb-3">
                   <label class="input-group-text" for="inputGroupSelect01"><strong>Metodología de
-                      reseña</strong></label>
+                    revisión</strong></label>
                   <select class="form-select" id="inputGroupSelect01" [(ngModel)]="reviewData.tipo_revision"
                     name="tipo_revision" formControlName="tipo_revision" (ngModelChange)="onFieldChange($event)">
                     <option value="Revisión Sistemática">Revisión Sistemática</option>
@@ -180,9 +180,9 @@
 
                 <!-- Campo Descripción -->
                 <div class="mb-3">
-                  <label for="description" class="form-label"><strong>Descripción de la reseña</strong></label>
+                  <label for="description" class="form-label"><strong>Descripción de la revisión</strong></label>
                   <textarea class="form-control" id="description" rows="5" formControlName="descripcion"
-                    placeholder="Ingrese una descripción detallada de la reseña" [(ngModel)]="reviewData.descripcion"
+                    placeholder="Ingrese una descripción detallada de la revisión" [(ngModel)]="reviewData.descripcion"
                     name="description" (ngModelChange)="onFieldChange($event)" maxlength="800"></textarea>
                   <div class="text-end text-muted mt-1">
                     <small>{{ charCount1 }}/800 caracteres</small>

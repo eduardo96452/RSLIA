@@ -7,7 +7,9 @@
     <div class="col-md-3 mb-md-0">
       <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none align-items-center">
         <img src="LiterAI.webp" alt="LiterIA Logo" class="me-2" style="height: 3rem;" />
-        <span class="ms-2 fs-4 text-dark"><strong>LiterIA</strong></span>
+        <span class="ms-2 fs-4" [ngClass]="{'text-dark': !isDarkModeEnabled, 'text-light': isDarkModeEnabled}">
+          <strong>LiterIA</strong>
+        </span>
       </a>
     </div>
     <!-- Bloque SI está autenticado -->
@@ -15,69 +17,72 @@
       <div class="dropdown text-end d-flex align-items-center">
         <!-- Modo nocturno -->
         <div class="form-check form-switch me-3">
-          <input 
-            class="form-check-input" 
-            type="checkbox" 
-            id="darkModeToggle" 
-            (change)="toggleDarkMode($event)"
-            style="transform: scale(1.5); margin-right: 0.5rem;"
-          >
+          <input class="form-check-input" type="checkbox" id="darkModeToggle" [(ngModel)]="isDarkModeEnabled"
+            (change)="toggleDarkMode()" style="transform: scale(1.5); margin-right: 0.5rem;">
           <label class="form-check-label" for="darkModeToggle"> &nbsp;Modo Nocturno</label>
         </div>
-      
+
         <!-- Dropdown de usuario -->
-        <a href="#" 
-           class="d-block link-body-emphasis text-decoration-none dropdown-toggle" 
-           data-bs-toggle="dropdown"
-           aria-expanded="false">
+        <a href="#" [ngClass]="{
+  'd-block': true,
+  'text-decoration-none': true,
+  'dropdown-toggle': true,
+  'link-body-emphasis': !isDarkModeEnabled,
+  'text-light': isDarkModeEnabled
+}" data-bs-toggle="dropdown" aria-expanded="false">
           <img
             [src]="userData?.ruta_imagen || 'https://uxcpuzwvwhtqjtiyolfm.supabase.co/storage/v1/object/public/avatars/path/to/file/perfil.png'"
-            alt="{{ userData?.nombre_usuario || 'Usuario' }}" 
-            width="32" 
-            height="32" 
-            class="rounded-circle"
-          >
+            alt="{{ userData?.nombre_usuario || 'Usuario' }}" width="32" height="32" class="rounded-circle">
           &nbsp; {{ userData?.nombre_usuario || 'Usuario' }}
         </a>
-      
+
+
         <ul class="dropdown-menu text-small">
           <li><a class="dropdown-item" [routerLink]="['/Descripción_General']">Nueva revisión...</a></li>
           <li><a class="dropdown-item" [routerLink]="['/Perfil']">Perfil</a></li>
-          <li><hr class="dropdown-divider"></li>
+          <li>
+            <hr class="dropdown-divider">
+          </li>
           <li><button class="dropdown-item" (click)="logout()">Cerrar sesión</button></li>
         </ul>
       </div>
-           
+
     </ul>
 
     <!-- Bloque NO está autenticado -->
     <ng-template #notLoggedTemplate>
       <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
         <li>
-          <a routerLink="/inicio" class="nav-link px-2" [class.link-secondary]="activeLink === '/inicio'"
-            (click)="setActiveLink('/inicio')">
+          <a routerLink="/inicio" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            class="nav-link px-2">
             <strong>Inicio</strong>
           </a>
         </li>
         <li>
-          <a routerLink="/acerca-de" class="nav-link px-2" [class.link-secondary]="activeLink === '/acerca-de'"
-            (click)="setActiveLink('/acerca-de')">
+          <a routerLink="/acerca-de" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            class="nav-link px-2">
             <strong>Acerca de</strong>
           </a>
         </li>
         <li>
-          <a routerLink="/contacto" class="nav-link px-2" [class.link-secondary]="activeLink === '/contacto'"
-            (click)="setActiveLink('/contacto')">
+          <a routerLink="/contacto" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            class="nav-link px-2">
             <strong>Contacto</strong>
           </a>
         </li>
       </ul>
 
-
       <div class="d-flex ms-3">
-        <a routerLink="/log-in" class="btn btn-outline-primary me-2">Acceder</a>
-        <a routerLink="/sign-up" class="btn btn-primary">Registrarse</a>
+        <a routerLink="/log-in" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+          class="btn btn-outline-primary me-2">
+          Acceder
+        </a>
+        <a routerLink="/sign-up" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+          class="btn btn-outline-primary">
+          Registrarse
+        </a>
       </div>
+
     </ng-template>
   </header>
 </div>

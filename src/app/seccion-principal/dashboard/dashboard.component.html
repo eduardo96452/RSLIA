@@ -9,26 +9,28 @@
             <br>
             <div class="row">
                 <!-- Columna con las tarjetas de Revisiones e Informes -->
-                <div class="col-md-3">
-                    <!-- Card Revisiones creadas -->
-                    <div class="mb-4">
-                        <div class="card text-white bg-success h-100">
-                            <div class="card-body">
-                                <h5 class="card-title">Revisiones creadas</h5>
-                                <p class="card-text display-4 text-center">{{ userReviewCount }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Card Informes creados -->
-                    <div class="mb-4">
-                        <div class="card text-white bg-warning h-100">
-                            <div class="card-body">
-                                <h5 class="card-title">Informes creados</h5>
-                                <p class="card-text display-4 text-center">{{userInformeCount}}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div class="col-md-3">
+    <!-- Card Revisiones creadas -->
+    <div class="mb-4">
+      <div class="card text-white card-revision h-100">
+        <div class="card-body">
+          <h5 class="card-title">Revisiones creadas</h5>
+          <p class="card-text display-4 text-center">{{ userReviewCount }}</p>
+        </div>
+      </div>
+    </div>
+    <!-- Card Informes creados -->
+    <div class="mb-4">
+      <div class="card text-white card-report h-100">
+        <div class="card-body">
+          <h5 class="card-title">Informes creados</h5>
+          <p class="card-text display-4 text-center">{{ userInformeCount }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
 
                 <!-- Columna con la tarjeta "Mis revisiones" -->
                 <div class="col-12 col-lg-9 mb-4">
@@ -51,26 +53,23 @@
 
                                 <hr class="my-3">
 
-                                <!-- Sección con la tabla -->
-                                <div class="p-3" style="background-color: #f8f9fa;">
+                                <!-- TABLA DE REVISIONES -->
+                                <div class="container p-3">
                                     <p class="card-text text-center mb-3">
-                                        Aquí se muestran las reseñas que están en progreso.
+                                        Visualiza aquí las revisiones que están en proceso.
                                     </p>
-
-                                    <!-- Tabla responsiva para evitar desbordes en pantallas pequeñas -->
                                     <div class="table-responsive">
-                                        <table class="table table-striped">
+                                        <table class="table">
                                             <thead>
                                                 <tr>
                                                     <th style="display: none;">#</th>
                                                     <th>Título de la reseña</th>
-                                                    <th style="display: none;">ID (Invisible)</th>
                                                     <th>Doc. procesados</th>
                                                     <th>Fecha de última edición</th>
                                                     <th>Acciones</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                            <tbody class="table-dar">
                                                 <tr *ngFor="let review of userReviews; let i = index">
                                                     <td style="display: none;">{{ i + 1 }}</td>
                                                     <td class="text-start">
@@ -80,15 +79,12 @@
                                                             {{ review.titulo_revision }}
                                                         </a>
                                                     </td>
-                                                    <!-- Cantidad de documentos de la revisión -->
                                                     <td class="text-center align-middle">
                                                         {{ review.docCount }}
                                                     </td>
-                                                    <!-- Fecha de última edición -->
                                                     <td class="text-center align-middle">
                                                         {{ review.fecha_modificacion | date:'short' }}
                                                     </td>
-                                                    <!-- Botón Eliminar -->
                                                     <td class="text-center align-middle">
                                                         <button class="btn btn-outline-danger btn-sm"
                                                             (click)="eliminarRevision(review.id_detalles_revision)">
@@ -98,9 +94,9 @@
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </div> <!-- /.table-responsive -->
+                                    </div>
 
-                                </div> <!-- /fondo gris -->
+                                </div>
                             </div> <!-- /container text-center -->
                         </div> <!-- /card-body -->
                     </div> <!-- /card -->
