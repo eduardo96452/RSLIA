@@ -28,6 +28,7 @@ export class PlanificacionComponent implements OnInit {
   reviewId!: string;
   objetivo: string = '';
   objectiveSaved: boolean = false;
+  isCopied: boolean = false;
   charCount: number = 0;
   titulo_revision = '';
   tipo_revision = '';
@@ -281,14 +282,14 @@ export class PlanificacionComponent implements OnInit {
     if (this.reviewData.ciudad && this.reviewData.ciudad.trim()) {
       extraFields.ciudad = this.reviewData.ciudad.trim();
     }
-    if (this.reviewData.institucion && this.reviewData.institucion.trim()) {
-      extraFields.institucion = this.reviewData.institucion.trim();
-    }
     if (this.reviewData.area_conocimiento && this.reviewData.area_conocimiento.trim()) {
       extraFields.area_conocimiento = this.reviewData.area_conocimiento.trim();
     }
     if (this.reviewData.tipo_investigacion && this.reviewData.tipo_investigacion.trim()) {
       extraFields.tipo_investigacion = this.reviewData.tipo_investigacion.trim();
+    }
+    if (this.reviewData.institucion && this.reviewData.institucion.trim()) {
+      extraFields.institucion = this.reviewData.institucion.trim();
     }
 
     // Llamar al servicio OpenAiService y pasarle los campos opcionales
@@ -325,6 +326,26 @@ export class PlanificacionComponent implements OnInit {
       }
     });
   }
+
+  copyObjective(): void {
+    const textToCopy = this.objetivo || '';
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => {
+        // Cambiamos el texto del botón a “Copiado”
+        this.isCopied = true;
+
+        // Después de 2 segundos, volvemos a mostrar “Copiar”
+        setTimeout(() => {
+          this.isCopied = false;
+        }, 2000);
+      })
+      .catch(err => {
+        console.error('Error al copiar el texto', err);
+      });
+  }
+
+  
+  
 
   // ---------------- FRAMEWORK ----------------
 

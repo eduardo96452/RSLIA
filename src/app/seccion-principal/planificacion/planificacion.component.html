@@ -110,7 +110,7 @@
                                                         data-bs-toggle="collapse" data-bs-target="#flush-collapseOne"
                                                         aria-expanded="false" aria-controls="flush-collapseOne"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0">
+                                                        <h5 class="card-title mb-0 fw-bold">
                                                             <!-- Mostramos el ícono de lápiz si NO está guardado -->
                                                             <ng-container *ngIf="!objectiveSaved; else iconCheck">
                                                                 <i class="fa-solid fa-pencil"></i>&nbsp;&nbsp;1.-
@@ -143,15 +143,28 @@
                                                         <!-- Contenido principal debajo, en una nueva fila -->
                                                         <div class="mt-3">
                                                             <form>
-                                                                <div class="mb-3">
+                                                                <!-- Contenedor relativo para el textarea y el botón flotante -->
+                                                                <!-- Contenedor relativo para el textarea y el botón flotante -->
+                                                                <div class="position-relative textarea-container mb-3">
+                                                                    <!-- Botón flotante en la parte superior derecha -->
+                                                                    <button
+                                                                        class="btn btn-secondary btn-sm floating-copy-btn"
+                                                                        type="button" (click)="copyObjective()">
+                                                                        <i class="bi bi-clipboard"></i>&nbsp;
+                                                                        {{ isCopied ? 'Copiado' : 'Copiar' }}
+                                                                    </button>
+
+                                                                    <!-- Textarea con padding para que el texto no quede detrás del botón -->
                                                                     <textarea class="form-control" id="description"
                                                                         rows="5" [(ngModel)]="objetivo" name="objetivo"
                                                                         maxlength="1000"
                                                                         placeholder="Ingrese un objetivo para la reseña"
                                                                         (ngModelChange)="onTextChange($event)"></textarea>
-                                                                    <div class="text-end text-muted mt-1">
-                                                                        <small>{{ charCount }}/800 caracteres</small>
-                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Indicador de caracteres -->
+                                                                <div class="text-end text-muted mt-1">
+                                                                    <small>{{ charCount }}/800 caracteres</small>
                                                                 </div>
                                                             </form>
                                                             <div class="row mt-2">
@@ -176,6 +189,101 @@
                                                 </div>
                                             </div>
 
+                                            <!-- Acordeon de pregunta de investigación -->
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button collapsed" type="button"
+                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseThree"
+                                                        aria-expanded="false" aria-controls="flush-collapseThree"
+                                                        style="background-color: #F8F8F8; flex: 7;">
+                                                        <h5 class="card-title mb-0 fw-bold">
+                                                            <i class="bi bi-question-circle"></i>&nbsp;&nbsp;2.-
+                                                            Preguntas de investigación
+                                                            <span *ngIf="questionsUpdated">
+                                                                &nbsp;<i
+                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                            </span>
+                                                        </h5>
+                                                    </button>
+                                                </h2>
+                                                <div id="flush-collapseThree" class="accordion-collapse collapse"
+                                                    data-bs-parent="#accordionFlushExample">
+                                                    <div class="accordion-body">
+                                                        <div class="d-flex justify-content-between">
+                                                            <!-- Botón Agregar pregunta alineado a la derecha -->
+                                                            <button class="btn btn-primary btn-sm"
+                                                                (click)="addQuestion()">
+                                                                <i class="bi bi-plus"></i>&nbsp; Agregar pregunta
+                                                            </button>
+
+                                                            <!-- Botón Sugerencia IA alineado a la izquierda -->
+                                                            <button class="btn btn-info" type="button"
+                                                                (click)="generateResearchQuestions()">
+                                                                <i class="bi bi-robot"></i>&nbsp; Generar
+                                                                pregunta
+                                                                con IA
+                                                            </button>
+                                                        </div>
+                                                        <br>
+
+                                                        <div class="container">
+                                                            <p>Tipo de Investigación:
+                                                                <strong>{{reviewData.tipo_investigacion}}</strong>
+                                                            </p>
+                                                            <div *ngFor="let question of questions" class="mb-3">
+                                                                <div class="input-group mb-2">
+                                                                    <textarea class="form-control"
+                                                                        [(ngModel)]="question.value"
+                                                                        [disabled]="!!question.isSaved"
+                                                                        placeholder="Escriba su pregunta de investigación">
+                                                                    </textarea>
+                                                                    <button
+                                                                        *ngIf="!question.isSaved && !question.isEditing"
+                                                                        class="btn btn-outline-danger" type="button"
+                                                                        (click)="cancelQuestion(question.id)">
+                                                                        <i class="bi bi-x"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <div class="d-flex justify-content-end gap-2">
+                                                                    <!-- Si la pregunta no está guardada y NO está en modo edición, se muestra "Guardar" -->
+                                                                    <button
+                                                                        *ngIf="!question.isSaved && !question.isEditing"
+                                                                        class="btn btn-success"
+                                                                        (click)="saveQuestion(question)">
+                                                                        <i class="bi bi-floppy"></i> Guardar
+                                                                    </button>
+                                                                    <!-- Si la pregunta ya está guardada y NO está en modo edición, se muestran "Editar" y "Eliminar" -->
+                                                                    <button
+                                                                        *ngIf="question.isSaved && !question.isEditing"
+                                                                        class="btn btn-warning"
+                                                                        (click)="editQuestion(question)">
+                                                                        <i class="bi bi-pencil"></i> Editar
+                                                                    </button>
+                                                                    <button *ngIf="question.isEditing"
+                                                                        class="btn btn-success"
+                                                                        (click)="updateQuestion(question)">
+                                                                        <i class="bi bi-check"></i> Actualizar
+                                                                    </button>
+                                                                    <button
+                                                                        *ngIf="question.isSaved && !question.isEditing"
+                                                                        class="btn btn-danger"
+                                                                        (click)="deleteQuestion(question.id)">
+                                                                        <i class="bi bi-trash"></i> Eliminar
+                                                                    </button>
+                                                                    <button
+                                                                        *ngIf="!question.isSaved && question.isEditing"
+                                                                        class="btn btn-danger"
+                                                                        (click)="deleteQuestion(question.id)">
+                                                                        <i class="bi bi-trash"></i> Eliminar
+                                                                    </button>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                             <!-- Acordeon de metodologías -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
@@ -183,8 +291,8 @@
                                                         data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo"
                                                         aria-expanded="false" aria-controls="flush-collapseTwo"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0">
-                                                            <i class="bi bi-book-half"></i>&nbsp;&nbsp;2.- Selecciona un
+                                                        <h5 class="card-title mb-0 fw-bold">
+                                                            <i class="bi bi-book-half"></i>&nbsp;&nbsp;3.- Selecciona un
                                                             Framework
                                                             <ng-container *ngIf="metodologiaGuardada">
                                                                 &nbsp;&nbsp;<i
@@ -210,7 +318,7 @@
                                                                 <div class="container">
                                                                     <div class="row align-items-start">
                                                                         <div class="col">
-                                                                            <h5>PICO</h5>
+                                                                            <h5 class="fw-bold">PICO</h5>
                                                                         </div>
                                                                         <div class="col text-end">
                                                                             <button class="btn btn-info" type="button"
@@ -286,7 +394,7 @@
                                                                 <div class="container">
                                                                     <div class="row align-items-start">
                                                                         <div class="col">
-                                                                            <h5>PICOC</h5>
+                                                                            <h5 class="fw-bold">PICOC</h5>
                                                                         </div>
                                                                         <div class="col text-end">
                                                                             <button class="btn btn-info" type="button"
@@ -373,7 +481,7 @@
                                                                 <div class="container">
                                                                     <div class="row align-items-start">
                                                                         <div class="col">
-                                                                            <h5>PICOTT</h5>
+                                                                            <h5 class="fw-bold">PICOTT</h5>
                                                                         </div>
                                                                         <div class="col text-end">
                                                                             <button class="btn btn-info" type="button"
@@ -470,7 +578,7 @@
                                                                 <div class="container">
                                                                     <div class="row align-items-start">
                                                                         <div class="col">
-                                                                            <h5>SPICE</h5>
+                                                                            <h5 class="fw-bold">SPICE</h5>
                                                                         </div>
                                                                         <div class="col text-end">
                                                                             <button class="btn btn-info" type="button"
@@ -556,110 +664,15 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Acordeon de pregunta de investigación -->
-                                            <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseThree"
-                                                        aria-expanded="false" aria-controls="flush-collapseThree"
-                                                        style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0">
-                                                            <i class="bi bi-question-circle"></i>&nbsp;&nbsp;3.-
-                                                            Preguntas de investigación
-                                                            <span *ngIf="questionsUpdated">
-                                                                &nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
-                                                            </span>
-                                                        </h5>
-                                                    </button>
-                                                </h2>
-                                                <div id="flush-collapseThree" class="accordion-collapse collapse"
-                                                    data-bs-parent="#accordionFlushExample">
-                                                    <div class="accordion-body">
-                                                        <div class="d-flex justify-content-between">
-                                                            <!-- Botón Agregar pregunta alineado a la derecha -->
-                                                            <button class="btn btn-primary btn-sm"
-                                                                (click)="addQuestion()">
-                                                                <i class="bi bi-plus"></i>&nbsp; Agregar pregunta
-                                                            </button>
-
-                                                            <!-- Botón Sugerencia IA alineado a la izquierda -->
-                                                            <button class="btn btn-info" type="button"
-                                                                (click)="generateResearchQuestions()">
-                                                                <i class="bi bi-robot"></i>&nbsp; Generar
-                                                                pregunta
-                                                                con IA
-                                                            </button>
-                                                        </div>
-                                                        <br>
-
-                                                        <div class="container">
-                                                            <p>Tipo de Investigación:
-                                                                <strong>{{reviewData.tipo_investigacion}}</strong>
-                                                            </p>
-                                                            <div *ngFor="let question of questions" class="mb-3">
-                                                                <div class="input-group mb-2">
-                                                                    <textarea class="form-control"
-                                                                        [(ngModel)]="question.value"
-                                                                        [disabled]="!!question.isSaved"
-                                                                        placeholder="Escriba su pregunta de investigación">
-                                                                    </textarea>
-                                                                    <button
-                                                                        *ngIf="!question.isSaved && !question.isEditing"
-                                                                        class="btn btn-outline-danger" type="button"
-                                                                        (click)="cancelQuestion(question.id)">
-                                                                        <i class="bi bi-x"></i>
-                                                                    </button>
-                                                                </div>
-                                                                <div class="d-flex justify-content-end gap-2">
-                                                                    <!-- Si la pregunta no está guardada y NO está en modo edición, se muestra "Guardar" -->
-                                                                    <button
-                                                                        *ngIf="!question.isSaved && !question.isEditing"
-                                                                        class="btn btn-success"
-                                                                        (click)="saveQuestion(question)">
-                                                                        <i class="bi bi-floppy"></i> Guardar
-                                                                    </button>
-                                                                    <!-- Si la pregunta ya está guardada y NO está en modo edición, se muestran "Editar" y "Eliminar" -->
-                                                                    <button
-                                                                        *ngIf="question.isSaved && !question.isEditing"
-                                                                        class="btn btn-warning"
-                                                                        (click)="editQuestion(question)">
-                                                                        <i class="bi bi-pencil"></i> Editar
-                                                                    </button>
-                                                                    <button *ngIf="question.isEditing"
-                                                                        class="btn btn-success"
-                                                                        (click)="updateQuestion(question)">
-                                                                        <i class="bi bi-check"></i> Actualizar
-                                                                    </button>
-                                                                    <button
-                                                                        *ngIf="question.isSaved && !question.isEditing"
-                                                                        class="btn btn-danger"
-                                                                        (click)="deleteQuestion(question.id)">
-                                                                        <i class="bi bi-trash"></i> Eliminar
-                                                                    </button>
-                                                                    <button
-                                                                        *ngIf="!question.isSaved && question.isEditing"
-                                                                        class="btn btn-danger"
-                                                                        (click)="deleteQuestion(question.id)">
-                                                                        <i class="bi bi-trash"></i> Eliminar
-                                                                    </button>
-
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Acordeon de palabras claves y sinonimos -->
+                                            <!-- Acordeon de Terminos claves y sinonimos -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
                                                     <button class="accordion-button collapsed" type="button"
                                                         data-bs-toggle="collapse" data-bs-target="#flush-collapseFour"
                                                         aria-expanded="false" aria-controls="flush-collapseThree"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0">
-                                                            <i class="bi bi-key-fill"></i>&nbsp;&nbsp;4.- Palabras
+                                                        <h5 class="card-title mb-0 fw-bold">
+                                                            <i class="bi bi-key-fill"></i>&nbsp;&nbsp;4.- Terminos
                                                             claves y sinónimos
                                                             <span *ngIf="keywordsUpdated">
                                                                 &nbsp;<i
@@ -672,12 +685,12 @@
                                                     data-bs-parent="#accordionFlushExample">
                                                     <div class="accordion-body">
                                                         <div class="d-flex justify-content-between">
-                                                            <!-- Botón Agregar palabra clave alineado a la derecha -->
+                                                            <!-- Botón Agregar Termino clave alineado a la derecha -->
                                                             <button class="btn btn-primary" data-bs-toggle="modal"
                                                                 (click)="addRow()" data-bs-target="#staticBackdrop"><i
                                                                     class="bi bi-plus"></i>
                                                                 &nbsp;
-                                                                Añadir palabra clave
+                                                                Añadir termino clave
                                                             </button>
                                                             <!-- Botón Sugerencia IA alineado a la izquierda -->
                                                             <button class="btn btn-info" type="button"
@@ -692,7 +705,7 @@
                                                                 <thead>
                                                                     <tr>
                                                                         <th style="display:none;">ID</th>
-                                                                        <th>Palabra clave</th>
+                                                                        <th>Termino clave</th>
                                                                         <th>Componente</th>
                                                                         <th style="display:none;">ID_sinonimos</th>
                                                                         <th>Sinónimos</th>
@@ -809,7 +822,7 @@
                                                         data-bs-toggle="collapse" data-bs-target="#flush-collapseSix"
                                                         aria-expanded="false" aria-controls="flush-collapseSix"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0">
+                                                        <h5 class="card-title mb-0 fw-bold">
                                                             <i class="bi bi-clipboard-data-fill"></i>&nbsp;&nbsp;5.-
                                                             Gestión de Bases Bibliográficas
                                                             <span *ngIf="basesGuardadas">
