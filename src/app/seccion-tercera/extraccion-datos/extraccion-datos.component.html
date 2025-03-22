@@ -68,7 +68,7 @@
         <div class="col col-sm col-md-10">
           <div class="card shadow-sm">
             <div class="card-header text-black">
-              <h5 class="mb-0">
+              <h5 class="mb-0 fw-bold">
                 <i class="bi bi-clipboard-data"></i>&nbsp; Extracción de datos
               </h5>
             </div>
@@ -141,6 +141,10 @@
                   <!-- Campos de Extracción -->
                   <form (ngSubmit)="saveExtractionData(study)">
                     <table class="table table-sm table-bordered">
+                      <colgroup>
+                        <col style="width: 50%;"> <!-- Puntuación Total -->
+                        <col style="width: 50%;"> <!-- Acciones -->
+                      </colgroup>
                       <thead>
                         <tr>
                           <th>Preguntas</th>

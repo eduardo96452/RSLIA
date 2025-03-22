@@ -106,11 +106,6 @@ export class AuthLogInComponent {
         return 'Ocurrió un error al iniciar sesión. Por favor, revisa tus datos.';
     }
   }
-  
-  
-  
-
-
 
   handleGoogleLogin() {
     // TODO: Implement Google authentication
@@ -122,6 +117,5 @@ export class AuthLogInComponent {
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
-
 
 }

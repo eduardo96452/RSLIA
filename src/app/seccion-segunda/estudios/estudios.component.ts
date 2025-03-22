@@ -8,6 +8,8 @@ import { filter } from 'rxjs';
 import { AuthService, BaseBibliografica, Estudio, Study } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
 import { DoiApiService } from '../../conexion/doiApi.service';
+import { Workbook } from 'exceljs';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-estudios',
@@ -54,8 +56,13 @@ export class EstudiosComponent implements OnInit {
   inclusionCriterios: any[] = [];
   exclusionCriterios: any[] = [];
   selectedCriterioId: number | null = null;
-  selectedCriterio: string | null = null;
-  selectedEstudioId!: number;
+  selectedCriterio: string = 'Seleccione un criterio';
+
+
+
+
+  selectedEstudioId: number | null = null;
+
 
   basesList: BaseBibliografica[] = [];
 
@@ -63,9 +70,7 @@ export class EstudiosComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
-    private fb: FormBuilder,
     private router: Router,
-    private openAiService: OpenAiService,
     private doiApiService: DoiApiService
   ) { }
 
@@ -102,15 +107,15 @@ export class EstudiosComponent implements OnInit {
     headers.forEach(header => {
       const resizer = header.querySelector('.resizer');
       if (!resizer) return;
-  
+
       let startX: number;
       let startWidth: number;
-  
+
       const onMouseMove = (e: Event) => {
         const mouseEvent = e as MouseEvent; // Convertir a MouseEvent
         const newWidth = startWidth + (mouseEvent.pageX - startX);
         header.style.width = newWidth + 'px';
-        
+
         // Actualizar el <col> correspondiente en el <colgroup>
         const colIndex = Array.from(header.parentElement!.children).indexOf(header);
         const colGroup = header.closest('table')!.querySelector('colgroup');
@@ -118,12 +123,12 @@ export class EstudiosComponent implements OnInit {
           (colGroup.children[colIndex] as HTMLElement).style.width = newWidth + 'px';
         }
       };
-  
+
       const onMouseUp = (e: Event) => {
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
       };
-  
+
       resizer.addEventListener('mousedown', (e: Event) => {
         const mouseEvent = e as MouseEvent; // Convertir a MouseEvent
         startX = mouseEvent.pageX;
@@ -313,10 +318,10 @@ export class EstudiosComponent implements OnInit {
         newStudies = this.parseRis(fileContent, dbName);
       }
 
-      // Agregar a la lista principal
+      // Agregar los estudios parseados a la lista principal de importados
       this.importedStudies.push(...newStudies);
 
-      // Guardar todo de una vez (por ejemplo)
+      // Guardar todos los estudios importados de una vez
       this.saveAllImportedStudies(newStudies);
 
       Swal.fire({
@@ -338,64 +343,62 @@ export class EstudiosComponent implements OnInit {
     reader.readAsText(file);
   }
 
-  // Método para guardar en lote
+  // Guarda en lote los estudios importados
   async saveAllImportedStudies(studies: Study[]) {
-    this.duplicatedCount = 0; // Reinicia el conteo antes de empezar
+    this.duplicatedCount = 0; // Reinicia el conteo de duplicados
 
     for (const study of studies) {
       await this.saveImportedStudy(study);
     }
 
-    // Al terminar el bucle:
     if (this.duplicatedCount > 0) {
       Swal.fire({
         icon: 'warning',
         title: 'Artículos Duplicados',
         text: `${this.duplicatedCount} estudio(s) ya estaban en la BD y fueron marcados como "Duplicado".`
       }).then(() => {
-        // Recarga la página
         this.loadEstudiosForRevision();
       });
     } else {
-      // Si no hubo duplicados, puedes mostrar un mensaje de éxito o ya lo tienes al final
       Swal.fire({
         icon: 'success',
         title: 'Importación exitosa',
         text: `Se han importado ${studies.length} estudios.`
       }).then(() => {
-        // Recarga la página
         this.loadEstudiosForRevision();
       });
     }
   }
 
   /**
-   * Ejemplo simple de parseo para .bib
-   * 
-   * Supón que .bib está compuesto por entradas del estilo:
-   * 
-   * @article{example,
-   *  author = {John Doe},
-   *  title = {Sample Title},
-   *  booktitle = {Sample Book},
-   *  year = {2021},
-   *  volume = {10},
-   *  number = {2},
-   *  pages = {100-110},
-   *  keywords = {Bibtex, Example},
-   *  doi = {10.1234/abc}
-   * }
-   */
+ * Ejemplo de parseo para archivos .bib
+ * Se asume que cada entrada en el .bib tiene un formato similar a:
+ * 
+ * @article{example,
+ *  author = {John Doe},
+ *  title = {Sample Title},
+ *  booktitle = {Sample Book},
+ *  year = {2021},
+ *  volume = {10},
+ *  number = {2},
+ *  pages = {100-110},
+ *  keywords = {Bibtex, Example},
+ *  doi = {10.1234/abc},
+ *  abstract = {This is an abstract.},
+ *  ISSN = {1234-5678},
+ *  month = {Jan}
+ * }
+ */
   parseBib(content: string, dbName: string): Study[] {
     const entries: Study[] = [];
-    // Dividir por cada entrada @article, @book, etc.
-    const bibItems = content.split('@').slice(1); // elimina lo anterior al primer @
+    // Dividir el contenido en entradas; elimina lo anterior al primer '@'
+    const bibItems = content.split('@').slice(1);
 
     for (const item of bibItems) {
-      // Buscar campos por regex o line-by-line
+      // Dividir cada entrada en líneas
       const lines = item.split('\n');
 
-      // Crea un objeto Study (inicializado)
+      // Crear objeto Study inicializado, incluyendo la propiedad "month"
       const study: Study = {
         database: dbName,
         author: '',
@@ -418,13 +421,12 @@ export class EstudiosComponent implements OnInit {
         issn: '',
         language: '',
         comentario: '',
-        resumen: '',
+        resumen: ''
       };
 
       for (let line of lines) {
         line = line.trim();
-        const lineLower = line.toLowerCase(); // Convertir a minúsculas para comparación
-
+        const lineLower = line.toLowerCase();
         if (lineLower.startsWith('author')) {
           study.author = this.extractBibValue(line);
         } else if (lineLower.startsWith('booktitle')) {
@@ -443,6 +445,10 @@ export class EstudiosComponent implements OnInit {
           study.keywords = this.extractBibValue(line);
         } else if (lineLower.startsWith('doi')) {
           study.doi = this.extractBibValue(line);
+        } else if (lineLower.startsWith('abstract')) {
+          study.resumen = this.extractBibValue(line);
+        } else if (lineLower.startsWith('issn')) {
+          study.issn = this.extractBibValue(line);
         }
       }
       entries.push(study);
@@ -450,23 +456,24 @@ export class EstudiosComponent implements OnInit {
     return entries;
   }
 
-
-  // Función auxiliar para extraer valores en .bib
+  // Función auxiliar para extraer el valor entre llaves o comillas
   extractBibValue(line: string): string {
-    // Por ejemplo: author = {John Doe},
-    // Eliminamos "author" y "=", tomamos lo que está entre llaves
-    // Este método es muy básico y no cubre todos los casos reales de .bib
-    // Se puede refinar o usar librerías especializadas
+    // Ejemplo: author = {John Doe},
     const regex = /=(.*)/;
     const match = line.match(regex);
     if (match && match[1]) {
       let val = match[1].trim();
-      // Remover llaves y comas
-      val = val.replace(/[{},]/g, '').trim();
+      // Remover llaves, comillas y comas
+      val = val.replace(/[{}"]/g, '').replace(/,$/, '').trim();
       return val;
     }
     return '';
   }
+
+
+
+
+
 
   /**
    * Ejemplo simple de parseo para .ris
@@ -483,57 +490,150 @@ export class EstudiosComponent implements OnInit {
    */
   parseRis(content: string, dbName: string): Study[] {
     const entries: Study[] = [];
+    // Separamos las líneas
     const lines = content.split('\n');
 
-    // Objeto temporal para acumular datos
+    // Objeto temporal para acumular datos de un estudio
     let currentStudy: Study = this.emptyStudy(dbName);
+    // Variable para guardar el tag actual (por ejemplo, 'AB' para abstract)
+    let currentTag: string | null = null;
+
+    // Regex para detectar líneas de tag (dos letras/números seguidos de "  - ")
+    const tagRegex = /^([A-Z0-9]{2})\s+-\s+(.*)/;
 
     for (const rawLine of lines) {
       const line = rawLine.trim();
-      if (line.startsWith('ER  -')) {
-        // Fin de un registro
-        entries.push({ ...currentStudy }); // push clon
-        // Reiniciar
-        currentStudy = this.emptyStudy(dbName);
-      } else if (line.startsWith('AU  -')) {
-        currentStudy.author += (currentStudy.author ? '; ' : '') + this.extractRisValue(line);
-      } else if (line.startsWith('T1  -') || line.startsWith('TI  -')) {
-        currentStudy.title = this.extractRisValue(line);
-      } else if (line.startsWith('PY  -')) {
-        currentStudy.year = this.extractRisValue(line);
-      } else if (line.startsWith('KW  -')) {
-        // keywords van creciendo (separadas por ;)
-        currentStudy.keywords += (currentStudy.keywords ? '; ' : '') + this.extractRisValue(line);
-      } else if (line.startsWith('JF  -') || line.startsWith('BT  -')) {
-        // Se asume JF o BT como booktitle
-        currentStudy.booktitle = this.extractRisValue(line);
-      } else if (line.startsWith('VL  -')) {
-        currentStudy.volume = this.extractRisValue(line);
-      } else if (line.startsWith('IS  -')) {
-        currentStudy.number = this.extractRisValue(line);
-      } else if (line.startsWith('SP  -')) {
-        // Páginas: asume que SP es Start Page
-        currentStudy.pages = this.extractRisValue(line);
-      } else if (line.startsWith('EP  -')) {
-        // EP es End Page => concatenar
-        const endPage = this.extractRisValue(line);
-        if (currentStudy.pages) {
-          currentStudy.pages += '-' + endPage;
+      // Si la línea está vacía, la saltamos
+      if (!line) continue;
+
+      // Verificamos si la línea coincide con el formato de un tag
+      const match = line.match(tagRegex);
+      if (match) {
+        // Es una nueva línea de campo
+        currentTag = match[1]; // por ejemplo, "AB", "AU", "TI", etc.
+        const value = match[2];
+
+        // Procesamos según el tag
+        switch (currentTag) {
+          case 'TY':
+            currentStudy.document_type = value;
+            break;
+          case 'AU':
+            currentStudy.author += (currentStudy.author ? '; ' : '') + value;
+            break;
+          case 'T1':
+          case 'TI':
+            currentStudy.title = value;
+            break;
+          case 'T2':
+            // T2 se usa para título secundario, usualmente para conferencias
+            if (!currentStudy.booktitle) {
+              currentStudy.booktitle = value;
+            } else {
+              currentStudy.booktitle += ' ' + value;
+            }
+            break;
+          case 'PY':
+            currentStudy.year = value;
+            break;
+          case 'Y1':
+            if (!currentStudy.year) {
+              currentStudy.year = value;
+            }
+            break;
+          case 'KW':
+            currentStudy.keywords += (currentStudy.keywords ? '; ' : '') + value;
+            break;
+          case 'JF':
+          case 'BT':
+            currentStudy.booktitle = value;
+            break;
+          case 'JO':
+            currentStudy.revista = value;
+            break;
+          case 'JA':
+            if (!currentStudy.revista) {
+              currentStudy.revista = value;
+            }
+            break;
+          case 'VL':
+            currentStudy.volume = value;
+            break;
+          case 'IS':
+            currentStudy.number = value;
+            break;
+          case 'SP':
+            currentStudy.pages = value;
+            break;
+          case 'EP':
+            if (currentStudy.pages) {
+              currentStudy.pages += '-' + value;
+            }
+            break;
+          case 'DO':
+            currentStudy.doi = value;
+            break;
+          case 'AB':
+            // Iniciar el abstract
+            currentStudy.resumen = value;
+            break;
+          case 'SN':
+            currentStudy.issn = value;
+            break;
+          case 'MO':
+          case 'MT':
+            // Puedes asignar otros campos si lo requieres
+            break;
+          case 'Y1':
+            if (!currentStudy.year) {
+              currentStudy.year = value;
+            }
+            break;
+          default:
+            // Si se necesita procesar otros campos, se agregan aquí
+            break;
         }
-      } else if (line.startsWith('DO  -')) {
-        currentStudy.doi = this.extractRisValue(line);
+      } else {
+        // La línea no coincide con un nuevo tag: es una continuación del valor del campo actual
+        if (currentTag) {
+          // Para ciertos campos multilinea (por ejemplo, abstract), concatenamos la línea
+          switch (currentTag) {
+            case 'AB':
+              currentStudy.resumen += ' ' + line;
+              break;
+            // Si deseas acumular también KW u otros campos, añádelos aquí
+            default:
+              // Para otros campos podrías decidir si acumular o no
+              break;
+          }
+        }
+      }
+
+      // Si la línea indica el final de un registro
+      if (line.startsWith('ER  -')) {
+        entries.push({ ...currentStudy });
+        // Reiniciar estudio y tag actual para el siguiente registro
+        currentStudy = this.emptyStudy(dbName);
+        currentTag = null;
       }
     }
 
-    // Por si el archivo no termina con "ER  -", no es estándar, pero se maneja
+    // En caso de que el archivo no termine con ER  -, agregamos el último estudio si tiene datos
     if (this.hasData(currentStudy)) {
       entries.push({ ...currentStudy });
     }
-
     return entries;
   }
 
-  // Crea un Study vacío con la base dada
+  // Función auxiliar para extraer el valor de una línea RIS, por ejemplo: "AU  - Doe, John"
+  extractRisValue(line: string): string {
+    const parts = line.split('-');
+    if (parts.length > 1) {
+      return parts[1].trim();
+    }
+    return '';
+  }
+
   emptyStudy(dbName: string): Study {
     return {
       database: dbName,
@@ -561,17 +661,6 @@ export class EstudiosComponent implements OnInit {
     };
   }
 
-  // Extraer el valor de una línea .ris del tipo "AU  - Doe, John"
-  extractRisValue(line: string): string {
-    // Split en '-' y tomar la parte derecha
-    const parts = line.split('-');
-    if (parts.length > 1) {
-      return parts[1].trim();
-    }
-    return '';
-  }
-
-  // Chequea si un Study está vacío
   hasData(study: Study): boolean {
     return (
       study.author ||
@@ -600,9 +689,6 @@ export class EstudiosComponent implements OnInit {
     this.importedStudies.sort((a, b) => this.compareValues(a, b, this.sortColumn, this.sortOrder));
   }
 
-  /**
-   * compareValues: Método auxiliar para comparar dos estudios según la columna y el orden.
-   */
   compareValues(a: any, b: any, column: string, order: 'asc' | 'desc'): number {
     const valueA = a[column] ?? '';
     const valueB = b[column] ?? '';
@@ -628,6 +714,200 @@ export class EstudiosComponent implements OnInit {
     }
   }
 
+  toggleSelection(study: Study, event: MouseEvent) {
+    // No propaga click a la fila
+    event.stopPropagation();
+
+    // Cambia isSelected
+    study.isSelected = !study.isSelected;
+
+    // Actualiza el contador
+    this.updateSelectedCount();
+  }
+
+  toggleSelectAll(event: MouseEvent) {
+    this.allDisplayedSelected = !this.allDisplayedSelected; // Cambia el estado de selección de los estudios visibles
+
+    // Solo se afecta a los estudios que están actualmente visibles en la tabla
+    this.displayedStudies.forEach(study => study.isSelected = this.allDisplayedSelected);
+
+    // Se actualiza el contador de seleccionados
+    this.updateSelectedCount();
+
+    event.stopPropagation(); // Evita que el evento afecte a otros elementos como modales
+  }
+
+  updateSelectedCount() {
+    this.selectedStudiesCount = this.importedStudies.filter(s => s.isSelected).length;
+  }
+
+
+
+
+  
+
+  exportStudies(format: 'ris' | 'bib'): void {
+    // Utilizamos el arreglo filtrado, por ejemplo, displayedStudies
+    const estudios = this.displayedStudies; 
+  
+    let exportContent = '';
+  
+    if (format === 'ris') {
+      estudios.forEach(study => {
+        exportContent += `TY  - ${study.document_type || 'JOUR'}\n`;
+        exportContent += `AU  - ${study.author}\n`;
+        exportContent += `TI  - ${study.title}\n`;
+        exportContent += `T2  - ${study.booktitle}\n`;
+        exportContent += `PY  - ${study.year}\n`;
+        exportContent += `IS  - ${study.document_type || ''}\n`;
+        exportContent += `SP  - ${study.pages.split('-')[0] || ''}\n`;
+        if (study.pages && study.pages.includes('-')) {
+          exportContent += `EP  - ${study.pages.split('-')[1] || ''}\n`;
+        }
+        exportContent += `KW  - ${study.keywords}\n`;
+        exportContent += `DO  - ${study.doi}\n`;
+        exportContent += `AB  - ${study.resumen}\n`;
+        exportContent += `SN  - ${study.issn}\n`;
+        exportContent += `ER  - \n\n`;
+      });
+    } else if (format === 'bib') {
+      estudios.forEach(study => {
+        exportContent += `@article{${study.bibtex_key || 'key_' + study.id_estudios},\n`;
+        exportContent += `  author = {${study.author}},\n`;
+        exportContent += `  title = {${study.title}},\n`;
+        exportContent += `  journal = {${study.booktitle}},\n`;
+        exportContent += `  year = {${study.year}},\n`;
+        exportContent += `  number = {${study.document_type || ''}},\n`;
+        exportContent += `  pages = {${study.pages}},\n`;
+        exportContent += `  keywords = {${study.keywords}},\n`;
+        exportContent += `  doi = {${study.doi}},\n`;
+        exportContent += `  abstract = {${study.resumen}},\n`;
+        exportContent += `}\n\n`;
+      });
+    }
+  
+    // Crear un Blob y disparar la descarga
+    const blob = new Blob([exportContent], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `estudios_export.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+  
+  exportStudiesWithOption(): void {
+    Swal.fire({
+      title: 'Exportar estudios',
+      text: 'Seleccione el formato de exportación:',
+      input: 'radio',
+      inputOptions: {
+        ris: 'Formato RIS',
+        bib: 'Formato BibTeX',
+        excel: 'Formato Excel'
+      },
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Seleccione una opción';
+        }
+        return null;
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Exportar'
+    }).then(result => {
+      if (result.isConfirmed && result.value) {
+        const format = result.value;
+        if (format === 'excel') {
+          this.exportStudiesExcel();
+        } else {
+          this.exportStudies(format as 'ris' | 'bib');
+        }
+      }
+    });
+  }
+  
+  async exportStudiesExcel(): Promise<void> {
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet('Estudios');
+  
+    // Definir columnas con header, key y ancho
+    worksheet.columns = [
+      { header: 'ID Estudios', key: 'id_estudios', width: 10 },
+      { header: 'Título', key: 'titulo', width: 30 },
+      { header: 'Resumen', key: 'resumen', width: 40 },
+      { header: 'Autores', key: 'autores', width: 30 },
+      { header: 'Año', key: 'anio', width: 10 },
+      { header: 'Revista', key: 'revista', width: 20 },
+      { header: 'DOI', key: 'doi', width: 20 },
+      { header: 'Estado', key: 'estado', width: 15 },
+      { header: 'ID Criterio', key: 'id_criterio', width: 15 },
+      { header: 'Keywords', key: 'keywords', width: 30 },
+      { header: 'Author Keywords', key: 'author_keywords', width: 30 },
+      { header: 'Bibtex Key', key: 'bibtex_key', width: 20 },
+      { header: 'Document Type', key: 'document_type', width: 20 },
+      { header: 'Páginas', key: 'paginas', width: 15 },
+      { header: 'Volumen', key: 'volumen', width: 15 },
+      { header: 'URL', key: 'url', width: 30 },
+      { header: 'Afiliación', key: 'afiliacion', width: 30 },
+      { header: 'Publisher', key: 'publisher', width: 20 },
+      { header: 'ISSN', key: 'issn', width: 15 },
+      { header: 'Lenguaje', key: 'language', width: 15 },
+      { header: 'Comentario', key: 'comentario', width: 30 },
+      { header: 'Fuente Bibliográfica', key: 'fuente_bibliografica', width: 20 },
+      { header: 'URL PDF Artículo', key: 'url_pdf_articulo', width: 30 }
+    ];
+  
+    // Ajustar que el texto se ajuste en cada columna
+    worksheet.columns.forEach(column => {
+      column.alignment = { wrapText: true };
+    });
+  
+    // Usamos el arreglo filtrado, por ejemplo, displayedStudies
+    const estudios = this.displayedStudies;
+    estudios.forEach(study => {
+      worksheet.addRow({
+        id_estudios: study.id_estudios,
+        titulo: study.title,
+        resumen: study.resumen,
+        autores: study.author,
+        anio: study.year,
+        revista: study.revista,
+        doi: study.doi,
+        estado: study.status,
+        id_criterio: study.id_criterio,
+        keywords: study.keywords,
+        author_keywords: study.author_keywords,
+        bibtex_key: study.bibtex_key,
+        document_type: study.document_type,
+        paginas: study.pages,
+        volumen: study.volume,
+        url: study.url,
+        afiliacion: study.afiliacion,
+        publisher: study.publisher,
+        issn: study.issn,
+        language: study.language,
+        comentario: study.comentario,
+        fuente_bibliografica: study.database,
+        url_pdf_articulo: study.url_pdf_articulo,
+      });
+    });
+  
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/octet-stream' });
+    saveAs(blob, 'estudios_export.xlsx');
+  }
+  
+  
+
+
+
+
+
+
+  //primer modal
+
   // (1) Abrir el modal (solo si no es la col. acción ni check)
   openEditModal(study: Study, event: MouseEvent) {
     // Chequear si target es un button o input => no abrir
@@ -646,8 +926,6 @@ export class EstudiosComponent implements OnInit {
     this.originalStudy = { ...study };
     this.pdfFile = null;
     this.showEditModal = true;
-
-    this.autoSelectCriterio();
   }
 
   // (2) Cerrar modal
@@ -658,7 +936,7 @@ export class EstudiosComponent implements OnInit {
     this.pdfFile = null;
     // Recarga la página
 
-    this.selectedCriterio = null;
+    this.selectedCriterio = 'Seleccione un criterio';
   }
 
   // (4) Cerrar el modal si hace clic en el backdrop
@@ -668,39 +946,6 @@ export class EstudiosComponent implements OnInit {
       this.closeEditModal();
     }*/
   }
-
-  // (5) Seleccionar/deseleccionar un estudio
-  toggleSelection(study: Study, event: MouseEvent) {
-    // No propaga click a la fila
-    event.stopPropagation();
-
-    // Cambia isSelected
-    study.isSelected = !study.isSelected;
-
-    // Actualiza el contador
-    this.updateSelectedCount();
-  }
-
-  // (6) Seleccionar/deseleccionar todos
-  toggleSelectAll(event: MouseEvent) {
-    this.allDisplayedSelected = !this.allDisplayedSelected; // Cambia el estado de selección de los estudios visibles
-
-    // Solo se afecta a los estudios que están actualmente visibles en la tabla
-    this.displayedStudies.forEach(study => study.isSelected = this.allDisplayedSelected);
-
-    // Se actualiza el contador de seleccionados
-    this.updateSelectedCount();
-
-    event.stopPropagation(); // Evita que el evento afecte a otros elementos como modales
-  }
-
-
-  // Actualiza el conteo
-  updateSelectedCount() {
-    this.selectedStudiesCount = this.importedStudies.filter(s => s.isSelected).length;
-  }
-
-
 
   async saveImportedStudy(study: Study) {
     // Verifica si el estudio con el mismo título ya existe
@@ -724,7 +969,7 @@ export class EstudiosComponent implements OnInit {
     // Mapea Study (de tu parse) a Estudio (para la tabla "estudios")
     const nuevoEstudio: Estudio = {
       titulo: study.title,
-      resumen: '', // Valor por defecto
+      resumen: study.resumen || '', // Valor por defecto
       autores: study.author,
       anio: parseInt(study.year) || 0,
       revista: study.booktitle || '',
@@ -742,7 +987,7 @@ export class EstudiosComponent implements OnInit {
       url: '',
       afiliacion: '',
       publisher: '',
-      issn: '',
+      issn: study.issn || '',
       language: '',
       comentario: ''
     };
@@ -763,24 +1008,21 @@ export class EstudiosComponent implements OnInit {
     }
   }
 
-
-
-
   async loadEstudiosForRevision() {
     // Convierte a número si 'this.reviewId' es string
     const idRevision = +this.reviewId;
-
+  
     const { data, error } = await this.authService.getEstudiosByRevision(idRevision);
     if (error) {
       console.error('Error al obtener estudios por revisión:', error);
-      // Podrías mostrar un SweetAlert2 aquí si deseas
+      // Puedes mostrar un SweetAlert2 aquí si deseas
     } else if (data) {
       // data es un arreglo de Estudio
-      // Si necesitas mapearlo a tu interfaz Study, hazlo aquí
+      // Mapea cada estudio a tu interfaz Study, incluyendo el id_criterio
       this.importedStudies = data.map((estudio) => {
         return {
-          // Ajusta el mapeo a las propiedades de tu "Study" local
-          database: estudio.fuente_bibliografica || '', // Provide a default value if undefined
+          // Propiedades obligatorias
+          database: estudio.fuente_bibliografica || '',
           id_estudios: estudio.id_estudios,
           author: estudio.autores,
           booktitle: estudio.revista || '', // o 'journal' si lo guardas así
@@ -792,7 +1034,7 @@ export class EstudiosComponent implements OnInit {
           keywords: estudio.keywords || '',
           doi: estudio.doi,
           status: estudio.estado || 'Sin clasificar',
-          // Propiedades opcionales o no usadas, con valores por defecto
+          // Propiedades opcionales con valores por defecto
           revista: estudio.revista || '',
           author_keywords: estudio.author_keywords || '',
           bibtex_key: estudio.bibtex_key || '',
@@ -805,12 +1047,23 @@ export class EstudiosComponent implements OnInit {
           comentario: estudio.comentario || '',
           resumen: estudio.resumen || '',
           url_pdf_articulo: estudio.url_pdf_articulo || '',
+          id_criterio: estudio.id_criterio // Se asigna el criterio (puede ser null o un número)
         };
       });
-
-      console.log('Estudios cargados desde la BD:', this.importedStudies);
     }
   }
+  
+  onEstadoChange(newStatus: string): void {
+    if (this.selectedStudy) {
+      if (newStatus !== 'Aceptado' && newStatus !== 'Rechazado') {
+        this.selectedStudy.id_criterio = 0;
+      }
+    } else {
+      console.warn('No hay un estudio seleccionado.');
+    }
+  }
+  
+  
 
   async loadEstudioById(id: number) {
     const { data, error } = await this.authService.getEstudioById(id);
@@ -833,7 +1086,7 @@ export class EstudiosComponent implements OnInit {
 
     const { data, error } = await this.authService.updateEstudio(study.id_estudios, changes);
     // Para cada estudio aceptado, cargamos la evaluación guardada (si existe)
-    
+
     if (error) {
       console.error('Error al actualizar el estado:', error);
       // Podrías mostrar un SweetAlert2 o manejar el error como quieras
@@ -1006,7 +1259,7 @@ export class EstudiosComponent implements OnInit {
 
 
 
-
+  // busqueda automatica con OpenAlex y la cadena de busqueda
   async searchWithOpenAlex() {
     try {
       // Mostrar alerta de carga mientras se realiza la búsqueda
@@ -1018,7 +1271,7 @@ export class EstudiosComponent implements OnInit {
           Swal.showLoading(Swal.getConfirmButton());
         }
       });
-  
+
       // Primero obtenemos la cadena de búsqueda desde el backend
       const { data: cadenaData, error: cadenaError } = await this.authService.getCadenaBusqueda(this.reviewId);
       if (cadenaError || !cadenaData) {
@@ -1030,7 +1283,7 @@ export class EstudiosComponent implements OnInit {
         });
         return;
       }
-  
+
       // Se asume que el registro tiene el campo "cadena_busqueda"
       const cadena = cadenaData[0]?.cadena_busqueda;
       if (!cadena || !cadena.trim()) {
@@ -1042,23 +1295,23 @@ export class EstudiosComponent implements OnInit {
         });
         return;
       }
-  
+
       // Construir la URL para llamar a OpenAlex, codificando la cadena
       const url = `https://api.openalex.org/works?search=${encodeURIComponent(cadena)}&filter=type:article`;
-  
+
       // Llamada a la API de OpenAlex
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const openAlexData = await response.json();
-  
+
       // Cerrar la alerta de carga
       Swal.close();
-  
+
       // Obtener la cantidad de estudios encontrados (generalmente en meta.count)
       const count = openAlexData.meta?.count || 0;
-  
+
       // Mostrar el resultado mediante SweetAlert
       Swal.fire({
         icon: 'success',
@@ -1077,8 +1330,8 @@ export class EstudiosComponent implements OnInit {
       });
     }
   }
-  
-  
+
+
 
 
 
@@ -1091,9 +1344,9 @@ export class EstudiosComponent implements OnInit {
    */
   async saveStudyEdits(): Promise<void> {
     if (!this.selectedStudy) return;
-
+    console.log(this.selectedStudy.id_criterio)
     try {
-      // 1) Mapeo de Study => Estudio
+      // Mapeo de Study => Estudio, incluyendo el id_criterio directamente de selectedStudy
       const estudioToUpdate: Estudio = {
         id_estudios: this.selectedStudy.id_estudios,
         titulo: this.selectedStudy.title ?? '',
@@ -1104,6 +1357,9 @@ export class EstudiosComponent implements OnInit {
         doi: this.selectedStudy.doi ?? '',
         id_detalles_revision: this.reviewId,
         estado: this.selectedStudy.status,
+
+        id_criterio: this.selectedStudy.id_criterio,  // Se envía el criterio seleccionado
+        
         keywords: this.selectedStudy.keywords ?? '',
         author_keywords: this.selectedStudy.author_keywords ?? '',
         bibtex_key: this.selectedStudy.bibtex_key ?? '',
@@ -1117,32 +1373,28 @@ export class EstudiosComponent implements OnInit {
         language: this.selectedStudy.language ?? '',
         comentario: this.selectedStudy.comentario ?? '',
         fuente_bibliografica: this.selectedStudy.database ?? ''
-        // url_pdf_articulo se completa después de subir el archivo
       };
-
-      // 2) Si el estado es "Aceptado" y hay PDF pendiente de subir, súbelo
+  
+      // Si el estado es "Aceptado" y hay PDF pendiente de subir, súbelo
       if (this.selectedStudy.status === 'Aceptado' && this.pdfFile) {
         const pdfUrl = await this.authService.uploadPDF(this.pdfFile, this.selectedStudy.id_estudios!);
         estudioToUpdate.url_pdf_articulo = pdfUrl;
       }
-
-      // 3) Llamada al servicio para actualizar el estudio en la BD
+  
+      // Actualiza el estudio en la BD
       await this.authService.updateStudy(estudioToUpdate);
-
-      // 4) Recargar la tabla principal o la lista para reflejar los cambios
-      //    Ajusta según tu método para recargar. Ejemplo:
-      this.loadEstudiosForRevision(); // <-- llama a tu método que refresca 'importedStudies' o la lista que uses
-
-      // 5) Notificación de éxito
+  
+      // Recargar la lista de estudios
+      this.loadEstudiosForRevision();
+  
       Swal.fire({
         icon: 'success',
         title: 'Datos guardados',
         text: 'El estudio ha sido actualizado correctamente.'
       });
-
-      // 6) Cierra el modal de edición
+  
       this.closeEditModal();
-
+  
     } catch (error) {
       console.error('Error guardando cambios:', error);
       Swal.fire({
@@ -1158,6 +1410,60 @@ export class EstudiosComponent implements OnInit {
       window.open(url, '_blank');
     }
   }
+
+  isFormValid(): boolean {
+    return (
+      this.newStudy.doi &&
+      this.newStudy.title &&
+      this.newStudy.publisher &&
+      this.newStudy.documentType &&
+      this.newStudy.author &&
+      this.newStudy.year &&
+      this.newStudy.revista &&
+      this.newStudy.url &&
+      this.newStudy.status &&
+      this.newStudy.database
+    );
+  }
+
+  async loadCriterios() {
+    try {
+      const todos = await this.authService.getCriteriosByRevision(this.reviewId);
+      this.inclusionCriterios = todos.filter(c => c.tipo === 'inclusion');
+      this.exclusionCriterios = todos.filter(c => c.tipo === 'exclusion');
+    } catch (err) {
+      console.error('Error al cargar criterios:', err);
+    }
+  }
+
+  // Al cargar el estudio para edición, si no existe criterio, se asigna 0
+async autoSelectCriterio() {
+  if (!this.selectedStudy || !this.selectedStudy.id_estudios) {
+    if (this.selectedStudy) {
+      this.selectedStudy.id_criterio = 0;
+    }
+    return;
+  }
+  try {
+    const idCriterio = await this.authService.getIdCriterioDeEstudio(this.selectedStudy.id_estudios);
+    if (!idCriterio) {
+      this.selectedStudy.id_criterio = 0;
+      return;
+    }
+    const found = this.inclusionCriterios.find(c => c.id_criterios === idCriterio)
+      || this.exclusionCriterios.find(c => c.id_criterios === idCriterio);
+    if (found) {
+      this.selectedStudy.id_criterio = found.id_criterios;
+    } else {
+      this.selectedStudy.id_criterio = 0;
+    }
+  } catch (error) {
+    console.error('Error al obtener/seleccionar criterio:', error);
+    this.selectedStudy.id_criterio = 0;
+  }
+}
+
+
 
   /**
    * Abre el modal para añadir un nuevo estudio.
@@ -1181,8 +1487,8 @@ export class EstudiosComponent implements OnInit {
   }
 
   /**
-   * Llama a la API de CrossRef para buscar los datos del DOI.
-   */
+ * Llama a la API de CrossRef para buscar los datos del DOI.
+ */
   fetchCrossRefData(): void {
     if (!this.newStudy.doi) {
       Swal.fire({
@@ -1224,8 +1530,8 @@ export class EstudiosComponent implements OnInit {
   }
 
   /**
-   * Guarda el nuevo estudio en la base de datos.
-   */
+     * Guarda el nuevo estudio en la base de datos.
+     */
   async saveNewStudy(): Promise<void> {
     // Verifica si el título está definido
     if (!this.newStudy.title || !this.newStudy.doi) {
@@ -1319,21 +1625,6 @@ export class EstudiosComponent implements OnInit {
     }
   }
 
-  isFormValid(): boolean {
-    return (
-      this.newStudy.doi &&
-      this.newStudy.title &&
-      this.newStudy.publisher &&
-      this.newStudy.documentType &&
-      this.newStudy.author &&
-      this.newStudy.year &&
-      this.newStudy.revista &&
-      this.newStudy.url &&
-      this.newStudy.status &&
-      this.newStudy.database
-    );
-  }
-
 
   // Segunda Pagina
   async loadAcceptedStudies() {
@@ -1347,14 +1638,15 @@ export class EstudiosComponent implements OnInit {
   }
 
   async loadPreguntas() {
-    // 2) Cargar preguntas
-    const { data: preguntas, error: errorPreg } = await this.authService.getQualityQuestions();
+    // Cargar solo las preguntas correspondientes a la revisión actual
+    const { data: preguntas, error: errorPreg } = await this.authService.getQualityQuestions(this.reviewId);
     if (errorPreg) {
       console.error('Error al cargar preguntas:', errorPreg);
     } else {
       this.qualityQuestions = preguntas ?? [];
     }
   }
+  
 
   async loadRespuestas() {
     // 3) Cargar respuestas
@@ -1511,89 +1803,7 @@ export class EstudiosComponent implements OnInit {
 
 
 
-  // Cambia cuando el usuario seleccione un criterio en el <select>
-  onCriterioChange(value: string) {
-    // value es un string, convertimos a número
-    const criterioId = Number(value);
-    if (!criterioId) {
-      // El usuario eligió "Seleccione un criterio"
-      this.selectedCriterio = 'Seleccione un criterio';
-      return;
-    }
 
-    // Buscar la descripción en los arreglos
-    let found = this.inclusionCriterios.find(c => c.id_criterios === criterioId)
-              || this.exclusionCriterios.find(c => c.id_criterios === criterioId);
-
-    let descripcion = found ? found.descripcion : 'Seleccione un criterio';
-    // Llamamos a la función que asigna el criterio en la BD
-    this.selectCriterio(criterioId, descripcion);
-  }
-
-  // Asigna el criterio en la BD y muestra un alert
-  async selectCriterio(criterioId: number, descripcion: string) {
-    if (!this.selectedStudy || !this.selectedStudy.id_estudios) {
-      Swal.fire('Atención', 'No se ha seleccionado ningún estudio para asignarle el criterio.', 'info');
-      return;
-    }
-
-    try {
-      await this.authService.updateEstudioWithCriterio(this.selectedStudy.id_estudios, criterioId);
-      this.selectedCriterio = descripcion;
-      Swal.fire({
-        title: 'Criterio asignado',
-        text: `Se asignó "${descripcion}" al estudio #${this.selectedStudy.id_estudios}.`,
-        icon: 'success',
-        timer: 1500,
-        showConfirmButton: false
-      });
-    } catch (err) {
-      console.error('Error al guardar el criterio en el estudio:', err);
-      Swal.fire('Error', 'No se pudo asignar el criterio al estudio.', 'error');
-    }
-  }
-
-  async loadCriterios() {
-    try {
-      const todos = await this.authService.getCriteriosByRevision(this.reviewId);
-      this.inclusionCriterios = todos.filter(c => c.tipo === 'inclusion');
-      this.exclusionCriterios = todos.filter(c => c.tipo === 'exclusion');
-    } catch (err) {
-      console.error('Error al cargar criterios:', err);
-    }
-  }
-
-  async autoSelectCriterio() {
-    if (!this.selectedStudy || !this.selectedStudy.id_estudios) {
-      this.selectedCriterio = 'Seleccione un criterio';
-      return;
-    }
-
-    try {
-      const idCriterio = await this.authService.getIdCriterioDeEstudio(this.selectedStudy.id_estudios);
-      if (!idCriterio) {
-        this.selectedCriterio = 'Seleccione un criterio';
-        return;
-      }
-      // Buscamos la descripción en los arrays
-      const found = this.inclusionCriterios.find(c => c.id_criterios === idCriterio)
-                  || this.exclusionCriterios.find(c => c.id_criterios === idCriterio);
-
-      if (found) {
-        this.selectedCriterio = found.descripcion;
-        this.selectedCriterioId = found.id_criterios; // Ajustar el <select>
-      } else {
-        this.selectedCriterio = 'Seleccione un criterio';
-      }
-    } catch (error) {
-      console.error('Error al obtener/seleccionar criterio:', error);
-      this.selectedCriterio = 'Seleccione un criterio';
-    }
-  }
-
-  getSelectValue(event: Event): string {
-    return (event.target as HTMLSelectElement).value;
-  }
 
 
 

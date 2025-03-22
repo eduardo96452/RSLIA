@@ -98,14 +98,14 @@
                       <div class="">
                         <div class="row align-items-center">
                           <!-- Columna para el botón "Importar archivo" -->
-                          <div class="col-12 col-md-4 d-flex justify-content-start mb-3 mb-md-0">
+                          <div class="col-12 col-md-6 d-flex justify-content-start mb-3 mb-md-0">
                             <button class="btn btn-info w-100 w-md-auto" (click)="selectFileType()">
                               <i class="bi bi-box-arrow-in-up"></i>&nbsp; Importar archivo
                             </button>
                           </div>
 
                           <!-- Columna para el botón "Añadir manualmente el estudio" -->
-                          <div class="col-12 col-md-4 d-flex justify-content-center mb-3 mb-md-0">
+                          <div class="col-12 col-md-6 d-flex justify-content-center mb-3 mb-md-0">
                             <button class="btn btn-primary w-100 w-md-auto" (click)="openAddStudyModal()">
                               <i class="bi bi-file-earmark-plus"></i>&nbsp; Añadir manualmente el estudio
                             </button>
@@ -127,28 +127,43 @@
                       </p>
 
 
-                      <!-- Select para filtrar los estados -->
-                      <div class="mb-3 d-flex align-items-center">
-                        <label class="me-2 fw-bold">Filtrar por estado:</label>
-                        <select class="form-select w-auto" [(ngModel)]="filterStatus" (change)="applyFilter()">
-                          <option value="all">Todos</option>
-                          <option value="Sin clasificar">Sin clasificar</option>
-                          <option value="Aceptado">Preseleccionado</option>
-                          <option value="Duplicado">Duplicado</option>
-                          <option value="Rechazado">Descartado</option>
-                        </select>
+                      <div class="d-flex flex-wrap align-items-center justify-content-between">
+                        <!-- Contenedor de Filtros -->
+                        <div class="d-flex flex-wrap align-items-center">
+                          <!-- Filtro por estado -->
+                          <div class="me-3 mb-2">
+                            <label class="me-2 fw-bold">Filtrar por estado:</label>
+                            <select class="form-select form-select-sm" [(ngModel)]="filterStatus" (change)="applyFilter()">
+                              <option value="all">Todos</option>
+                              <option value="Sin clasificar">Sin clasificar</option>
+                              <option value="Aceptado">Preseleccionado</option>
+                              <option value="Duplicado">Duplicado</option>
+                              <option value="Rechazado">Descartado</option>
+                            </select>
+                          </div>
+                          <!-- Filtro por base bibliográfica -->
+                          <div class="mb-2">
+                            <label class="me-2 fw-bold">Filtrar por base bibliográfica:</label>
+                            <select class="form-select form-select-sm" [(ngModel)]="filterDatabase" (change)="applyFilter()">
+                              <option value="allDb">Todas</option>
+                              <option *ngFor="let base of basesList" [value]="base.nombre">
+                                {{ base.nombre }}
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                      
+                        <!-- Botón de exportar -->
+                        <div class="mb-2">
+                          <button class="btn btn-outline-primary btn-sm" (click)="exportStudiesWithOption()">
+                            <i class="bi bi-download"></i> Exportar estudios
+                          </button>
+                        </div>
                       </div>
+                      
+                      
+                      <br>
 
-                      <!-- NUEVO: Filtro por base bibliográfica -->
-                      <div class="mb-3 d-flex align-items-center">
-                        <label class="me-2 fw-bold">Filtrar por base bibliográfica</label>
-                        <select class="form-select w-auto" [(ngModel)]="filterDatabase" (change)="applyFilter()">
-                          <option value="allDb">Todas</option>
-                          <option *ngFor="let base of basesList" [value]="base.nombre">
-                            {{ base.nombre }}
-                          </option>
-                        </select>
-                      </div>
 
                       <!-- Tabla donde se mostrarán los estudios importados -->
                       <!-- contenedor de tabla más grande -->
@@ -304,7 +319,7 @@
                         correspondientes a cada artículo.</p>
                       <div class="card shadow-sm">
                         <div class="card-header text-black">
-                          <h5 class="mb-0">
+                          <h5 class="mb-0 fw-bold">
                             <i class="bi bi-list-check"></i>&nbsp; Evaluación de estudios aceptados
                           </h5>
                         </div>
@@ -312,9 +327,9 @@
                           <table class="table table-hover mb-0" style="table-layout: fixed; width: 100%;">
                             <colgroup>
                               <col style="display:none;"> <!-- ID Estudio -->
-                              <col style="width: 60%;"> <!-- Título -->
+                              <col style="width: 50%;"> <!-- Título -->
                               <col style="width: 20%;"> <!-- Puntuación Total -->
-                              <col style="width: 20%;"> <!-- Acciones -->
+                              <col style="width: 30%;"> <!-- Acciones -->
                             </colgroup>
                             <thead class="table-light">
                               <tr>
@@ -352,10 +367,14 @@
                                       <form>
                                         <!-- Tabla de Preguntas / Respuestas -->
                                         <table class="table table-sm">
+                                          <colgroup>
+                                            <col style="width: 70%;"> <!-- Puntuación Total -->
+                                            <col style="width: 20%;"> <!-- Acciones -->
+                                          </colgroup>
                                           <thead>
                                             <tr>
                                               <th>Pregunta</th>
-                                              <th>Respuestas</th>
+                                              <th class="text-center">Respuestas</th>
                                             </tr>
                                           </thead>
                                           <tbody>
@@ -405,7 +424,7 @@
                         opciones disponibles para visualizar o eliminar los archivos PDF según sea necesario.</p>
                       <div class="card shadow-sm">
                         <div class="card-header text-black">
-                          <h5 class="mb-0">
+                          <h5 class="mb-0 fw-bold">
                             <i class="bi bi-file-earmark-text"></i>&nbsp; Gestión de documentos científicos
                           </h5>
                         </div>
@@ -504,25 +523,19 @@
             <!-- Estado (campo "estado" en tu interfaz) -->
             <div class="form-group mb-3">
               <label class="form-label fw-bold">Estado</label>
-              <select class="form-select" [(ngModel)]="selectedStudy.status" name="estado" [ngClass]="{
-                          'cell-gray': selectedStudy.status === 'Sin clasificar',
-                          'cell-green': selectedStudy.status === 'Aceptado',
-                          'cell-yellow': selectedStudy.status === 'Duplicado',
-                          'cell-red': selectedStudy.status === 'Rechazado'
-                        }">
-                <option value="Sin clasificar" [ngClass]="{ 'cell-gray': true }">
-                  Sin clasificar
-                </option>
-                <option value="Aceptado" [ngClass]="{ 'cell-green': true }">
-                  Aceptado
-                </option>
-                <option value="Duplicado" [ngClass]="{ 'cell-yellow': true }">
-                  Duplicado
-                </option>
-                <option value="Rechazado" [ngClass]="{ 'cell-red': true }">
-                  Rechazado
-                </option>
+              <select class="form-select" [(ngModel)]="selectedStudy.status" name="estado"
+                (ngModelChange)="onEstadoChange($event)" [ngClass]="{
+          'cell-gray': selectedStudy.status === 'Sin clasificar',
+          'cell-green': selectedStudy.status === 'Aceptado',
+          'cell-yellow': selectedStudy.status === 'Duplicado',
+          'cell-red': selectedStudy.status === 'Rechazado'
+        }">
+                <option value="Sin clasificar" [ngClass]="{ 'cell-gray': true }">Sin clasificar</option>
+                <option value="Aceptado" [ngClass]="{ 'cell-green': true }">Aceptado</option>
+                <option value="Duplicado" [ngClass]="{ 'cell-yellow': true }">Duplicado</option>
+                <option value="Rechazado" [ngClass]="{ 'cell-red': true }">Rechazado</option>
               </select>
+
             </div>
 
             <!-- Input de subir PDF (aparece sólo si el status es "Aceptado") -->
@@ -575,32 +588,34 @@
             </div>
 
             <!-- Sección para Selección de criterios -->
-            
-            <div class="modal-body criteria-text">
             <div class="mb-3" *ngIf="selectedStudy.status !== 'Duplicado'">
               <label class="form-label fw-bold">Selección de criterios</label>
-              <select class="form-select" [(ngModel)]="selectedCriterioId"
-                (change)="onCriterioChange(getSelectValue($event))">
+              <select class="form-select" [(ngModel)]="selectedStudy.id_criterio" name="id_criterio">
+                <option [ngValue]="0" disabled>Seleccionar criterio</option>
 
-                <!-- Opción por defecto -->
-                <option [ngValue]="null">Seleccione un criterio</option>
+                <!-- Criterios de Inclusión (si el estado es "Aceptado") -->
+                <ng-container *ngIf="selectedStudy.status === 'Aceptado'">
+                  <optgroup label="Criterios de Inclusión">
+                    <option *ngFor="let criterio of inclusionCriterios" [ngValue]="criterio.id_criterios">
+                      {{ criterio.descripcion }}
+                    </option>
+                  </optgroup>
+                </ng-container>
 
-                <!-- Criterios de Inclusión -->
-                <optgroup label="Criterios de Inclusión">
-                  <option *ngFor="let criterio of inclusionCriterios" [ngValue]="criterio.id_criterios">
-                    {{ criterio.descripcion }}
-                  </option>
-                </optgroup>
-
-                <!-- Criterios de Exclusión -->
-                <optgroup label="Criterios de Exclusión">
-                  <option *ngFor="let criterio of exclusionCriterios" [ngValue]="criterio.id_criterios">
-                    {{ criterio.descripcion }}
-                  </option>
-                </optgroup>
+                <!-- Criterios de Exclusión (si el estado es "Rechazado") -->
+                <ng-container *ngIf="selectedStudy.status === 'Rechazado'">
+                  <optgroup label="Criterios de Exclusión">
+                    <option *ngFor="let criterio of exclusionCriterios" [ngValue]="criterio.id_criterios">
+                      {{ criterio.descripcion }}
+                    </option>
+                  </optgroup>
+                </ng-container>
               </select>
             </div>
-          </div>
+
+
+
+
 
 
 

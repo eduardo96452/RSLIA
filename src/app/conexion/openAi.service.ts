@@ -13,6 +13,7 @@ export class OpenAiService {
   private generateKeywordsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-keywords';
   private searchStringUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-search-string';
   private criteriaUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-criteria';
+  private qualityQuestionsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-quality-questions';
   private dataExtractionQuestionsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-data-extraction-questions';
   private introductionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-introduction';
   private extractionSuggestionsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-extraction-suggestions';
@@ -68,15 +69,18 @@ export class OpenAiService {
     return this.http.post<any>(this.generateKeywordsUrl, { methodologyData });
   }
 
-  getSearchString(payload: { keywords: any[]; base: string; idioma: string }): Observable<any> {
+  getSearchString(payload: { keywords: any[]; idioma: string }): Observable<any> {
     return this.http.post<any>(this.searchStringUrl, payload);
   }
 
   generateCriteria(title: string, objective: string): Observable<any> {
-
     return this.http.post<any>(this.criteriaUrl, { title, objective });
   }
 
+  getQualityQuestions(title: string, objective: string): Observable<any> {
+    return this.http.post<any>(this.qualityQuestionsUrl, { title, objective });
+  }
+  
   generateDataExtractionQuestions(
     title: string,
     objective: string,
@@ -89,9 +93,6 @@ export class OpenAiService {
   generateExtractionSuggestions(payload: any): Observable<any> {
     return this.http.post<any>(this.extractionSuggestionsUrl, payload);
   }
-
-
-
 
   generateIntroduction(data: {
     title: string;

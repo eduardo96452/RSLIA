@@ -26,15 +26,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   errorMessage: string | null = null;
   distributionData: { [key: string]: number } | null = null;
   chart: Chart | null = null;
-
-  // Suscripciones
   private routerSubscription!: Subscription;
-
-  // Cache de usuario
   private userId: string | null = localStorage.getItem('user_id');
-
-  @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
-
+  
   constructor(
     private authService: AuthService,
     private router: Router,

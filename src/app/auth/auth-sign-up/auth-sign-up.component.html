@@ -44,27 +44,33 @@
           <div class="mt-2 collapse" [ngClass]="{'show': showPolicies}">
             <ul class="list-group">
               <li class="list-group-item d-flex align-items-center"
-                [ngClass]="policyChecks.minLength ? 'text-success' : 'text-danger'">
+                  [ngClass]="policyChecks.minLength ? 'text-success' : 'text-danger'">
                 <i class="bi" [ngClass]="policyChecks.minLength ? 'bi-check-circle-fill me-2' : 'bi-x-circle me-2'"></i>
                 Al menos 8 caracteres
               </li>
               <li class="list-group-item d-flex align-items-center"
-                [ngClass]="policyChecks.uppercase ? 'text-success' : 'text-danger'">
+                  [ngClass]="policyChecks.uppercase ? 'text-success' : 'text-danger'">
                 <i class="bi" [ngClass]="policyChecks.uppercase ? 'bi-check-circle-fill me-2' : 'bi-x-circle me-2'"></i>
                 Contiene al menos una mayúscula
               </li>
               <li class="list-group-item d-flex align-items-center"
-                [ngClass]="policyChecks.number ? 'text-success' : 'text-danger'">
+                  [ngClass]="policyChecks.lowercase ? 'text-success' : 'text-danger'">
+                <i class="bi" [ngClass]="policyChecks.lowercase ? 'bi-check-circle-fill me-2' : 'bi-x-circle me-2'"></i>
+                Contiene al menos una minúscula
+              </li>
+              <li class="list-group-item d-flex align-items-center"
+                  [ngClass]="policyChecks.number ? 'text-success' : 'text-danger'">
                 <i class="bi" [ngClass]="policyChecks.number ? 'bi-check-circle-fill me-2' : 'bi-x-circle me-2'"></i>
                 Contiene al menos un número
               </li>
               <li class="list-group-item d-flex align-items-center"
-                [ngClass]="policyChecks.specialChar ? 'text-success' : 'text-danger'">
+                  [ngClass]="policyChecks.specialChar ? 'text-success' : 'text-danger'">
                 <i class="bi" [ngClass]="policyChecks.specialChar ? 'bi-check-circle-fill me-2' : 'bi-x-circle me-2'"></i>
                 Contiene al menos un caracter especial (&#64;, #, $, etc.)
               </li>
             </ul>
           </div>
+          
         </div>
         
         

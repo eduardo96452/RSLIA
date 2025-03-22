@@ -9,7 +9,6 @@ import { SignUpWithPasswordCredentials } from '@supabase/supabase-js';
 import Swal from 'sweetalert2';
 import { environment } from '../../../environments/environment';
 
-
 @Component({
   selector: 'app-auth-sign-up',
   standalone: true,
@@ -28,6 +27,7 @@ export class AuthSignUpComponent {
   policyChecks = {
     minLength: false,
     uppercase: false,
+    lowercase: false,
     number: false,
     specialChar: false,
   };
@@ -52,7 +52,6 @@ export class AuthSignUpComponent {
       return { valid: false, info: 'Error al validar el correo' };
     }
   }
-
 
   // Método para verificar si el correo ya existe en la base de datos
   async emailAlreadyExists(email: string): Promise<boolean> {
@@ -168,7 +167,6 @@ export class AuthSignUpComponent {
       });
     }
   }
-  
 
   private translateSignupError(error: any): string {
     // Si no existe el error o su mensaje, devolvemos algo genérico
@@ -210,6 +208,7 @@ export class AuthSignUpComponent {
     const pwd = this.password || '';
     this.policyChecks.minLength = pwd.length >= 8;
     this.policyChecks.uppercase = /[A-Z]/.test(pwd);
+    this.policyChecks.lowercase = /[a-z]/.test(pwd);  // Verifica al menos una minúscula
     this.policyChecks.number = /\d/.test(pwd);
     this.policyChecks.specialChar = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
   }
@@ -218,6 +217,7 @@ export class AuthSignUpComponent {
     return (
       this.policyChecks.minLength &&
       this.policyChecks.uppercase &&
+      this.policyChecks.lowercase && // Se agrega esta condición
       this.policyChecks.number &&
       this.policyChecks.specialChar
     );

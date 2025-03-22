@@ -20,7 +20,7 @@ export interface DetallesRevision {
   area_conocimiento?: string;
   tipo_investigacion?: string;
   institucion?: string | null;
-  
+
 }
 
 export interface Metodologia {
@@ -35,13 +35,6 @@ interface Componente {
   sigla: string;
   descripcion: string;
   id_metodologia: number;
-}
-
-interface ComponenteRevision {
-  id_revision: number;
-  id_componente: number;
-  palabra_clave: string;
-  // otros campos si tu tabla los tiene
 }
 
 interface ComponenteData {
@@ -81,6 +74,9 @@ export interface BaseBibliografica {
   nombre: string;
   url: string;
   isEditing: boolean; // Para controlar el modo edición en el componente
+  cadenaBusqueda?: string;  // nueva propiedad para la cadena de búsqueda
+  isCadenaCopied?: boolean; // para el botón de copiar (opcional)
+  cadenaGuardada?: boolean; // Indica si la cadena ya fue guardada
 }
 
 export interface Criterio {
@@ -92,10 +88,10 @@ export interface Criterio {
 }
 
 export interface Pregunta {
-  id_pregunta: number;         // ID que viene de la BD
+  id_pregunta?: number;         // ID que viene de la BD
   descripcion: string;         // Texto de la pregunta
   id_detalles_revision?: number; // Si lo requieres para la relación
-  // ... cualquier otro campo que retorne tu base de datos
+  isEditing?: boolean;         // Para controlar el modo de edición
 }
 
 export interface Respuesta {
@@ -289,7 +285,6 @@ export class AuthService {
     return this.authState.asObservable();
   }
 
-
   signUp(credentials: SignUpWithPasswordCredentials) {
     return this._supabaseClient.auth.signUp(credentials);
   }
@@ -300,21 +295,18 @@ export class AuthService {
       .select('id')
       .eq('correo', email)
       .maybeSingle();
-    
+
     if (error) {
       console.error('Error al verificar correo:', error);
       return false;
     }
-    
+
     return !!data;
   }
-  
-
 
   logIn(credentials: { email: string; password: string }) {
     return this._supabaseClient.auth.signInWithPassword(credentials);
   }
-
 
   signOut() {
     return this._supabaseClient.auth.signOut();
@@ -469,13 +461,13 @@ export class AuthService {
       .from('informes_generados')
       .select('*, detalles_revision:detalles_revision!inner(id_usuarios)', { count: 'exact', head: true })
       .eq('detalles_revision.id_usuarios', userId);
-    
+
     if (error) {
       console.error('Error al contar informes generados del usuario:', error);
       return 0;
     }
     return count || 0;
-  }  
+  }
 
   async countUserDocuments(userId: string): Promise<number> {
     try {
@@ -598,6 +590,8 @@ export class AuthService {
     return distribution;
   }
 
+  // Función para obtener todas las reseñas de un usuario
+
   async getUserReviews(userId: string) {
 
     const { data, error } = await this._supabaseClient
@@ -683,6 +677,8 @@ export class AuthService {
     // Si la actualización fue exitosa, data contendrá la nueva información
     return { data };
   }
+
+  // Función para obtener las metodologías
 
   async getMetodologias(): Promise<Metodologia[]> {
     try {
@@ -894,21 +890,25 @@ export class AuthService {
     }
   }
 
+  // Parte para traer las preguntas de investigación
+
   async saveResearchQuestion(question: Question): Promise<any> {
     const { data, error } = await this._supabaseClient
-      .from('preguntas_investigacion') // Nombre de la tabla
+      .from('preguntas_investigacion')
       .insert([
         {
           pregunta: question.value,
-          id_detalles_revision: question.id_detalles_revision || null, // Asociado a una revisión
+          id_detalles_revision: question.id_detalles_revision || null,
         }
-      ]);
+      ])
+      .select(); // Esto hace que se retorne el registro insertado
 
     if (error) {
       console.error('Error al guardar la pregunta:', error.message);
     }
     return { data, error };
   }
+
 
   async deleteResearchQuestion(id_preguntas_investigacion: number): Promise<any> {
     const { data, error } = await this._supabaseClient
@@ -952,6 +952,8 @@ export class AuthService {
       return { error: err };
     }
   }
+
+  //Parte para las palabras claves y sinonimos
 
   async getComponentsByMethodologyName(metodologiaNombre: string): Promise<{ id: number; nombre: string }[]> {
     try {
@@ -999,67 +1001,33 @@ export class AuthService {
     sinonimo: string,
     palabraClave: string,
     idDetallesRevision: string,
-    idseccioncomponente: string, // este es el id_componente que usarás para buscar en componente_revision
+    idseccioncomponente: string,
     fechaIngreso?: string
   ): Promise<{ data?: any; error?: any }> {
     try {
       // ======================================================
-      // 0) Buscar el id_componente_revision
-      //    usando el idseccioncomponente que recibes.
-      //    Asumimos que tu tabla "componente_revision" 
-      //    tiene la columna "id_componente" para filtrar.
+      // 0) Buscar el id_componente_revision usando el idseccioncomponente.
       // ======================================================
       const { data: compRevData, error: compRevError } = await this._supabaseClient
         .from('componente_revision')
         .select('id_componente_revision')
         .eq('id_componente', idseccioncomponente)
+        .limit(1) // Limita a 1 registro
         .single();
 
       if (compRevError) {
         console.error('Error al buscar componente_revision:', compRevError);
         return { error: compRevError };
       }
-
       if (!compRevData) {
         return {
           error: new Error(`No se encontró un componente_revision con id_componente = ${idseccioncomponente}`)
         };
       }
-
       const foundCompRevId = compRevData.id_componente_revision;
 
       // ======================================================
-      // 1) Insertar el sinónimo en la tabla "sinonimos".
-      //    (Si lo sigues necesitando en tu lógica.)
-      // ======================================================
-      const { data: synData, error: synError } = await this._supabaseClient
-        .from('sinonimos')
-        .insert([
-          {
-            // el campo "id_componente_revision" en "sinonimos"
-            id_componente_revision: foundCompRevId,
-            sinonimo: sinonimo
-          }
-        ])
-        .select(); // Para retornar el registro insertado
-
-      if (synError) {
-        console.error('Error al insertar sinónimo:', synError);
-        return { error: synError };
-      }
-
-      if (!synData || synData.length === 0) {
-        return { error: new Error('No se pudo insertar el sinónimo.') };
-      }
-
-      // Obtenemos el sinónimo insertado
-      const newSynonym = synData[0];
-      const newSynonymId = newSynonym.id_sinonimos; // si la tabla "sinonimos" sigue manejando su PK "id_sinonimos"
-
-      // ======================================================
-      // 2) Insertar la palabra clave en "palabras_clave"
-      //    Usando la nueva estructura sin 'seccion_metodologia' ni 'id_sinonimos'.
-      //    Ahora necesitamos pasar "id_componente_revision" = foundCompRevId
+      // 1) Insertar la palabra clave en "palabras_clave"
       // ======================================================
       const { data: kwData, error: kwError } = await this._supabaseClient
         .from('palabras_clave')
@@ -1069,7 +1037,6 @@ export class AuthService {
             fecha_ingreso: fechaIngreso || new Date().toISOString(),
             id_detalles_revision: idDetallesRevision,
             id_componente_revision: foundCompRevId
-            // Se eliminan las columnas 'id_sinonimos' y 'seccion_metodologia'
           }
         ])
         .select();
@@ -1078,16 +1045,36 @@ export class AuthService {
         console.error('Error al insertar en palabras_clave:', kwError);
         return { error: kwError };
       }
-
       if (!kwData || kwData.length === 0) {
         return { error: new Error('No se pudo insertar la palabra clave.') };
       }
+      const newKeyword = kwData[0];
 
-      // Retorna ambos registros (sinónimo y palabra clave) si lo deseas
+      // ======================================================
+      // 2) Insertar el sinónimo en la tabla "sinonimos" usando el id_palabras_clave obtenido
+      // ======================================================
+      const { data: synData, error: synError } = await this._supabaseClient
+        .from('sinonimos')
+        .insert([
+          {
+            id_palabras_clave: newKeyword.id_palabras_clave,
+            sinonimo: sinonimo
+          }
+        ])
+        .select();
+
+      if (synError) {
+        console.error('Error al insertar sinónimo:', synError);
+        return { error: synError };
+      }
+      if (!synData || synData.length === 0) {
+        return { error: new Error('No se pudo insertar el sinónimo.') };
+      }
+
       return {
         data: {
-          synonym: newSynonym,
-          keyword: kwData[0]
+          synonym: synData[0],
+          keyword: newKeyword
         }
       };
     } catch (err) {
@@ -1105,14 +1092,14 @@ export class AuthService {
         fecha_ingreso,
         id_detalles_revision,
         id_componente_revision,
+        sinonimos!left(
+          id_sinonimos,
+          sinonimo
+        ),
         componente_revision!left(
           id_revision,
           id_componente,
           palabra_clave,
-          sinonimos!left(
-            id_sinonimos,
-            sinonimo
-          ),
           componente!left(
             id_componente,
             nombre,
@@ -1123,7 +1110,7 @@ export class AuthService {
         )
       `)
       .eq('id_detalles_revision', reviewId);
-  
+
     if (error) {
       console.error("Error al cargar palabras clave y sinónimos avanzados:", error);
       return [];
@@ -1133,23 +1120,23 @@ export class AuthService {
 
   async updateSynonymThenKeyword(
     idPalabraClave: number,
-    idSinonimos: number,  // Nuevo parámetro para el id_sinonimos
+    idSinonimos: number,
     sinonimo: string,
     palabraClave: string,
     idDetallesRevision: string,
-    idseccioncomponente: string, // Usado para buscar en componente_revision
+    idseccioncomponente: string,
     fechaIngreso: string
   ): Promise<{ data?: any; error?: any }> {
     try {
-      // ======================================================
-      // 0) Buscar el id_componente_revision usando el idseccioncomponente
-      // ======================================================
+      // Buscar el id_componente_revision usando idseccioncomponente
       const { data: compRevData, error: compRevError } = await this._supabaseClient
         .from('componente_revision')
         .select('id_componente_revision')
         .eq('id_componente', idseccioncomponente)
+        .order('id_componente_revision', { ascending: true })
+        .limit(1)
         .single();
-  
+
       if (compRevError) {
         console.error('Error al buscar componente_revision:', compRevError);
         return { error: compRevError };
@@ -1158,27 +1145,17 @@ export class AuthService {
         return { error: new Error('No se encontró un componente_revision con el id proporcionado.') };
       }
       const foundCompRevId = compRevData.id_componente_revision;
-  
-      // ======================================================
-      // 1) Actualizar el sinónimo en la tabla "sinonimos" usando el id_sinonimos
-      // ======================================================
+
+      // Actualizar el sinónimo en la tabla "sinonimos"
       const { data: updateSynData, error: updateSynError } = await this._supabaseClient
         .from('sinonimos')
-        .update({
-          sinonimo: sinonimo,
-          id_componente_revision: foundCompRevId
-        })
+        .update({ sinonimo })
         .eq('id_sinonimos', idSinonimos)
+        .order('id_sinonimos', { ascending: true }) // Especificamos el orden
+        .limit(1)
         .single();
-  
-      if (updateSynError) {
-        console.error('Error al actualizar sinonimos:', updateSynError);
-        return { error: updateSynError };
-      }
-  
-      // ======================================================
-      // 2) Actualizar la palabra clave en la tabla "palabras_clave"
-      // ======================================================
+
+      // Actualizar la palabra clave en la tabla "palabras_clave"
       const { data: updateKwData, error: updateKwError } = await this._supabaseClient
         .from('palabras_clave')
         .update({
@@ -1188,51 +1165,177 @@ export class AuthService {
           id_componente_revision: foundCompRevId
         })
         .eq('id_palabras_clave', idPalabraClave)
+        .order('id_palabras_clave', { ascending: true }) // Especificamos el orden
+        .limit(1)
         .single();
-  
+
       if (updateKwError) {
         console.error('Error al actualizar palabra clave:', updateKwError);
         return { error: updateKwError };
       }
-  
+
       return { data: { synonym: updateSynData, keyword: updateKwData } };
     } catch (err) {
       console.error('Error inesperado al actualizar sinónimo y palabra clave:', err);
       return { error: err };
     }
   }
-  
+
   async deleteKeyword(idPalabrasClave: number, idSinonimos: number): Promise<{ data: any; error: any }> {
     // Primero eliminamos los sinónimos asociados al componente
     const { data: synData, error: synError } = await this._supabaseClient
       .from('sinonimos')
       .delete()
       .eq('id_sinonimos', idSinonimos);
-      
+
     if (synError) {
       console.error('Error al eliminar sinónimos:', synError);
       return { data: null, error: synError };
     }
-    
+
     // Luego eliminamos la palabra clave
     const { data, error } = await this._supabaseClient
       .from('palabras_clave')
       .delete()
       .eq('id_palabras_clave', idPalabrasClave);
-      
+
     if (error) {
       console.error('Error al eliminar palabra clave:', error);
     }
-    
+
     return { data, error };
   }
 
-  async upsertCadenaBusqueda(cadenaBusqueda: string, idDetallesRevision: string): Promise<{ data: any; error: any }> {
-    // Intentamos obtener el registro existente para la revisión
+  //Funciones para la parte de bases bibliograficas
+
+  async loadBasesBibliograficas(id_revision: string): Promise<BaseBibliografica[]> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('bases_bibliograficas')
+        .select('*')
+        .eq('id_revision', id_revision);
+
+      if (error) {
+        console.error('Error al cargar bases bibliográficas:', error);
+        return [];
+      }
+
+      return (data || []).map(item => ({
+        id_base_bibliografica: item.id_base_bibliografica,
+        id_revision: item.id_revision.toString(),
+        nombre: item.nombre,
+        url: item.url,
+        isEditing: false
+      } as BaseBibliografica));
+    } catch (err) {
+      console.error('Error inesperado al cargar bases:', err);
+      return [];
+    }
+  }
+
+  async createBaseBibliografica(base: BaseBibliografica): Promise<BaseBibliografica | null> {
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('bases_bibliograficas')
+        .insert([
+          {
+            id_revision: base.id_revision,
+            nombre: base.nombre,
+            url: base.url
+          }
+        ])
+        .select();
+
+      if (error) {
+        console.error('Error al crear base bibliográfica:', error);
+        return null;
+      }
+
+      if (data && data.length > 0) {
+        const newItem = data[0];
+        return {
+          id_base_bibliografica: newItem.id_base_bibliografica,
+          id_revision: newItem.id_revision.toString(),
+          nombre: newItem.nombre,
+          url: newItem.url,
+          isEditing: false
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error('Error inesperado al crear base:', err);
+      return null;
+    }
+  }
+
+  async updateBaseBibliografica(base: BaseBibliografica): Promise<BaseBibliografica | null> {
+    if (!base.id_base_bibliografica) {
+      console.warn('No se puede actualizar, falta id_base_bibliografica');
+      return null;
+    }
+    try {
+      const { data, error } = await this._supabaseClient
+        .from('bases_bibliograficas')
+        .update({
+          nombre: base.nombre,
+          url: base.url
+        })
+        .eq('id_base_bibliografica', base.id_base_bibliografica)
+        .select();
+
+      if (error) {
+        console.error('Error al actualizar base bibliográfica:', error);
+        return null;
+      }
+
+      if (data && data.length > 0) {
+        const updatedItem = data[0];
+        return {
+          id_base_bibliografica: updatedItem.id_base_bibliografica,
+          id_revision: updatedItem.id_revision.toString(),
+          nombre: updatedItem.nombre,
+          url: updatedItem.url,
+          isEditing: false
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error('Error inesperado al actualizar base:', err);
+      return null;
+    }
+  }
+
+  async deleteBaseBibliografica(id_base_bibliografica: number): Promise<boolean> {
+    try {
+      const { error } = await this._supabaseClient
+        .from('bases_bibliograficas')
+        .delete()
+        .eq('id_base_bibliografica', id_base_bibliografica);
+
+      if (error) {
+        console.error('Error al eliminar base bibliográfica:', error);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error('Error inesperado al eliminar base:', err);
+      return false;
+    }
+  }
+
+  //Funciones para la parte de cadenas de busqueda
+
+  async upsertCadenaBusqueda(
+    cadenaBusqueda: string, 
+    idDetallesRevision: string, 
+    fuente: string
+  ): Promise<{ data: any; error: any }> {
+    // Se busca el registro existente para la revisión y la fuente
     const { data: existing, error: existingError } = await this._supabaseClient
       .from('cadenas_busqueda')
       .select('*')
       .eq('id_detalles_revision', idDetallesRevision)
+      .eq('fuente', fuente)
       .maybeSingle();
   
     if (existingError) {
@@ -1245,31 +1348,56 @@ export class AuthService {
         .from('cadenas_busqueda')
         .update({ cadena_busqueda: cadenaBusqueda })
         .eq('id_detalles_revision', idDetallesRevision)
+        .eq('fuente', fuente)
         .maybeSingle();
       return { data, error };
     } else {
       // Inserta un nuevo registro
       const { data, error } = await this._supabaseClient
         .from('cadenas_busqueda')
-        .insert([{ cadena_busqueda: cadenaBusqueda, id_detalles_revision: idDetallesRevision }])
+        .insert([
+          { 
+            cadena_busqueda: cadenaBusqueda, 
+            id_detalles_revision: idDetallesRevision,
+            fuente: fuente
+          }
+        ])
         .maybeSingle();
       return { data, error };
     }
   }
   
-
-  async getCadenaBusqueda(idDetallesRevision: string) {
+  async getCadenaBusqueda(
+    idDetallesRevision: string,
+    fuente?: string
+  ): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
       .from('cadenas_busqueda')
       .select('id_cadenas_busqueda, cadena_busqueda')
       .eq('id_detalles_revision', idDetallesRevision)
-    // .maybeSingle() // si sabes que sólo hay una cadena por revisión, puedes usar .single() o .maybeSingle()
-
+      .eq('fuente', fuente)
+      .maybeSingle();
+  
     if (error) {
       console.error('Error al obtener cadena de búsqueda:', error.message);
     }
     return { data, error };
   }
+
+  async deleteCadenaBusqueda(idDetallesRevision: string, fuente: string): Promise<boolean> {
+    const { data, error } = await this._supabaseClient
+      .from('cadenas_busqueda')
+      .delete()
+      .eq('id_detalles_revision', idDetallesRevision)
+      .eq('fuente', fuente);
+    if (error) {
+      console.error('Error al eliminar la cadena de búsqueda:', error.message);
+      return false;
+    }
+    return true;
+  }
+
+  //Funciones para la parte de criterios
 
   async getCriterios(idDetallesRevision: string) {
     const { data, error } = await this._supabaseClient
@@ -1334,6 +1462,7 @@ export class AuthService {
 
   //pagina 2 de planeacion
 
+  //Funciones para la parte de preguntas de calidad
   async getPreguntasByRevision(idRevision: string) {
     const { data, error } = await this._supabaseClient
       .from('evaluacion_calidad_preguntas')
@@ -1498,6 +1627,8 @@ export class AuthService {
       throw error;
     }
   }
+  
+
 
   async createEstudio(estudio: Estudio): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
@@ -1601,12 +1732,10 @@ export class AuthService {
       if (!estudioData.id_estudios) {
         throw new Error('No se proporcionó id_estudios para la actualización.');
       }
-
-      // Realiza la actualización según tu modelo. Ajusta si necesitas mapear campos.
+  
       const { data, error } = await this._supabaseClient
         .from('estudios')
         .update({
-          // Asegúrate de mapear correctamente los campos que deseas actualizar
           titulo: estudioData.titulo,
           resumen: estudioData.resumen,
           autores: estudioData.autores,
@@ -1614,6 +1743,8 @@ export class AuthService {
           revista: estudioData.revista,
           doi: estudioData.doi,
           estado: estudioData.estado,
+          // Se agrega id_criterio aquí
+          id_criterio: estudioData.id_criterio,
           keywords: estudioData.keywords,
           author_keywords: estudioData.author_keywords,
           bibtex_key: estudioData.bibtex_key,
@@ -1630,7 +1761,7 @@ export class AuthService {
           url_pdf_articulo: estudioData.url_pdf_articulo
         })
         .eq('id_estudios', estudioData.id_estudios);
-
+  
       if (error) {
         throw error;
       }
@@ -1640,6 +1771,7 @@ export class AuthService {
       throw error;
     }
   }
+  
 
   async removePDF(filePath: string): Promise<void> {
     // filePath sería algo como "estudios/10/mi_archivo.pdf"
@@ -1742,12 +1874,14 @@ export class AuthService {
     return { data, error };
   }
 
-  async getQualityQuestions() {
+  async getQualityQuestions(idDetallesRevision: string): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
       .from('evaluacion_calidad_preguntas')
-      .select('*');
+      .select('*')
+      .eq('id_detalles_revision', idDetallesRevision);
     return { data, error };
   }
+  
 
   async getQualityAnswers() {
     const { data, error } = await this._supabaseClient
@@ -2005,135 +2139,6 @@ export class AuthService {
     }
   }
 
-
-  // ======================================================
-  // 1) Cargar bases bibliográficas por ID de revisión
-  // ======================================================
-  async loadBasesBibliograficas(id_revision: string): Promise<BaseBibliografica[]> {
-    try {
-      const { data, error } = await this._supabaseClient
-        .from('bases_bibliograficas')
-        .select('*')
-        .eq('id_revision', id_revision);
-
-      if (error) {
-        console.error('Error al cargar bases bibliográficas:', error);
-        return [];
-      }
-
-      return (data || []).map(item => ({
-        id_base_bibliografica: item.id_base_bibliografica,
-        id_revision: item.id_revision.toString(),
-        nombre: item.nombre,
-        url: item.url,
-        isEditing: false
-      } as BaseBibliografica));
-    } catch (err) {
-      console.error('Error inesperado al cargar bases:', err);
-      return [];
-    }
-  }
-
-  // ======================================================
-  // 2) Crear (insertar) una nueva base bibliográfica
-  // ======================================================
-  async createBaseBibliografica(base: BaseBibliografica): Promise<BaseBibliografica | null> {
-    try {
-      const { data, error } = await this._supabaseClient
-        .from('bases_bibliograficas')
-        .insert([
-          {
-            id_revision: base.id_revision,
-            nombre: base.nombre,
-            url: base.url
-          }
-        ])
-        .select();
-
-      if (error) {
-        console.error('Error al crear base bibliográfica:', error);
-        return null;
-      }
-
-      if (data && data.length > 0) {
-        const newItem = data[0];
-        return {
-          id_base_bibliografica: newItem.id_base_bibliografica,
-          id_revision: newItem.id_revision.toString(),
-          nombre: newItem.nombre,
-          url: newItem.url,
-          isEditing: false
-        };
-      }
-      return null;
-    } catch (err) {
-      console.error('Error inesperado al crear base:', err);
-      return null;
-    }
-  }
-
-  // ======================================================
-  // 3) Actualizar una base bibliográfica
-  // ======================================================
-  async updateBaseBibliografica(base: BaseBibliografica): Promise<BaseBibliografica | null> {
-    if (!base.id_base_bibliografica) {
-      console.warn('No se puede actualizar, falta id_base_bibliografica');
-      return null;
-    }
-    try {
-      const { data, error } = await this._supabaseClient
-        .from('bases_bibliograficas')
-        .update({
-          nombre: base.nombre,
-          url: base.url
-        })
-        .eq('id_base_bibliografica', base.id_base_bibliografica)
-        .select();
-
-      if (error) {
-        console.error('Error al actualizar base bibliográfica:', error);
-        return null;
-      }
-
-      if (data && data.length > 0) {
-        const updatedItem = data[0];
-        return {
-          id_base_bibliografica: updatedItem.id_base_bibliografica,
-          id_revision: updatedItem.id_revision.toString(),
-          nombre: updatedItem.nombre,
-          url: updatedItem.url,
-          isEditing: false
-        };
-      }
-      return null;
-    } catch (err) {
-      console.error('Error inesperado al actualizar base:', err);
-      return null;
-    }
-  }
-
-  // ======================================================
-  // 4) Eliminar una base bibliográfica
-  // ======================================================
-  async deleteBaseBibliografica(id_base_bibliografica: number): Promise<boolean> {
-    try {
-      const { error } = await this._supabaseClient
-        .from('bases_bibliograficas')
-        .delete()
-        .eq('id_base_bibliografica', id_base_bibliografica);
-
-      if (error) {
-        console.error('Error al eliminar base bibliográfica:', error);
-        return false;
-      }
-      return true;
-    } catch (err) {
-      console.error('Error inesperado al eliminar base:', err);
-      return false;
-    }
-  }
-
-
   // ======================================================
   // Traer los estudios para la extraccion de datos
   async getAcceptedStudiesAboveLimit(id_detalles_revision: string) {
@@ -2283,28 +2288,28 @@ export class AuthService {
     const fileName = `Borrador_de_Articulo_${Date.now()}-${randomNum}.docx`;
     // Construye la ruta: carpeta "informes" dentro del bucket "documentos"
     const filePath = `informes/${idDetallesRevision}/${fileName}`;
-    
+
     // Subir el archivo al bucket "documentos"
     const { data, error } = await this._supabaseClient
       .storage
       .from('documentos')
       .upload(filePath, file, { cacheControl: '3600', upsert: false });
-    
+
     if (error) {
       console.error('Error al subir el archivo:', error);
       return null;
     }
-    
+
     // Obtener la URL pública del archivo; getPublicUrl retorna solo un objeto con data
     const publicUrlResult = this._supabaseClient
       .storage
       .from('documentos')
       .getPublicUrl(filePath);
-    
+
     const publicUrl = publicUrlResult.data.publicUrl;
     return { publicUrl, fileName };
   }
-  
+
   async insertInformeGenerado(
     idDetallesRevision: string,
     nombreInforme: string,
@@ -2324,7 +2329,7 @@ export class AuthService {
       .maybeSingle();
     return { data, error };
   }
-  
+
   async deleteInformeGenerado(idInforme: number): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
       .from('informes_generados')
@@ -2332,7 +2337,7 @@ export class AuthService {
       .eq('id_informes_generados', idInforme);
     return { data, error };
   }
-  
+
   async getInformesGenerados(idDetallesRevision: string): Promise<any[]> {
     const { data, error } = await this._supabaseClient
       .from('informes_generados')
@@ -2344,7 +2349,7 @@ export class AuthService {
     }
     return data;
   }
-  
+
 
 
 
@@ -2372,8 +2377,8 @@ export class AuthService {
     }
     return { data: { publicUrl }, error: null };
   }
-  
-  
+
+
   async uploadInformePdf(fileName: string, file: Blob, idDetallesRevision: string): Promise<{ data: any; error: any }> {
     // Define la ruta en el bucket, por ejemplo: informes/{idDetallesRevision}/{fileName}
     const path = `informes/${idDetallesRevision}/${fileName}`;
@@ -2403,5 +2408,5 @@ export class AuthService {
       .maybeSingle();
     return { data, error };
   }
-  
+
 }

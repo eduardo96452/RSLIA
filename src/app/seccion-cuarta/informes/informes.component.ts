@@ -403,6 +403,17 @@ export class InformesComponent implements OnInit {
       console.error('Error al cargar informes generados:', err);
     }
   }
+
+
+
+
+
+
+
+
+
+
+  
   firmaBase64: string = '';
 
   async generateQRText(data: string): Promise<string> {

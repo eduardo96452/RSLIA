@@ -92,55 +92,10 @@
   }
 }
 
-
-.my-custom-select {
-  background-color: #f8f9fa;
-  color: #c01414;
-  /* Cualquier otro estilo que quieras aplicar */
-  font-size: 16px;
-  padding: 8px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+/* Estilo para alinear los radio buttons en columna */
+.swal2-radio-custom {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.5rem; /* Separación vertical entre cada radio */
 }
-
-
-
-th {
-  position: relative;
-  /* Opcional: agregar padding extra a la derecha para no tapar el texto */
-  padding-right: 8px;
-}
-
-th .resizer {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 5px;
-  cursor: col-resize;
-  user-select: none;
-  height: 100%;
-  z-index: 2;
-}
-
-@media (max-width: 576px) {
-  .floating-menu {
-    width: 100%;
-  }
-}
-
-.modal-content, 
-.modal-body {
-  white-space: normal;         /* Permite el ajuste de línea */
-  word-wrap: break-word;       /* Rompe palabras largas */
-  word-break: break-all;       /* Rompe palabras si es necesario */
-  overflow-wrap: break-word;   /* Asegura el ajuste en navegadores modernos */
-}
-
-
-.criteria-text {
-  white-space: normal;
-  word-wrap: break-word;
-  word-break: break-all;
-  overflow-wrap: break-word;
-}
-

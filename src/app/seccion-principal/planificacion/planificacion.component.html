@@ -284,7 +284,7 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Acordeon de metodologías -->
+                                            <!-- Acordeon de framework -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
                                                     <button class="accordion-button collapsed" type="button"
@@ -705,11 +705,11 @@
                                                                 <thead>
                                                                     <tr>
                                                                         <th style="display:none;">ID</th>
-                                                                        <th>Termino clave</th>
-                                                                        <th>Componente</th>
+                                                                        <th class="text-center">Termino clave</th>
+                                                                        <th class="text-center">Componente</th>
                                                                         <th style="display:none;">ID_sinonimos</th>
-                                                                        <th>Sinónimos</th>
-                                                                        <th>Acciones</th>
+                                                                        <th class="text-center">Sinónimos</th>
+                                                                        <th class="text-center">Acciones</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
@@ -779,7 +779,7 @@
                                                                         </td>
 
                                                                         <!-- Acciones -->
-                                                                        <td>
+                                                                        <td class="text-center">
                                                                             <!-- Caso: registro nuevo (sin id) -->
                                                                             <button *ngIf="!row.id_palabras_clave"
                                                                                 class="btn btn-success btn-sm me-1"
@@ -912,71 +912,122 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Acordeon de cadena de busqueda -->
+                                            <!-- Acordeón de Cadena de búsqueda -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
                                                     <button class="accordion-button collapsed" type="button"
                                                         data-bs-toggle="collapse" data-bs-target="#flush-collapseFive"
                                                         aria-expanded="false" aria-controls="flush-collapseFive"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0">
+                                                        <h5 class="card-title mb-0 fw-bold">
                                                             <i class="bi bi-stack-overflow"></i>&nbsp;&nbsp;6.- Cadena
                                                             de búsqueda
-                                                            <span *ngIf="cadenaGuardada">
-                                                                &nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                            <!-- Condicional: si están completos, check verde; si no, warning amarillo -->
+                                                            <span *ngIf="allCadenasComplete; else warningIcon">
+                                                                <i class="bi bi-check-circle-fill text-success"></i>
                                                             </span>
+                                                            <ng-template #warningIcon>
+                                                                <i
+                                                                    class="bi bi-exclamation-triangle-fill text-warning"></i>
+                                                            </ng-template>
                                                         </h5>
                                                     </button>
                                                 </h2>
                                                 <div id="flush-collapseFive" class="accordion-collapse collapse"
                                                     data-bs-parent="#accordionFlushExample">
                                                     <div class="accordion-body">
-                                                        <!-- Contenedor principal -->
-                                                        <div class="d-flex justify-content-end">
-                                                            <!-- Botón de Sugerencia IA en la fila superior -->
+                                                        <!-- Botón de Sugerencia IA global (opcional) -->
+                                                        <div class="d-flex justify-content-end mb-3">
                                                             <button class="btn btn-info" type="button"
                                                                 (click)="generateSearchString()">
-                                                                <i class="bi bi-robot"></i>&nbsp; Generar cadena
-                                                                con IA
+                                                                <i class="bi bi-robot"></i>&nbsp; Generar cadena con IA
                                                             </button>
                                                         </div>
-                                                        <!-- Contenido principal debajo, en una nueva fila -->
-                                                        <div class="mt-3">
-                                                        </div>
 
-                                                        <form>
-                                                            <div class="mb-3">
-                                                                <textarea class="form-control" id="cadena" rows="5"
-                                                                    [(ngModel)]="cadenaBusqueda" name="cadenaBusqueda"
-                                                                    placeholder="Ingrese su cadena de búsqueda (use mayúsculas para AND, OR, comillas dobles, etc.)"
-                                                                    maxlength="1200"
-                                                                    (ngModelChange)="onCadenaEdit()"></textarea>
-
+                                                        <!-- Bloque para Cadena Global -->
+                                                        <div class="mb-4 border p-2 rounded">
+                                                            <h6 class="mb-2">Global</h6>
+                                                            <form>
+                                                                <div class="position-relative textarea-container">
+                                                                    <button
+                                                                        class="btn btn-secondary btn-sm floating-copy-btn"
+                                                                        type="button" (click)="copyGlobalCadena()">
+                                                                        <i class="bi bi-clipboard"></i>&nbsp;
+                                                                        {{ isGlobalCadenaCopied ? 'Copiado' : 'Copiar'
+                                                                        }}
+                                                                    </button>
+                                                                    <textarea class="form-control" rows="3"
+                                                                        [(ngModel)]="globalCadena" name="globalCadena"
+                                                                        placeholder="Ingrese la cadena de búsqueda global"
+                                                                        maxlength="1200"></textarea>
+                                                                </div>
                                                                 <div class="text-end text-muted mt-1">
-                                                                    <small>{{ cadenaBusqueda.length || 0 }}/1200
+                                                                    <small>{{ globalCadena.length || 0 }}/1200
                                                                         caracteres</small>
                                                                 </div>
-                                                            </div>
-                                                        </form>
-                                                        <div class="row mt-2">
-                                                            <div class="col-auto">
-                                                                <!-- Botón para limpiar -->
-                                                                <button class="btn btn-secondary me-2" type="button"
-                                                                    (click)="clearCadena()">
-                                                                    <i class="fa-solid fa-eraser"></i>&nbsp; Limpiar
-                                                                </button>
-                                                            </div>
-                                                            <div class="col text-end" *ngIf="!cadenaGuardada">
-                                                                <!-- Botón para guardar el objetivo -->
-                                                                <button class="btn btn-success" type="button"
-                                                                    (click)="saveCadena()">
-                                                                    <i class="fa-solid fa-paper-plane"></i>&nbsp;
-                                                                    Guardar
-                                                                    cadena de
-                                                                    búsqueda
-                                                                </button>
-                                                            </div>
+                                                                <div class="row mt-2">
+                                                                    <div class="col-auto">
+                                                                        <button class="btn btn-secondary me-2"
+                                                                            type="button" (click)="globalCadena = ''">
+                                                                            <i class="fa-solid fa-eraser"></i>&nbsp;
+                                                                            Limpiar
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="col text-end"
+                                                                        *ngIf="!globalCadenaGuardada">
+                                                                        <button class="btn btn-success" type="button"
+                                                                            (click)="saveGlobalCadena()">
+                                                                            <i
+                                                                                class="fa-solid fa-paper-plane"></i>&nbsp;
+                                                                            Guardar cadena global
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+
+                                                        <!-- Bloque para cada Base Bibliográfica -->
+                                                        <div *ngFor="let base of bases; let i = index"
+                                                            class="mb-4 border p-2 rounded">
+                                                            <h6 class="mb-2">{{ base.nombre }}</h6>
+                                                            <form>
+                                                                <div class="position-relative textarea-container">
+                                                                    <button
+                                                                        class="btn btn-secondary btn-sm floating-copy-btn"
+                                                                        type="button" (click)="copyCadenaForBase(base)">
+                                                                        <i class="bi bi-clipboard"></i>&nbsp;
+                                                                        {{ base.isCadenaCopied ? 'Copiado' : 'Copiar' }}
+                                                                    </button>
+                                                                    <textarea class="form-control" rows="3"
+                                                                        [(ngModel)]="base.cadenaBusqueda"
+                                                                        name="cadenaBusqueda{{i}}"
+                                                                        placeholder="Ingrese la cadena de búsqueda para {{ base.nombre }}"
+                                                                        maxlength="1200"></textarea>
+                                                                </div>
+                                                                <div class="text-end text-muted mt-1">
+                                                                    <small>{{ base.cadenaBusqueda?.length || 0 }}/1200
+                                                                        caracteres</small>
+                                                                </div>
+                                                                <div class="row mt-2">
+                                                                    <div class="col-auto">
+                                                                        <button class="btn btn-secondary me-2"
+                                                                            type="button"
+                                                                            (click)="base.cadenaBusqueda = ''">
+                                                                            <i class="fa-solid fa-eraser"></i>&nbsp;
+                                                                            Limpiar
+                                                                        </button>
+                                                                    </div>
+                                                                    <div class="col text-end"
+                                                                        *ngIf="!base.cadenaGuardada">
+                                                                        <button class="btn btn-success" type="button"
+                                                                            (click)="saveCadenaForBase(base)">
+                                                                            <i
+                                                                                class="fa-solid fa-paper-plane"></i>&nbsp;
+                                                                            Guardar cadena de búsqueda alternativa
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
                                                         </div>
 
                                                     </div>
@@ -990,7 +1041,7 @@
                                                         data-bs-toggle="collapse" data-bs-target="#flush-collapseSeven"
                                                         aria-expanded="false" aria-controls="flush-collapseSeven"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0">
+                                                        <h5 class="card-title mb-0 fw-bold">
                                                             <i class="bi bi-stack"></i>&nbsp;&nbsp;7.- Criterios de
                                                             selección
                                                             <span *ngIf="criteriosGuardados">
@@ -1021,10 +1072,11 @@
                                                                         <div class="container mt-4">
                                                                             <h2>Criterios de inclusión</h2>
                                                                             <div class="input-group mb-3">
-                                                                                <input type="text" class="form-control"
+                                                                                <textarea type="text"
+                                                                                    class="form-control"
                                                                                     placeholder="Ingrese un elemento para incluir"
                                                                                     [(ngModel)]="inclusionValue"
-                                                                                    name="inclusionValue" />
+                                                                                    name="inclusionValue"></textarea>
                                                                                 <button type="button"
                                                                                     class="btn btn-primary"
                                                                                     (click)="addInclusion()">
@@ -1056,9 +1108,9 @@
                                                                                                 {{ crit.descripcion }}
                                                                                             </div>
                                                                                             <ng-template #editIncl>
-                                                                                                <input
+                                                                                                <textarea
                                                                                                     class="form-control"
-                                                                                                    [(ngModel)]="crit.descripcion" />
+                                                                                                    [(ngModel)]="crit.descripcion"></textarea>
                                                                                             </ng-template>
                                                                                         </td>
                                                                                         <td class="text-center">
@@ -1097,10 +1149,11 @@
                                                                         <div class="container mt-4">
                                                                             <h2>Criterios de exclusión</h2>
                                                                             <div class="input-group mb-3">
-                                                                                <input type="text" class="form-control"
+                                                                                <textarea type="text"
+                                                                                    class="form-control"
                                                                                     placeholder="Ingrese un elemento para excluir"
                                                                                     [(ngModel)]="exclusionValue"
-                                                                                    name="exclusionValue" />
+                                                                                    name="exclusionValue"></textarea>
                                                                                 <button type="button"
                                                                                     class="btn btn-primary"
                                                                                     (click)="addExclusion()">
@@ -1132,9 +1185,9 @@
                                                                                                 {{ crit.descripcion }}
                                                                                             </div>
                                                                                             <ng-template #editExcl>
-                                                                                                <input
+                                                                                                <textarea
                                                                                                     class="form-control"
-                                                                                                    [(ngModel)]="crit.descripcion" />
+                                                                                                    [(ngModel)]="crit.descripcion"></textarea>
                                                                                             </ng-template>
                                                                                         </td>
                                                                                         <td class="text-center">
@@ -1187,17 +1240,16 @@
                                         </p>
 
                                         <div class="accordion accordion-flush" id="accordionFlushExample1">
-                                            <!-- Acordeon de Preguntas -->
+                                            <!-- Acordeón de Preguntas -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
                                                     <button class="accordion-button collapsed" type="button"
                                                         data-bs-toggle="collapse" data-bs-target="#flush-collapseEight"
                                                         aria-expanded="false" aria-controls="flush-collapseEight"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0">
+                                                        <h5 class="card-title mb-0 fw-bold">
                                                             <i class="bi bi-question-circle"></i>&nbsp;&nbsp;8.-
-                                                            Preguntas de
-                                                            evaluación de calidad
+                                                            Preguntas de evaluación de calidad
                                                             <span *ngIf="qualityQuestionsSaved">
                                                                 &nbsp;<i
                                                                     class="bi bi-check-circle-fill text-success"></i>
@@ -1208,28 +1260,68 @@
                                                 <div id="flush-collapseEight" class="accordion-collapse collapse"
                                                     data-bs-parent="#accordionFlushExample1">
                                                     <div class="accordion-body">
-                                                        <button class="btn btn-primary mb-3" (click)="addQuestion1()">
-                                                            <i class="bi bi-plus-circle"></i> Añadir pregunta
-                                                        </button>
-                                                        <ul class="list-group">
-                                                            <li *ngFor="let question1 of questions1; let i = index"
-                                                                class="list-group-item d-flex justify-content-between align-items-center">
-                                                                <span>{{ question1.descripcion }}</span>
-                                                                <div>
-                                                                    <button class="btn btn-warning btn-sm me-2"
-                                                                        (click)="editQuestion1(i)">
-                                                                        <i class="bi bi-pencil-square"></i> Editar
-                                                                    </button>
-                                                                    <button class="btn btn-danger btn-sm"
-                                                                        (click)="deleteQuestion1(i)">
-                                                                        <i class="bi bi-trash"></i> Eliminar
-                                                                    </button>
-                                                                </div>
-                                                            </li>
-                                                        </ul>
+                                                        <!-- Botones para agregar y generar sugerencia -->
+                                                        <div class="d-flex justify-content-between mb-3">
+                                                            <button class="btn btn-primary" (click)="addQuestion1()">
+                                                                <i class="bi bi-plus-circle"></i> Añadir pregunta
+                                                            </button>
+                                                            <button class="btn btn-info"
+                                                                (click)="generateQualityQuestions()">
+                                                                <i class="bi bi-robot"></i> Generar sugerencia con IA
+                                                            </button>
+                                                        </div>
+
+                                                        <!-- Tabla de preguntas -->
+                                                        <table class="table table-bordered">
+                                                            <colgroup>
+                                                                <col style="width: 70%;">
+                                                                <col style="width: 30%;">
+                                                            </colgroup>
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Pregunta</th>
+                                                                    <th class="text-center">Acciones</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr *ngFor="let question of questions1; let i = index">
+                                                                    <td>
+                                                                        <ng-container
+                                                                            *ngIf="!question.isEditing; else editInput">
+                                                                            {{ question.descripcion }}
+                                                                        </ng-container>
+                                                                        <ng-template #editInput>
+                                                                            <textarea class="form-control" rows="2"
+                                                                                [(ngModel)]="question.descripcion"></textarea>
+                                                                        </ng-template>
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        <ng-container
+                                                                            *ngIf="!question.isEditing; else saveButton">
+                                                                            <button class="btn btn-warning btn-sm me-2"
+                                                                                (click)="editQuestion1(i)">
+                                                                                <i class="bi bi-pencil-square"></i>
+                                                                                Editar
+                                                                            </button>
+                                                                        </ng-container>
+                                                                        <ng-template #saveButton>
+                                                                            <button class="btn btn-success btn-sm me-2"
+                                                                                (click)="saveQuestion1(i)">
+                                                                                <i class="bi bi-save"></i> Guardar
+                                                                            </button>
+                                                                        </ng-template>
+                                                                        <button class="btn btn-danger btn-sm"
+                                                                            (click)="deleteQuestion1(i)">
+                                                                            <i class="bi bi-trash"></i> Eliminar
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
                                                     </div>
                                                 </div>
                                             </div>
+
                                             <!-- Acordeon de Respuestas -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
@@ -1237,7 +1329,7 @@
                                                         data-bs-toggle="collapse" data-bs-target="#flush-collapseNine"
                                                         aria-expanded="false" aria-controls="flush-collapseNine"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0">
+                                                        <h5 class="card-title mb-0 fw-bold">
                                                             <i class="bi bi-check-circle"></i>&nbsp;&nbsp;9.-
                                                             Respuestas de evaluación
                                                             <span *ngIf="respuestasGuardadas">
@@ -1256,11 +1348,16 @@
                                                         </button>
 
                                                         <table class="table table-bordered">
+                                                            <colgroup>
+                                                                <col style="width: 55%;">
+                                                                <col style="width: 15%;">
+                                                                <col style="width: 30%;">
+                                                            </colgroup>
                                                             <thead>
                                                                 <tr>
                                                                     <th>Descripción</th>
-                                                                    <th>Peso</th>
-                                                                    <th>Acción</th>
+                                                                    <th class="text-center">Peso</th>
+                                                                    <th class="text-center">Acción</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -1289,7 +1386,7 @@
                                                                     </td>
 
                                                                     <!-- Columna Acción -->
-                                                                    <td>
+                                                                    <td class="text-center">
                                                                         <!-- CASO 1: Fila en modo edición, y no tiene ID => Botón verde "Guardar" para nueva respuesta -->
                                                                         <button
                                                                             *ngIf="answer1.isEditing && !answer1.id_respuesta"
@@ -1326,6 +1423,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+
                                             <!-- Acordeón de Puntuación Límite -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
@@ -1333,7 +1431,7 @@
                                                         data-bs-toggle="collapse" data-bs-target="#flush-collapseTen"
                                                         aria-expanded="false" aria-controls="flush-collapseTen"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0">
+                                                        <h5 class="card-title mb-0 fw-bold">
                                                             <i class="bi bi-bar-chart"></i>&nbsp;&nbsp;10.- Puntuaciones
                                                             de evaluación de calidad
                                                             <span *ngIf="puntuacionesGuardadas">
@@ -1395,7 +1493,7 @@
                                         <div class="container">
                                             <div class="card">
                                                 <div class="card-header position-relative">
-                                                    <h5 class="mb-0">
+                                                    <h5 class="mb-0 fw-bold">
                                                         <i class="bi bi-clipboard-data-fill"></i>&nbsp;&nbsp;11.-
                                                         Formulario de extracción de datos
                                                         <span *ngIf="fieldsSaved">
@@ -1422,16 +1520,16 @@
                                                         <table class="table table-bordered">
                                                             <colgroup>
                                                                 <col style="width: 10%;">
-                                                                <col style="width: 50%;">
-                                                                <col style="width: 20%;">
+                                                                <col style="width: 60%;">
+                                                                <col style="width: 10%;">
                                                                 <col style="width: 20%;">
                                                             </colgroup>
                                                             <thead>
                                                                 <tr>
-                                                                    <th>Orden</th>
+                                                                    <th class="text-center">Orden</th>
                                                                     <th>Descripción</th>
-                                                                    <th>Tipo</th>
-                                                                    <th>Acciones</th>
+                                                                    <th class="text-center">Tipo</th>
+                                                                    <th class="text-center">Acciones</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -1465,7 +1563,7 @@
                                                                         </ng-template>
                                                                     </td>
                                                                     <!-- Columna de Tipo -->
-                                                                    <td>
+                                                                    <td class="text-center">
                                                                         <!-- Modo edición -->
                                                                         <ng-container
                                                                             *ngIf="field.isEditing; else viewType">
@@ -1485,7 +1583,7 @@
                                                                         </ng-template>
                                                                     </td>
                                                                     <!-- Columna de Acciones -->
-                                                                    <td>
+                                                                    <td class="text-center">
                                                                         <!-- Si está en edición: mostrar Guardar/Cancelar -->
                                                                         <ng-container
                                                                             *ngIf="field.isEditing; else normalActions">
