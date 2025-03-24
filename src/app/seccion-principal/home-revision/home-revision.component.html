@@ -13,7 +13,7 @@
         <!-- Campo Título -->
         <div class="mb-3">
           <label for="title" class="form-label"><strong>Título de la revisión</strong></label>
-          <input type="text" class="form-control" id="title" placeholder="Escribe el título de la revisión"
+          <input type="text" class="form-control" id="title" placeholder="Titulo de la revision sistemática de la literatura"
             [(ngModel)]="title" name="title" [class.is-invalid]="formSubmitted && !validateFields().title" />
           <div *ngIf="formSubmitted && !validateFields().title" class="invalid-feedback">
             El título es obligatorio.
@@ -26,9 +26,9 @@
           <select class="form-select" id="metodologiaSelect" [(ngModel)]="tipoRevision" name="tipoRevision"
             [ngClass]="{'is-invalid': formSubmitted && !tipoRevision}">
             <option value="" disabled selected>Seleccione la metodología...</option>
-            <option value="Revisión Sistemática">Revisión Sistemática</option>
-            <option value="Meta-análisis">Meta-análisis</option>
-            <option value="Revisión de Alcance">Revisión de Alcance</option>
+            <option value="Modelo PRISMA">Modelo PRISMA</option>
+            <option value="Modelo de Kitchenham">Modelo de Kitchenham</option>
+            <option value="Modelo Cochrane">Modelo Cochrane</option>
           </select>
           <div *ngIf="formSubmitted && !tipoRevision" class="invalid-feedback">
             Seleccione una metodología.
@@ -137,7 +137,7 @@ alcance === 'Nivel institucional'" class="mb-3">
         <div class="mb-3">
           <label for="description" class="form-label"><strong>Descripción de la revisión</strong></label>
           <textarea class="form-control" id="description" rows="5"
-            placeholder="Ingrese una descripción detallada de la revisión" [(ngModel)]="description" name="description"
+            placeholder="Proporcione una breve descripción de su revision sistemática de la literatura" [(ngModel)]="description" name="description"
             (ngModelChange)="onTextChange($event)" maxlength="800"
             [ngClass]="{'is-invalid': formSubmitted && !description}"></textarea>
           <div class="text-end text-muted mt-1">

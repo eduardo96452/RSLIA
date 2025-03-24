@@ -51,7 +51,7 @@
           </div>
           <br />
         </div>
-        
+
 
         <div class="col col-sm col-md-10">
           <!-- Tarjeta Principal -->
@@ -83,19 +83,20 @@
                 <div class="mb-3">
                   <label for="title" class="form-label"><strong>Título de la revisión</strong></label>
                   <input type="text" class="form-control" id="title" formControlName="titulo_revision"
-                    placeholder="Escribe el título de la revisión" [(ngModel)]="reviewData.titulo_revision"
-                    name="titulo_revision" (ngModelChange)="onFieldChange($event)" />
+                    placeholder="Titulo de la revision sistemática de la literatura"
+                    [(ngModel)]="reviewData.titulo_revision" name="titulo_revision"
+                    (ngModelChange)="onFieldChange($event)" />
                 </div>
 
                 <!-- Campo Selección de Metodología -->
                 <div class="input-group mb-3">
                   <label class="input-group-text" for="inputGroupSelect01"><strong>Metodología de
-                    revisión</strong></label>
+                      revisión</strong></label>
                   <select class="form-select" id="inputGroupSelect01" [(ngModel)]="reviewData.tipo_revision"
                     name="tipo_revision" formControlName="tipo_revision" (ngModelChange)="onFieldChange($event)">
-                    <option value="Revisión Sistemática">Revisión Sistemática</option>
-                    <option value="Meta-análisis">Meta-análisis</option>
-                    <option value="Revisión de Alcance">Revisión de Alcance</option>
+                    <option value="Modelo PRISMA">Modelo PRISMA</option>
+                    <option value="Modelo de Kitchenham">Modelo de Kitchenham</option>
+                    <option value="Modelo Cochrane">Modelo Cochrane</option>
                   </select>
                 </div>
 
@@ -182,8 +183,9 @@
                 <div class="mb-3">
                   <label for="description" class="form-label"><strong>Descripción de la revisión</strong></label>
                   <textarea class="form-control" id="description" rows="5" formControlName="descripcion"
-                    placeholder="Ingrese una descripción detallada de la revisión" [(ngModel)]="reviewData.descripcion"
-                    name="description" (ngModelChange)="onFieldChange($event)" maxlength="800"></textarea>
+                    placeholder="Proporcione una breve descripción de su revision sistemática de la literatura"
+                    [(ngModel)]="reviewData.descripcion" name="description" (ngModelChange)="onFieldChange($event)"
+                    maxlength="800"></textarea>
                   <div class="text-end text-muted mt-1">
                     <small>{{ charCount1 }}/800 caracteres</small>
                   </div>

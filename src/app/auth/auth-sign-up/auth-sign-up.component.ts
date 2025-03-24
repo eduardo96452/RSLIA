@@ -107,6 +107,18 @@ export class AuthSignUpComponent {
       return;
     }
   
+    // Mostrar SweetAlert de carga (bloqueado)
+    Swal.fire({
+      title: 'Creando cuenta...',
+      text: 'Por favor, espera mientras se crea tu cuenta.',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+  
     // Si todo está correcto, procede con el registro
     try {
       const credentials: SignUpWithPasswordCredentials = {
@@ -121,6 +133,7 @@ export class AuthSignUpComponent {
       const { data: authData, error: authError } = await this._authService.signUp(credentials);
       if (authError) {
         const errorMsg = this.translateSignupError(authError);
+        Swal.close();
         Swal.fire({
           icon: 'error',
           title: 'Error en el registro',
@@ -141,6 +154,7 @@ export class AuthSignUpComponent {
   
         if (dbError) {
           const errorMsg = this.translateSignupError(dbError);
+          Swal.close();
           Swal.fire({
             icon: 'error',
             title: 'Error al guardar el usuario',
@@ -149,8 +163,9 @@ export class AuthSignUpComponent {
           return;
         }
   
-        // Si todo sale bien, guardamos el ID en localStorage y mostramos un mensaje de éxito
+        // Si todo sale bien, guardar el ID en localStorage y mostrar un mensaje de éxito
         localStorage.setItem('session_ID', id_usuario);
+        Swal.close(); // Cerrar el modal de carga antes de mostrar el mensaje final
         Swal.fire({
           icon: 'success',
           title: 'Cuenta creada con éxito',
@@ -160,6 +175,7 @@ export class AuthSignUpComponent {
         });
       }
     } catch (error) {
+      Swal.close();
       Swal.fire({
         icon: 'error',
         title: 'Ocurrió un error inesperado',
@@ -167,6 +183,7 @@ export class AuthSignUpComponent {
       });
     }
   }
+  
 
   private translateSignupError(error: any): string {
     // Si no existe el error o su mensaje, devolvemos algo genérico

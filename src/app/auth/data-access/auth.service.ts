@@ -1326,8 +1326,8 @@ export class AuthService {
   //Funciones para la parte de cadenas de busqueda
 
   async upsertCadenaBusqueda(
-    cadenaBusqueda: string, 
-    idDetallesRevision: string, 
+    cadenaBusqueda: string,
+    idDetallesRevision: string,
     fuente: string
   ): Promise<{ data: any; error: any }> {
     // Se busca el registro existente para la revisión y la fuente
@@ -1337,11 +1337,11 @@ export class AuthService {
       .eq('id_detalles_revision', idDetallesRevision)
       .eq('fuente', fuente)
       .maybeSingle();
-  
+
     if (existingError) {
       return { data: null, error: existingError };
     }
-  
+
     if (existing) {
       // Actualiza el registro existente
       const { data, error } = await this._supabaseClient
@@ -1356,8 +1356,8 @@ export class AuthService {
       const { data, error } = await this._supabaseClient
         .from('cadenas_busqueda')
         .insert([
-          { 
-            cadena_busqueda: cadenaBusqueda, 
+          {
+            cadena_busqueda: cadenaBusqueda,
             id_detalles_revision: idDetallesRevision,
             fuente: fuente
           }
@@ -1366,7 +1366,7 @@ export class AuthService {
       return { data, error };
     }
   }
-  
+
   async getCadenaBusqueda(
     idDetallesRevision: string,
     fuente?: string
@@ -1377,7 +1377,7 @@ export class AuthService {
       .eq('id_detalles_revision', idDetallesRevision)
       .eq('fuente', fuente)
       .maybeSingle();
-  
+
     if (error) {
       console.error('Error al obtener cadena de búsqueda:', error.message);
     }
@@ -1627,7 +1627,7 @@ export class AuthService {
       throw error;
     }
   }
-  
+
 
 
   async createEstudio(estudio: Estudio): Promise<{ data: any; error: any }> {
@@ -1732,7 +1732,7 @@ export class AuthService {
       if (!estudioData.id_estudios) {
         throw new Error('No se proporcionó id_estudios para la actualización.');
       }
-  
+
       const { data, error } = await this._supabaseClient
         .from('estudios')
         .update({
@@ -1761,7 +1761,7 @@ export class AuthService {
           url_pdf_articulo: estudioData.url_pdf_articulo
         })
         .eq('id_estudios', estudioData.id_estudios);
-  
+
       if (error) {
         throw error;
       }
@@ -1771,7 +1771,7 @@ export class AuthService {
       throw error;
     }
   }
-  
+
 
   async removePDF(filePath: string): Promise<void> {
     // filePath sería algo como "estudios/10/mi_archivo.pdf"
@@ -1881,7 +1881,7 @@ export class AuthService {
       .eq('id_detalles_revision', idDetallesRevision);
     return { data, error };
   }
-  
+
 
   async getQualityAnswers() {
     const { data, error } = await this._supabaseClient
@@ -2139,10 +2139,16 @@ export class AuthService {
     }
   }
 
+
+
+
+
+
+
   // ======================================================
   // Traer los estudios para la extraccion de datos
   async getAcceptedStudiesAboveLimit(id_detalles_revision: string) {
-    // 1. Obtener la puntuación límite de la tabla puntuaciones_evaluacion
+    // 1. Obtener el valor de puntuacion_limite desde la tabla "puntuaciones_evaluacion"
     const { data: puntuacionData, error: errorPuntuacion } = await this._supabaseClient
       .from('puntuaciones_evaluacion')
       .select('puntuacion_limite')
@@ -2153,41 +2159,33 @@ export class AuthService {
       console.error('Error obteniendo puntuacion_limite:', errorPuntuacion);
       return { data: [], error: errorPuntuacion };
     }
-
     const limite = puntuacionData.puntuacion_limite;
 
-    // 2. Obtener los estudios aceptados de la revisión
+    // 2. Obtener todos los estudios aceptados
     const { data: acceptedStudies, error: errorAccepted } = await this._supabaseClient
       .from('estudios')
       .select('*')
       .eq('estado', 'Aceptado')
       .eq('id_detalles_revision', id_detalles_revision);
-
     if (errorAccepted || !acceptedStudies) {
       console.error('Error obteniendo estudios aceptados:', errorAccepted);
       return { data: [], error: errorAccepted };
     }
 
-    // 3. Para cada estudio, sumar el peso en calidad_estudios
+    // 3. Para cada estudio, calcular la suma de "peso" (puntuación de calidad)
     const finalList = [];
     for (const study of acceptedStudies) {
       const { data: calidadData, error: errorCalidad } = await this._supabaseClient
         .from('calidad_estudios')
         .select('peso')
         .eq('id_estudios', study.id_estudios);
-
       if (errorCalidad || !calidadData) {
         console.error('Error obteniendo peso de calidad_estudios:', errorCalidad);
-        continue; // omitimos este estudio si hay error
+        continue;
       }
-
       const totalPeso = calidadData.reduce((acc: number, cur: any) => acc + (cur.peso || 0), 0);
-
-      // 4. Verificar si totalPeso > puntuacion_limite
-      if (totalPeso > limite) {
-        // Agregar el campo totalPeso al objeto study, si quieres mostrarlo en la interfaz
-        finalList.push({ ...study, totalPeso });
-      }
+      // Se agrega la propiedad "limite" para poder usarla en el componente
+      finalList.push({ ...study, totalPeso, limite });
     }
 
     return { data: finalList, error: null };
@@ -2204,12 +2202,27 @@ export class AuthService {
   }
 
   // auth.service.ts
+  async updateExtractionStatusForStudy(studyId: number, done: boolean) {
+    const { data, error } = await this._supabaseClient
+      .from('respuestas_extraccion')
+      .update({ done: done })
+      .eq('id_estudios', studyId);
+    if (error) {
+      console.error('Error actualizando respuestas_extraccion:', error);
+      throw error;
+    }
+    return data;
+  }
+
+
+  // auth.service.ts
   async saveExtractionResponses(responses: any[]): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
       .from('respuestas_extraccion')
       .insert(responses);
     return { data, error };
   }
+
 
   // auth.service.ts
   async getExtractionStatusForStudies(studyIds: number[]): Promise<{ [key: number]: boolean }> {
@@ -2232,6 +2245,7 @@ export class AuthService {
     });
     return statusMap;
   }
+  
 
   async getExtractionResponsesForStudies(studyIds: number[]): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
@@ -2241,6 +2255,10 @@ export class AuthService {
     return { data, error };
   }
 
+
+
+
+  // auth.service.ts
   async saveSectionDraft(sectionData: {
     id_detalles_revision: string;
     introduccion?: string;
@@ -2252,16 +2270,74 @@ export class AuthService {
     conclusion?: string;
     referencias?: string;
   }): Promise<{ data: any; error: any }> {
-    // Se agrega la fecha de ingreso para el registro
-    const payload = {
-      ...sectionData,
-      fecha_ingreso: new Date().toISOString()
-    };
+    const { id_detalles_revision } = sectionData;
 
-    // Se envuelve payload en un array y se utiliza onConflict para identificar la fila
+    // 1. Obtener el registro existente (si lo hay)
+    let existingData: any = null;
+    try {
+      const existingResp = await this._supabaseClient
+        .from('secciones_revision')
+        .select('*')
+        .eq('id_detalles_revision', id_detalles_revision)
+        .single();
+
+      existingData = existingResp.data;
+      if (existingResp.error) {
+        console.error('Error al obtener la sección existente:', existingResp.error);
+      }
+    } catch (err) {
+      console.error('Excepción al obtener la sección existente:', err);
+    }
+
+    // 2. Fusionar datos: si existe un registro, copiamos sus campos; 
+    //    solo sobreescribimos los campos que llegan en sectionData
+    let mergedPayload: any = {};
+
+    if (existingData) {
+      // Copiamos todo lo que ya había
+      mergedPayload = { ...existingData };
+
+      // Solo actualizamos los campos que hayas enviado (no undefined)
+      if (sectionData.introduccion !== undefined) {
+        mergedPayload.introduccion = sectionData.introduccion;
+      }
+      if (sectionData.trabajos_relacionados !== undefined) {
+        mergedPayload.trabajos_relacionados = sectionData.trabajos_relacionados;
+      }
+      if (sectionData.metodologia !== undefined) {
+        mergedPayload.metodologia = sectionData.metodologia;
+      }
+      if (sectionData.resultados !== undefined) {
+        mergedPayload.resultados = sectionData.resultados;
+      }
+      if (sectionData.discusion !== undefined) {
+        mergedPayload.discusion = sectionData.discusion;
+      }
+      if (sectionData.limitaciones !== undefined) {
+        mergedPayload.limitaciones = sectionData.limitaciones;
+      }
+      if (sectionData.conclusion !== undefined) {
+        mergedPayload.conclusion = sectionData.conclusion;
+      }
+      if (sectionData.referencias !== undefined) {
+        mergedPayload.referencias = sectionData.referencias;
+      }
+
+      // id_detalles_revision y fecha de ingreso
+      mergedPayload.id_detalles_revision = id_detalles_revision;
+      mergedPayload.fecha_ingreso = new Date().toISOString();
+    } else {
+      // Si no había registro previo, creamos uno nuevo con los campos que envías
+      mergedPayload = {
+        ...sectionData,
+        fecha_ingreso: new Date().toISOString()
+      };
+    }
+
+    // 3. Hacer upsert con mergedPayload
     const { data, error } = await this._supabaseClient
       .from('secciones_revision')
-      .upsert([payload], { onConflict: 'id_detalles_revision' });
+      .upsert([mergedPayload], { onConflict: 'id_detalles_revision' });
 
     if (error) {
       console.error('Error guardando el borrador de sección:', error);
@@ -2269,6 +2345,8 @@ export class AuthService {
 
     return { data, error };
   }
+
+
 
   async getSectionDraft(id_detalles_revision: string): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
@@ -2281,6 +2359,9 @@ export class AuthService {
     }
     return { data, error };
   }
+
+
+
 
   async uploadInformeDocx(file: Blob, idDetallesRevision: string): Promise<{ publicUrl: string, fileName: string } | null> {
     // Genera un nombre único para el archivo DOCX

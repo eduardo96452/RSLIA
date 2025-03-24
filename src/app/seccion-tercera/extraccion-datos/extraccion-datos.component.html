@@ -84,6 +84,7 @@
                   para
                   agilizar el proceso y exportar los datos a Excel para su análisis posterior.</p>
                 <br>
+                <!-- Filtros y botones -->
                 <div class="mb-3 d-flex justify-content-between align-items-center">
                   <!-- Filtro (lado izquierdo) -->
                   <div>
@@ -99,6 +100,12 @@
                       (click)="setFilter('pending')">
                       Por marcar
                     </button>
+                    <!-- Nuevo select para filtro de calidad -->
+                    <select class="form-select mt-2" [(ngModel)]="qualityFilter">
+                      <option value="">Sin filtro de calidad</option>
+                      <option value="superior">Puntuación superior a {{puntuacionLimite}}</option>
+                      <option value="menorIgual">Puntuación menor o igual a {{puntuacionLimite}}</option>
+                    </select>
                   </div>
 
                   <!-- Botones adicionales (lado derecho) -->
@@ -106,13 +113,13 @@
                     <button class="btn btn-primary me-2" (click)="exportToExcel()">
                       <i class="bi bi-file-earmark-excel"></i>&nbsp; Exportar a Excel
                     </button>
-                    <button class="btn btn-info"
-                      [disabled]="isGenerateAISuggestionsDisabled()"
+                    <button class="btn btn-info" [disabled]="isGenerateAISuggestionsDisabled()"
                       (click)="generateAISuggestions()">
                       <i class="bi bi-robot"></i>&nbsp; Generar todas las sugerencias de IA
                     </button>
                   </div>
                 </div>
+
                 <br>
 
                 <!-- Tabla de Preguntas de Extracción -->
@@ -123,6 +130,11 @@
                     <div class="align-items-center">
                       <strong>{{ study.titulo }}</strong>
                       <span class="badge ms-2 bg-info">Puntaje: {{ study.totalPeso }}</span>
+                      <ng-container *ngIf="study.url_pdf_articulo">
+                        <a [href]="study.url_pdf_articulo" target="_blank" title="Ver PDF" class="ms-2">
+                          <i class="bi bi-file-earmark-pdf" style="font-size: 1.5rem; color: #dc3545;"></i>
+                        </a>
+                      </ng-container>
                     </div>
                     &nbsp;
                     &nbsp;
@@ -135,6 +147,7 @@
                         [ngClass]="study.done ? 'btn-success' : 'btn-outline-primary'" (click)="toggleStudyDone(study)">
                         {{ study.done ? 'Hecho' : 'Marcar como hecho' }}
                       </button>
+
                     </div>
                   </div>
 
@@ -180,24 +193,24 @@
                                 [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
                                 (ngModelChange)="study.extractionSaved = false" />
 
-                                <div *ngSwitchCase="'Booleano'">
-                                  <label class="me-3" style="display: inline-flex; align-items: center;">
-                                    <input type="radio" [value]="true"
-                                      [ngModel]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                      [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
-                                      style="transform: scale(1.5); margin-right: 6px;"
-                                      (change)="updateBooleanField(true, study.id_estudios, field.id_campo_extraccion, study)" />
-                                    Sí
-                                  </label>
-                                  <label style="display: inline-flex; align-items: center;">
-                                    <input type="radio" [value]="false"
-                                      [ngModel]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                      [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
-                                      style="transform: scale(1.5); margin-right: 6px;"
-                                      (change)="updateBooleanField(false, study.id_estudios, field.id_campo_extraccion, study)" />
-                                    No
-                                  </label>
-                                </div>
+                              <div *ngSwitchCase="'Booleano'">
+                                <label class="me-3" style="display: inline-flex; align-items: center;">
+                                  <input type="radio" [value]="true"
+                                    [ngModel]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                    [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                    style="transform: scale(1.5); margin-right: 6px;"
+                                    (change)="updateBooleanField(true, study.id_estudios, field.id_campo_extraccion, study)" />
+                                  Sí
+                                </label>
+                                <label style="display: inline-flex; align-items: center;">
+                                  <input type="radio" [value]="false"
+                                    [ngModel]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                    [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                    style="transform: scale(1.5); margin-right: 6px;"
+                                    (change)="updateBooleanField(false, study.id_estudios, field.id_campo_extraccion, study)" />
+                                  No
+                                </label>
+                              </div>
 
                               <!-- Default -->
                               <input *ngSwitchDefault type="text" class="form-control"

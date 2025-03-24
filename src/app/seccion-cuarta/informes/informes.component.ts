@@ -29,14 +29,31 @@ export class InformesComponent implements OnInit {
   descripcion = '';
   isLargeScreen: boolean = true;
   objetivo = '';
+
   introductionText = 'Contenido de la Introducción...';
+  introductionSaved: boolean = false;
+
   trabajosText = 'Contenido de Trabajos relacionados...';
+  trabajosSaved: boolean = false;
+
   metodologiaText = 'Contenido de la Metodología...';
+  metodologiaSaved: boolean = false;
+
   resultadosText = 'Contenido de los Resultados...';
+  resultadosSaved: boolean = false;
+
   discusionText = 'Contenido de la Discusión...';
+  discusionSaved: boolean = false;
+
   limitacionesText = 'Contenido de las Limitaciones...';
+  limitacionesSaved: boolean = false;
+
   conclusionText = 'Contenido de la Conclusión...';
+  conclusionSaved: boolean = false;
+
   referenciasText = 'Contenido de las Referencias...';
+  referencesSaved: boolean = false;
+
   informesGenerados: Informe[] = [];
   modoFirma: 'manual' | 'qr' | null = null;
   firmaQr: any;
@@ -58,9 +75,6 @@ export class InformesComponent implements OnInit {
 
   async ngOnInit() {
     this.reviewId = this.route.snapshot.queryParams['id'];
-    this.loadReviewData();
-    this.loadUserData();
-
     this.checkScreenSize();
 
     // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
@@ -71,8 +85,19 @@ export class InformesComponent implements OnInit {
         window.scrollTo(0, 0);
       });
 
-    this.introductionText = ''; // o con algún valor predeterminado
-    await this.loadSectionDraft();
+    await Promise.all([
+      this.loadReviewData(),
+      this.loadUserData(),
+      this.loadIntroductionDraft(),
+      this.loadTrabajosDraft(),
+      this.loadMetodologiaDraft(),
+      this.loadResultadosDraft(),
+      this.loadDiscusionDraft(),
+      this.loadLimitacionesDraft(),
+      this.loadConclusionDraft(),
+      this.loadReferenciasDraft(),
+    ]);
+
 
     this.loadInformesGenerados();
   }
@@ -111,8 +136,124 @@ export class InformesComponent implements OnInit {
     }
   }
 
+  async loadIntroductionDraft(): Promise<void> {
+    try {
+      const { data, error } = await this.authService.getSectionDraft(this.reviewId);
+      if (error) {
+        console.error('Error al cargar la introducción:', error);
+      } else if (data) {
+        this.introductionText = data.introduccion || '';
+        // Si la introducción no está vacía, introductionSaved es true; de lo contrario, false.
+        this.introductionSaved = this.introductionText.trim().length > 0;
+      }
+    } catch (err) {
+      console.error('Excepción al cargar la introducción:', err);
+    }
+  }
+  
+  async loadTrabajosDraft(): Promise<void> {
+    try {
+      const { data, error } = await this.authService.getSectionDraft(this.reviewId);
+      if (error) {
+        console.error('Error al cargar trabajos relacionados:', error);
+      } else if (data) {
+        this.trabajosText = data.trabajos_relacionados || '';
+        this.trabajosSaved = this.trabajosText.trim().length > 0;
+      }
+    } catch (err) {
+      console.error('Excepción al cargar trabajos relacionados:', err);
+    }
+  }
+  
+  async loadMetodologiaDraft(): Promise<void> {
+    try {
+      const { data, error } = await this.authService.getSectionDraft(this.reviewId);
+      if (error) {
+        console.error('Error al cargar metodología:', error);
+      } else if (data) {
+        this.metodologiaText = data.metodologia || '';
+        this.metodologiaSaved = this.metodologiaText.trim().length > 0;
+      }
+    } catch (err) {
+      console.error('Excepción al cargar metodología:', err);
+    }
+  }
+  
+  async loadResultadosDraft(): Promise<void> {
+    try {
+      const { data, error } = await this.authService.getSectionDraft(this.reviewId);
+      if (error) {
+        console.error('Error al cargar resultados:', error);
+      } else if (data) {
+        this.resultadosText = data.resultados || '';
+        this.resultadosSaved = this.resultadosText.trim().length > 0;
+      }
+    } catch (err) {
+      console.error('Excepción al cargar resultados:', err);
+    }
+  }
+  
+  async loadDiscusionDraft(): Promise<void> {
+    try {
+      const { data, error } = await this.authService.getSectionDraft(this.reviewId);
+      if (error) {
+        console.error('Error al cargar discusión:', error);
+      } else if (data) {
+        this.discusionText = data.discusion || '';
+        this.discusionSaved = this.discusionText.trim().length > 0;
+      }
+    } catch (err) {
+      console.error('Excepción al cargar discusión:', err);
+    }
+  }
+  
+  async loadLimitacionesDraft(): Promise<void> {
+    try {
+      const { data, error } = await this.authService.getSectionDraft(this.reviewId);
+      if (error) {
+        console.error('Error al cargar limitaciones:', error);
+      } else if (data) {
+        this.limitacionesText = data.limitaciones || '';
+        this.limitacionesSaved = this.limitacionesText.trim().length > 0;
+      }
+    } catch (err) {
+      console.error('Excepción al cargar limitaciones:', err);
+    }
+  }
+  
+  async loadConclusionDraft(): Promise<void> {
+    try {
+      const { data, error } = await this.authService.getSectionDraft(this.reviewId);
+      if (error) {
+        console.error('Error al cargar conclusión:', error);
+      } else if (data) {
+        this.conclusionText = data.conclusion || '';
+        this.conclusionSaved = this.conclusionText.trim().length > 0;
+      }
+    } catch (err) {
+      console.error('Excepción al cargar conclusión:', err);
+    }
+  }
+  
+  async loadReferenciasDraft(): Promise<void> {
+    try {
+      const { data, error } = await this.authService.getSectionDraft(this.reviewId);
+      if (error) {
+        console.error('Error al cargar referencias:', error);
+      } else if (data) {
+        this.referenciasText = data.referencias || '';
+        this.referencesSaved = this.referenciasText.trim().length > 0;
+      }
+    } catch (err) {
+      console.error('Excepción al cargar referencias:', err);
+    }
+  }
+  
+
+
   generateIntroductionWithIA(): void {
     // Muestra el mensaje de carga
+    this.introductionSaved = false;
     Swal.fire({
       title: 'Generando sugerencia...',
       text: 'Por favor, espera un momento.',
@@ -178,14 +319,7 @@ export class InformesComponent implements OnInit {
 
       const { data, error } = await this.authService.saveSectionDraft({
         id_detalles_revision: this.reviewId,
-        introduccion: this.introductionText,
-        trabajos_relacionados: this.introductionText,
-        metodologia: this.introductionText,
-        resultados: this.introductionText,
-        discusion: this.introductionText,
-        limitaciones: this.introductionText,
-        conclusion: this.introductionText,
-        referencias: this.introductionText,
+        introduccion: this.introductionText
       });
 
       Swal.close();
@@ -205,6 +339,7 @@ export class InformesComponent implements OnInit {
           timer: 2500,
           showConfirmButton: false
         });
+        this.introductionSaved = true;
       }
     } catch (err) {
       Swal.close();
@@ -212,26 +347,732 @@ export class InformesComponent implements OnInit {
     }
   }
 
-  async loadSectionDraft(): Promise<void> {
+  async generateTrabajosRelacionadosWithData(): Promise<void> {
     try {
-      const { data, error } = await this.authService.getSectionDraft(this.reviewId);
-      if (error) {
-        console.error('Error al cargar el borrador de sección:', error);
-      } else if (data) {
-        // Asigna el contenido de la introducción al input (puedes usar replace para los saltos de línea si es necesario)
-        this.introductionText = data.introduccion || '';
-        this.trabajosText= data.trabajos_relacionados;
-        this.metodologiaText= data.metodologia;
-        this.resultadosText= data.resultados;
-        this.discusionText = data.discusion;
-        this.limitacionesText = data.limitaciones;
-        this.conclusionText = data.conclusion;
-        this.referenciasText = data.referencias;
+      // 1. Obtener título y descripción desde reviewData
+      const title = this.reviewData.titulo_revision || '';
+      const description = this.reviewData.descripcion || '';
+
+      // 2. Obtener las palabras clave avanzadas para la revisión
+      // Se asume que getKeywordsAndSynonymsAdvanced devuelve un array de objetos con la propiedad 'palabra_clave'
+      const keywordsData = await this.authService.getKeywordsAndSynonymsAdvanced(this.reviewId);
+      // Extraemos las palabras clave de cada registro y las unimos en una cadena separada por comas
+      const keywordsArr = (keywordsData || []).map(item => item.palabra_clave);
+      const keywords = keywordsArr.join(', ');
+
+      // 3. Obtener los criterios para la revisión
+      const { data: criteriosData, error: errorCriterios } = await this.authService.getCriterios(this.reviewId);
+      if (errorCriterios) {
+        console.error('Error al cargar criterios:', errorCriterios);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los criterios.'
+        });
+        return;
       }
-    } catch (err) {
-      console.error('Excepción al cargar el borrador de sección:', err);
+      // Extraemos la descripción de cada criterio y las unimos en una cadena
+      const criteriosArr = (criteriosData || []).map(c => c.descripcion);
+      const criterios_seleccion = criteriosArr.join(', ');
+
+      // 4. Construir el payload
+      const payload = {
+        title,
+        keywords,
+        criterios_seleccion,
+        description
+      };
+
+      console.log('Payload para Trabajos Relacionados:', payload);
+
+      // 5. Mostrar alerta de carga mientras se genera la sección
+      Swal.fire({
+        title: 'Generando trabajos relacionados...',
+        text: 'Por favor, espera un momento.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading(Swal.getConfirmButton());
+        }
+      });
+
+      // 6. Llamar al servicio de OpenAI para generar la sección de trabajos relacionados
+      this.openAiService.generateTrabajosRelated(payload).subscribe({
+        next: (res) => {
+          Swal.close();
+          Swal.fire({
+            icon: 'success',
+            title: 'Sugerencia generada',
+            text: 'La IA ha generado la sección de trabajos relacionados.',
+            timer: 2500,
+            showConfirmButton: false
+          });
+          // Asignar el resultado al área editable (puedes ajustar el formato si lo deseas)
+          this.trabajosText = res.trabajos_relacionados.replace(/\n\n/g, '<br><br>');
+        },
+        error: (err) => {
+          Swal.close();
+          console.error('Error generando trabajos relacionados:', err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Hubo un error al generar la sección de trabajos relacionados con IA.'
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Error en generateTrabajosRelacionadosWithData:', error);
+      Swal.close();
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al generar la sección de trabajos relacionados.'
+      });
     }
   }
+
+  // Método para guardar el borrador de trabajos relacionados
+  async saveTrabajosRelatedDraft(): Promise<void> {
+    try {
+      Swal.fire({
+        title: 'Guardando trabajos relacionados...',
+        text: 'Por favor, espera un momento.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading(Swal.getConfirmButton());
+        }
+      });
+
+      // Se llama a saveSectionDraft del authService, enviando la propiedad "trabajos_relacionados"
+      const { data, error } = await this.authService.saveSectionDraft({
+        id_detalles_revision: this.reviewId,
+        // Se pueden enviar otros campos según corresponda
+        trabajos_relacionados: this.trabajosText
+      });
+
+      Swal.close();
+      if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error al guardar los trabajos relacionados. Por favor, inténtalo de nuevo.',
+          timer: 2500,
+          showConfirmButton: false
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Guardado',
+          text: 'Borrador de trabajos relacionados guardado con éxito.',
+          timer: 2500,
+          showConfirmButton: false
+        });
+        this.trabajosSaved = true; // Se marca como guardado para ocultar el botón
+      }
+    } catch (err) {
+      Swal.close();
+      console.error('Error al guardar el borrador de trabajos relacionados:', err);
+    }
+  }
+
+  // Generar metodología con IA
+  generateMetodologiaWithIA(): void {
+    // Al comenzar, se resetea el estado de guardado
+    this.metodologiaSaved = false;
+    Swal.fire({
+      title: 'Generando metodología...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+
+    // Construye el payload según necesites. Ejemplo:
+    const payload = {
+      title: this.reviewData.titulo_revision || '',
+      description: this.reviewData.descripcion || '',
+      objetivo: this.reviewData.objetivo || '',
+      tipo_investigacion: this.reviewData.tipo_investigacion || ''
+    };
+
+    // Llamada a un método del openAiService, e.g. generateMetodologia()
+    this.openAiService.generateMetodologia(payload).subscribe({
+      next: (res) => {
+        Swal.close();
+        Swal.fire({
+          icon: 'success',
+          title: 'Sugerencia generada',
+          text: 'La IA ha generado la sección de Metodología.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        // Asigna el texto al area editable
+        this.metodologiaText = res.metodologia.replace(/\n\n/g, '<br><br>');
+      },
+      error: (err) => {
+        Swal.close();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Hubo un error generando la metodología con IA.'
+        });
+        console.error('Error generando metodología con IA:', err);
+      }
+    });
+  }
+
+  // Guardar el borrador de Metodología
+  async saveMetodologiaDraft(): Promise<void> {
+    try {
+      Swal.fire({
+        title: 'Guardando metodología...',
+        text: 'Por favor, espera un momento.',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading(Swal.getConfirmButton());
+        }
+      });
+
+      // Llamamos al authService, enviando solo la Metodología
+      const { data, error } = await this.authService.saveSectionDraft({
+        id_detalles_revision: this.reviewId,
+        metodologia: this.metodologiaText
+      });
+
+      Swal.close();
+      if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar la metodología. Intenta de nuevo.'
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Guardado',
+          text: 'Borrador de Metodología guardado con éxito.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.metodologiaSaved = true;
+      }
+    } catch (err) {
+      Swal.close();
+      console.error('Error al guardar el borrador de Metodología:', err);
+    }
+  }
+
+  // 1. Método para generar resultados con IA
+  async generateResultadosWithIA(): Promise<void> {
+    this.resultadosSaved = false; // Indicamos que se está editando
+    Swal.fire({
+      title: 'Generando resultados...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+
+    try {
+      // A) Obtener studies_data
+      const { data: studiesData, error: studiesError } = await this.authService.getEstudiosByRevision(+this.reviewId);
+      if (studiesError) {
+        Swal.close();
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron cargar los estudios.' });
+        return;
+      }
+      // Podrías mapearlos a un arreglo de {id_estudios, estado, titulo}, etc.
+      const studiesArr = (studiesData || []).map(s => ({
+        id_estudios: s.id_estudios,
+        estado: s.estado,
+        titulo: s.titulo
+      }));
+      const studies_data = JSON.stringify(studiesArr);
+
+      // B) Obtener extraction_responses
+      const studyIds = (studiesData || [])
+        .map(s => s.id_estudios)
+        .filter((id): id is number => id !== undefined);
+      const { data: responsesData, error: responsesError } = await this.authService.getExtractionResponsesForStudies(studyIds);
+      if (responsesError) {
+        Swal.close();
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron cargar las respuestas de extracción.' });
+        return;
+      }
+      const extraction_responses = JSON.stringify(responsesData || []);
+
+      // C) Construir payload
+      const payload = {
+        studies_data,
+        extraction_responses
+      };
+
+      // Llamar a openAiService.generateResultados(...)
+      const result = await this.openAiService.generateResultados(payload).toPromise();
+
+      Swal.close();
+      Swal.fire({
+        icon: 'success',
+        title: 'Sugerencia generada',
+        text: 'La IA ha generado la sección de resultados.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      // Asignamos el texto
+      this.resultadosText = result.resultados.replace(/\n\n/g, '<br><br>');
+    } catch (err) {
+      Swal.close();
+      console.error('Error generando resultados con IA:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Hubo un error al generar la sección de resultados con IA.'
+      });
+    }
+  }
+
+  // 2. Guardar el borrador de resultados en la BD
+  async saveResultadosDraft(): Promise<void> {
+    Swal.fire({
+      title: 'Guardando resultados...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+
+    try {
+      // Llamamos a saveSectionDraft, enviando sólo resultados
+      const { data, error } = await this.authService.saveSectionDraft({
+        id_detalles_revision: this.reviewId,
+        resultados: this.resultadosText
+        // no mandamos los demás campos para no sobrescribirlos
+      });
+
+      Swal.close();
+      if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar la sección de resultados. Intente de nuevo.'
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Guardado',
+          text: 'Borrador de Resultados guardado con éxito.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.resultadosSaved = true;
+      }
+    } catch (err) {
+      Swal.close();
+      console.error('Error al guardar el borrador de Resultados:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al guardar la sección de resultados.'
+      });
+    }
+  }
+
+  // Generar discusión con IA
+  async generateDiscussionWithIA(): Promise<void> {
+    // Limpiamos el estado de guardado si se va a generar algo nuevo
+    this.discusionSaved = false;
+
+    Swal.fire({
+      title: 'Generando discusión...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+
+    try {
+      // Construir el payload con los datos que necesita el backend
+      // * results_summary -> this.resultadosText
+      // * literature_review -> this.trabajosText
+      const payload = {
+        results_summary: this.resultadosText || 'No hay resultados previos.',
+        literature_review: this.trabajosText || 'No hay trabajos relacionados previos.'
+      };
+
+      console.log('Payload para generar Discusión:', payload);
+
+      // Llamada al servicio de OpenAI
+      const response = await this.openAiService.generateDiscussion(payload).toPromise();
+
+      Swal.close();
+      Swal.fire({
+        icon: 'success',
+        title: 'Sugerencia generada',
+        text: 'La IA ha generado la sección de Discusión.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      // Asignamos la respuesta a discusionText
+      this.discusionText = response.discusion.replace(/\n\n/g, '<br><br>');
+    } catch (err) {
+      Swal.close();
+      console.error('Error generando Discusión con IA:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo generar la discusión con IA.'
+      });
+    }
+  }
+
+  // Guardar el borrador de Discusión
+  async saveDiscussionDraft(): Promise<void> {
+    Swal.fire({
+      title: 'Guardando discusión...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+
+    try {
+      // Llamamos a saveSectionDraft, enviando sólo la discusión
+      const { data, error } = await this.authService.saveSectionDraft({
+        id_detalles_revision: this.reviewId,
+        discusion: this.discusionText
+        // No enviamos los demás campos para no sobreescribirlos
+      });
+
+      Swal.close();
+      if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar la sección de discusión. Intente de nuevo.'
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Guardado',
+          text: 'Borrador de Discusión guardado con éxito.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.discusionSaved = true; // Marcamos como guardado
+      }
+    } catch (err) {
+      Swal.close();
+      console.error('Error al guardar el borrador de Discusión:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al guardar la sección de discusión.'
+      });
+    }
+  }
+
+  // Método para generar "Limitaciones" con IA
+  async generateLimitacionesWithIA(): Promise<void> {
+    this.limitacionesSaved = false; // Se resetea el guardado si se va a generar nuevo texto
+    Swal.fire({
+      title: 'Generando limitaciones...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+
+    try {
+      // Dado que el backend pide methodological_issues (metodologia) y search_limitations (resultados)
+      const payload = {
+        methodological_issues: this.metodologiaText || 'No hay metodología definida.',
+        search_limitations: this.resultadosText || 'No hay resultados definidos.'
+      };
+
+      console.log('Payload para generar Limitaciones:', payload);
+
+      // Llamada al openAiService, método generateLimitaciones
+      const response = await this.openAiService.generateLimitaciones(payload).toPromise();
+
+      Swal.close();
+      Swal.fire({
+        icon: 'success',
+        title: 'Sugerencia generada',
+        text: 'La IA ha generado la sección de limitaciones.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      // Asignamos el texto al área editable
+      this.limitacionesText = response.limitaciones.replace(/\n\n/g, '<br><br>');
+
+    } catch (err) {
+      Swal.close();
+      console.error('Error generando limitaciones con IA:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo generar la sección de limitaciones con IA.'
+      });
+    }
+  }
+
+  // Método para guardar el borrador de "Limitaciones"
+  async saveLimitacionesDraft(): Promise<void> {
+    Swal.fire({
+      title: 'Guardando limitaciones...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+
+    try {
+      // Llamamos a saveSectionDraft enviando únicamente la sección "limitaciones"
+      const { data, error } = await this.authService.saveSectionDraft({
+        id_detalles_revision: this.reviewId,
+        limitaciones: this.limitacionesText
+        // No enviamos otros campos para no sobrescribirlos
+      });
+
+      Swal.close();
+      if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar la sección de limitaciones. Intenta de nuevo.'
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Guardado',
+          text: 'Borrador de Limitaciones guardado con éxito.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.limitacionesSaved = true; // Se marca como guardado
+      }
+    } catch (err) {
+      Swal.close();
+      console.error('Error al guardar el borrador de limitaciones:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al guardar la sección de limitaciones.'
+      });
+    }
+  }
+
+  // 1. Generar Conclusión con IA
+  async generateConclusionWithIA(): Promise<void> {
+    this.conclusionSaved = false;  // Se resetea el estado de guardado si se va a generar un nuevo borrador
+
+    Swal.fire({
+      title: 'Generando conclusión...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+
+    try {
+      // Construimos el payload requerido por el backend
+      // summary_results proviene de this.resultadosText
+      // future_research proviene de this.limitacionesText
+      const payload = {
+        summary_results: this.resultadosText || 'No se han definido resultados.',
+        future_research: this.limitacionesText || 'No se han definido limitaciones.'
+      };
+
+      console.log('Payload para generar Conclusión:', payload);
+
+      // Llamar a openAiService.generateConclusion(...)
+      const response = await this.openAiService.generateConclusion(payload).toPromise();
+
+      Swal.close();
+      Swal.fire({
+        icon: 'success',
+        title: 'Sugerencia generada',
+        text: 'La IA ha generado la sección de Conclusión.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      // Asignamos el texto generado al área editable
+      this.conclusionText = response.conclusion.replace(/\n\n/g, '<br><br>');
+
+    } catch (err) {
+      Swal.close();
+      console.error('Error generando Conclusión con IA:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo generar la sección de conclusión con IA.'
+      });
+    }
+  }
+
+  // 2. Guardar borrador de Conclusión
+  async saveConclusionDraft(): Promise<void> {
+    Swal.fire({
+      title: 'Guardando conclusión...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(Swal.getConfirmButton());
+      }
+    });
+
+    try {
+      // Llamamos a saveSectionDraft, enviando solo la sección de conclusión
+      const { data, error } = await this.authService.saveSectionDraft({
+        id_detalles_revision: this.reviewId,
+        conclusion: this.conclusionText
+        // No enviamos el resto de secciones para no sobrescribir
+      });
+
+      Swal.close();
+      if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar la sección de conclusión. Intente de nuevo.'
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Guardado',
+          text: 'Borrador de Conclusión guardado con éxito.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.conclusionSaved = true;
+      }
+    } catch (err) {
+      Swal.close();
+      console.error('Error al guardar el borrador de Conclusión:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al guardar la sección de conclusión.'
+      });
+    }
+  }
+
+  // 1. Generar Referencias con IA
+  async generateReferencesWithIA(): Promise<void> {
+    this.referencesSaved = false;  // reset del guardado si se va a regenerar
+    Swal.fire({
+      title: 'Generando referencias...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        // La firma de showLoading ahora requiere un argumento; si no deseas reemplazar un botón, pasa null:
+        Swal.showLoading(null);
+      }
+    });
+
+    try {
+      // Construimos el payload según pide el backend
+      // Pasamos introduction, trabajos_relacionados, metodologia, resultados, y un format (por defecto "IEEE")
+      const payload = {
+        introduction: this.introductionText || '',
+        trabajos_relacionados: this.trabajosText || '',
+        metodologia: this.metodologiaText || '',
+        resultados: this.resultadosText || '',
+        format: 'IEEE'
+      };
+
+      console.log('Payload para generar Referencias:', payload);
+
+      // Llamada a openAiService para generar las referencias
+      const response = await this.openAiService.generateReferencias(payload).toPromise();
+
+      Swal.close();
+      Swal.fire({
+        icon: 'success',
+        title: 'Sugerencia generada',
+        text: 'La IA ha generado la sección de referencias.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      // Asignamos el texto recibido
+      this.referenciasText = response.referencias.replace(/\n\n/g, '<br><br>');
+
+    } catch (err) {
+      Swal.close();
+      console.error('Error generando Referencias con IA:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo generar la sección de referencias con IA.'
+      });
+    }
+  }
+
+  // 2. Guardar borrador de Referencias
+  async saveReferencesDraft(): Promise<void> {
+    Swal.fire({
+      title: 'Guardando referencias...',
+      text: 'Por favor, espera un momento.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading(null);
+      }
+    });
+
+    try {
+      // Llamamos a saveSectionDraft, enviando solo las referencias
+      const { data, error } = await this.authService.saveSectionDraft({
+        id_detalles_revision: this.reviewId, // ajusta con tu variable (ej. this.reviewId)
+        referencias: this.referenciasText
+        // no enviamos otras secciones para no sobrescribir
+      });
+
+      Swal.close();
+      if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo guardar la sección de referencias. Intente de nuevo.'
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Guardado',
+          text: 'Borrador de Referencias guardado con éxito.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.referencesSaved = true;
+      }
+    } catch (err) {
+      Swal.close();
+      console.error('Error al guardar el borrador de Referencias:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Ocurrió un problema al guardar la sección de referencias.'
+      });
+    }
+  }
+
+
+
+
+
+
+
 
   // Función para generar y subir el DOCX
   async downloadDraftWord(): Promise<void> {
@@ -413,7 +1254,7 @@ export class InformesComponent implements OnInit {
 
 
 
-  
+
   firmaBase64: string = '';
 
   async generateQRText(data: string): Promise<string> {

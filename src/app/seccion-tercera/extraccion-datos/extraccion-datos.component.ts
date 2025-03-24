@@ -26,8 +26,16 @@ export class ExtraccionDatosComponent implements OnInit {
   acceptedStudiesThreshold: any[] = [];
   extractionFields: any[] = [];
   extractionData: { [studyId: string]: { [fieldId: string]: any } } = {};
+  minQualityScore: number = 0;
   // Variable de filtro: 'all' | 'done' | 'pending'
   filter: 'all' | 'done' | 'pending' = 'all';
+
+  // Nueva propiedad para el filtro de calidad:
+  // Valores: '' (sin filtro), 'superior' o 'menorIgual'
+  qualityFilter: string = '';
+
+  // Almacena la puntuación límite obtenida de la BD
+  puntuacionLimite: number = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -44,7 +52,7 @@ export class ExtraccionDatosComponent implements OnInit {
       this.loadUserData()
     ]);
 
-    // Obtener estudios aceptados
+    // Obtener estudios aceptados SIN filtrar por calidad
     const { data: studiesData, error: studiesError } =
       await this.authService.getAcceptedStudiesAboveLimit(this.reviewId);
     if (studiesError) {
@@ -52,6 +60,11 @@ export class ExtraccionDatosComponent implements OnInit {
       return;
     }
     this.acceptedStudiesThreshold = studiesData || [];
+
+    // Asumimos que la puntuación límite es la misma para todos (tomada desde la BD)
+    if (this.acceptedStudiesThreshold.length > 0) {
+      this.puntuacionLimite = this.acceptedStudiesThreshold[0].limite;
+    }
 
     // Obtener campos de extracción
     const { data: fieldsData, error: fieldsError } =
@@ -119,20 +132,46 @@ export class ExtraccionDatosComponent implements OnInit {
     this.filter = newFilter;
   }
 
-  // Retorna estudios filtrados
-  getFilteredStudies(): any[] {
+  // Método que filtra los estudios según el estado y el filtro de calidad seleccionado
+  getFilteredStudies() {
+    let studies = this.acceptedStudiesThreshold;
+    // Filtro por estado: 'all', 'done' o 'pending'
     if (this.filter === 'done') {
-      return this.acceptedStudiesThreshold.filter(study => study.done);
+      studies = studies.filter(study => study.done);
     } else if (this.filter === 'pending') {
-      return this.acceptedStudiesThreshold.filter(study => !study.done);
+      studies = studies.filter(study => !study.done);
     }
-    return this.acceptedStudiesThreshold;
+    // Filtro por calidad según el select:
+    if (this.qualityFilter === 'superior') {
+      studies = studies.filter(study => study.totalPeso > this.puntuacionLimite);
+    } else if (this.qualityFilter === 'menorIgual') {
+      studies = studies.filter(study => study.totalPeso <= this.puntuacionLimite);
+    }
+    return studies;
   }
 
-  toggleStudyDone(study: any): void {
-    study.done = !study.done;
-    console.log('Estado de "hecho" actualizado:', study.done);
+  toggleStudyDone(study: any) {
+    // Se invierte el estado "done" del estudio
+    const newDoneStatus = !study.done;
+  
+    // Se actualiza la base de datos para el estudio actual
+    this.authService.updateExtractionStatusForStudy(study.id_estudios, newDoneStatus)
+      .then(() => {
+        // Si la actualización fue exitosa, se actualiza el estado local
+        study.done = newDoneStatus;
+      })
+      .catch(err => {
+        console.error("Error updating study status:", err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo actualizar el estado del estudio.'
+        });
+      });
   }
+  
+
+
 
   // Cargar respuestas de extracción ya guardadas
   async loadExistingExtractionData() {
@@ -228,6 +267,8 @@ export class ExtraccionDatosComponent implements OnInit {
     this.extractionData[studyId][fieldId] = value;
     study.extractionSaved = false;
   }
+
+
 
   // Exportar datos a Excel
   exportToExcel(): void {
@@ -344,29 +385,35 @@ export class ExtraccionDatosComponent implements OnInit {
 
   // Generar sugerencias de IA para todos los estudios
   async generateAISuggestions() {
-    const studiesMissingPDF = this.acceptedStudiesThreshold.filter(
+    // Filtrar estudios que estén sin responder (no marcados como 'done')
+    const studiesSinResponder = this.acceptedStudiesThreshold.filter(
+      study => !study.done
+    );
+  
+    // Verificar que todos los estudios sin responder tengan un PDF
+    const studiesMissingPDF = studiesSinResponder.filter(
       study => !study.url_pdf_articulo || !study.url_pdf_articulo.trim()
     );
     if (studiesMissingPDF.length > 0) {
       Swal.fire({
         icon: 'warning',
         title: 'Artículos incompletos',
-        text: 'Debe subir el PDF de todos los artículos antes de generar las sugerencias de IA.'
+        text: 'Debe subir el PDF de todos los artículos sin responder antes de generar las sugerencias de IA.'
       });
       return;
     }
-
+  
     Swal.fire({
-      title: 'Generando sugerencias para todos los estudios...',
+      title: 'Generando sugerencias para estudios sin responder...',
       text: 'Por favor, espere un momento.',
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading(Swal.getConfirmButton());
       }
     });
-
+  
     try {
-      const suggestionsPromises = this.acceptedStudiesThreshold.map(study => {
+      const suggestionsPromises = studiesSinResponder.map(study => {
         const questionsPayload = this.extractionFields.map(field => ({
           pregunta: field.descripcion,
           tipoRespuesta: field.tipo
@@ -382,22 +429,28 @@ export class ExtraccionDatosComponent implements OnInit {
             return { studyId: study.id_estudios, suggestions: [] };
           });
       });
-
+  
       const results = await Promise.all(suggestionsPromises);
       results.forEach(result => {
         if (this.extractionData[result.studyId]) {
-          result.suggestions.forEach((suggestion: any, index: number) => {
+          // Asegurarse de que suggestions es un arreglo
+          const suggestionsArray = Array.isArray(result.suggestions)
+            ? result.suggestions
+            : result.suggestions ? [result.suggestions] : [];
+            
+          suggestionsArray.forEach((suggestion: any, index: number) => {
             const fieldId = this.extractionFields[index].id_campo_extraccion;
             this.extractionData[result.studyId][fieldId] = suggestion.answer;
           });
         }
       });
-
+      
+  
       Swal.close();
       Swal.fire({
         icon: 'success',
         title: 'Sugerencias generadas',
-        text: 'Se han generado las sugerencias de IA para todos los estudios.',
+        text: 'Se han generado las sugerencias de IA para todos los estudios sin responder.',
         timer: 2500,
         showConfirmButton: false
       });
@@ -411,6 +464,7 @@ export class ExtraccionDatosComponent implements OnInit {
       });
     }
   }
+  
 
   get allStudiesHavePdf(): boolean {
     return this.acceptedStudiesThreshold?.every(study =>
@@ -419,6 +473,9 @@ export class ExtraccionDatosComponent implements OnInit {
   }
 
   isGenerateAISuggestionsDisabled(): boolean {
-    return this.acceptedStudiesThreshold.some(study => !study.url_pdf_articulo || !study.url_pdf_articulo.trim());
+    // El botón se habilita solo si existe al menos un estudio sin responder (study.done === false) y con URL de PDF válida.
+    return !this.acceptedStudiesThreshold.some(
+      study => study.url_pdf_articulo && study.url_pdf_articulo.trim() && !study.done
+    );
   }
 }

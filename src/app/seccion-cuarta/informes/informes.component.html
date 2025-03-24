@@ -104,11 +104,16 @@
                      </button>
                   </li>
                   <li class="nav-item" role="presentation">
-                     <button class="nav-link" id="descarga-tab" data-bs-toggle="tab" data-bs-target="#descarga"
-                        type="button" role="tab" aria-controls="descarga" aria-selected="false">
+                     <button class="nav-link d-flex align-items-center" id="descarga-tab" data-bs-toggle="tab"
+                        data-bs-target="#descarga" type="button" role="tab" aria-controls="descarga"
+                        aria-selected="false"
+                        style="background-color: #dc3545; color: #ffffff; border: none; padding-left: 10px;">
+                        <i class="bi bi-download me-2" style="color: #ffffff;"></i>
                         Descargas
                      </button>
                   </li>
+
+
                </ul>
 
                <!-- Contenido de cada pestaña -->
@@ -119,7 +124,13 @@
                         <div class="card-header bg-light">
                            <div class="d-flex justify-content-between mt-2">
                               <!-- Título de la sección -->
-                              <h5><strong>Introducción</strong></h5>
+                              <h5>
+                                 <strong>Introducción</strong> &nbsp;
+                                 <!-- Muestra el ícono de check solo si introductionSaved es true -->
+                                 <span *ngIf="introductionSaved">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                 </span>
+                              </h5>
                               <!-- Botón para generar texto con IA -->
                               <button class="btn btn-primary" title="Generar introducción con IA"
                                  (click)="generateIntroductionWithIA()">
@@ -134,9 +145,9 @@
                               <!-- El contenido generado se mostrará aquí -->
                            </div>
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón para guardar el borrador de Introducción -->
-                              <button class="btn btn-success" title="Guardar borrador de Introducción"
-                                 (click)="saveIntroductionDraft()">
+                              <!-- El botón de guardar solo se muestra si introductionSaved es false -->
+                              <button *ngIf="!introductionSaved" class="btn btn-success"
+                                 title="Guardar borrador de Introducción" (click)="saveIntroductionDraft()">
                                  Guardar introducción
                               </button>
                            </div>
@@ -144,27 +155,35 @@
                      </div>
                   </div>
 
+
                   <!-- Trabajos relacionados -->
                   <div class="tab-pane fade" id="trabajos" role="tabpanel" aria-labelledby="trabajos-tab">
                      <div class="card mb-3">
                         <div class="card-header bg-light">
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la izquierda para generar texto con IA -->
-                              <h5><strong>Trabajos relacionados</strong></h5>
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-primary" title="Generar introducción con IA">
+                              <h5>
+                                 <strong>Trabajos relacionados</strong> &nbsp;
+                                 <!-- Si se guardó el borrador, se muestra el check -->
+                                 <span *ngIf="trabajosSaved">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                 </span>
+                              </h5>
+                              <!-- Botón para generar sugerencias con IA -->
+                              <button class="btn btn-primary" title="Generar trabajos relacionados con IA"
+                                 (click)="generateTrabajosRelacionadosWithData()">
                                  Generar trabajos relacionados con IA
                               </button>
                            </div>
                         </div>
                         <div class="card-body">
+                           <!-- Área editable para el borrador de Trabajos relacionados -->
                            <div contenteditable="true" class="form-control" style="min-height: 150px;"
                               [innerHTML]="trabajosText">
-                              <!-- Aquí se edita el borrador de la Introducción -->
                            </div>
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-success" title="Guardar borrador de Introducción">
+                              <!-- Botón para guardar se muestra solo si aún no se ha guardado -->
+                              <button *ngIf="!trabajosSaved" class="btn btn-success"
+                                 title="Guardar borrador de Trabajos relacionados" (click)="saveTrabajosRelatedDraft()">
                                  Guardar trabajos relacionados
                               </button>
                            </div>
@@ -172,27 +191,35 @@
                      </div>
                   </div>
 
+
                   <!-- Metodología -->
                   <div class="tab-pane fade" id="metodologia" role="tabpanel" aria-labelledby="metodologia-tab">
                      <div class="card mb-3">
                         <div class="card-header bg-light">
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la izquierda para generar texto con IA -->
-                              <h5><strong>Metodología</strong></h5>
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-primary" title="Generar introducción con IA">
+                              <h5>
+                                 <strong>Metodología</strong> &nbsp;
+                                 <!-- Ícono de check que aparece si metodología ya se guardó -->
+                                 <span *ngIf="metodologiaSaved">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                 </span>
+                              </h5>
+                              <!-- Botón para generar texto con IA -->
+                              <button class="btn btn-primary" title="Generar metodología con IA"
+                                 (click)="generateMetodologiaWithIA()">
                                  Generar metodología con IA
                               </button>
                            </div>
                         </div>
                         <div class="card-body">
+                           <!-- Área editable para la metodología -->
                            <div contenteditable="true" class="form-control" style="min-height: 150px;"
                               [innerHTML]="metodologiaText">
-                              <!-- Aquí se edita el borrador de la Introducción -->
                            </div>
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-success" title="Guardar borrador de Introducción">
+                              <!-- Botón para guardar metodología (aparece solo si no está guardado) -->
+                              <button *ngIf="!metodologiaSaved" class="btn btn-success"
+                                 title="Guardar borrador de Metodología" (click)="saveMetodologiaDraft()">
                                  Guardar metodología
                               </button>
                            </div>
@@ -200,15 +227,22 @@
                      </div>
                   </div>
 
+
                   <!-- Resultados -->
                   <div class="tab-pane fade" id="resultados" role="tabpanel" aria-labelledby="resultados-tab">
                      <div class="card mb-3">
                         <div class="card-header bg-light">
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la izquierda para generar texto con IA -->
-                              <h5><strong>Resultados</strong></h5>
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-primary" title="Generar introducción con IA">
+                              <h5>
+                                 <strong>Resultados</strong> &nbsp;
+                                 <!-- Ícono de check que aparece si resultados ya se guardó -->
+                                 <span *ngIf="resultadosSaved">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                 </span>
+                              </h5>
+                              <!-- Botón para generar texto con IA -->
+                              <button class="btn btn-primary" title="Generar resultados con IA"
+                                 (click)="generateResultadosWithIA()">
                                  Generar resultados con IA
                               </button>
                            </div>
@@ -216,11 +250,11 @@
                         <div class="card-body">
                            <div contenteditable="true" class="form-control" style="min-height: 150px;"
                               [innerHTML]="resultadosText">
-                              <!-- Aquí se edita el borrador de la Introducción -->
                            </div>
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-success" title="Guardar borrador de Introducción">
+                              <!-- Botón para guardar resultados (se muestra solo si resultadosSaved es false) -->
+                              <button *ngIf="!resultadosSaved" class="btn btn-success"
+                                 title="Guardar borrador de Resultados" (click)="saveResultadosDraft()">
                                  Guardar resultados
                               </button>
                            </div>
@@ -228,15 +262,22 @@
                      </div>
                   </div>
 
+
                   <!-- Discusión -->
                   <div class="tab-pane fade" id="discusion" role="tabpanel" aria-labelledby="discusion-tab">
                      <div class="card mb-3">
                         <div class="card-header bg-light">
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la izquierda para generar texto con IA -->
-                              <h5><strong>Discusión</strong></h5>
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-primary" title="Generar introducción con IA">
+                              <h5>
+                                 <strong>Discusión</strong> &nbsp;
+                                 <!-- Ícono check si ya está guardada -->
+                                 <span *ngIf="discusionSaved">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                 </span>
+                              </h5>
+                              <!-- Botón para generar la discusión con IA -->
+                              <button class="btn btn-primary" title="Generar discusión con IA"
+                                 (click)="generateDiscussionWithIA()">
                                  Generar discusión con IA
                               </button>
                            </div>
@@ -244,11 +285,11 @@
                         <div class="card-body">
                            <div contenteditable="true" class="form-control" style="min-height: 150px;"
                               [innerHTML]="discusionText">
-                              <!-- Aquí se edita el borrador de la Introducción -->
                            </div>
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-success" title="Guardar borrador de Introducción">
+                              <!-- Botón para guardar la discusión, sólo visible si discusionSaved es false -->
+                              <button *ngIf="!discusionSaved" class="btn btn-success"
+                                 title="Guardar borrador de Discusión" (click)="saveDiscussionDraft()">
                                  Guardar discusión
                               </button>
                            </div>
@@ -256,15 +297,22 @@
                      </div>
                   </div>
 
+
                   <!-- Limitaciones -->
                   <div class="tab-pane fade" id="limitaciones" role="tabpanel" aria-labelledby="limitaciones-tab">
                      <div class="card mb-3">
                         <div class="card-header bg-light">
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la izquierda para generar texto con IA -->
-                              <h5><strong>Limitaciones</strong></h5>
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-primary" title="Generar introducción con IA">
+                              <h5>
+                                 <strong>Limitaciones</strong> &nbsp;
+                                 <!-- Ícono de check para indicar si ya se guardó -->
+                                 <span *ngIf="limitacionesSaved">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                 </span>
+                              </h5>
+                              <!-- Botón para generar texto con IA -->
+                              <button class="btn btn-primary" title="Generar limitaciones con IA"
+                                 (click)="generateLimitacionesWithIA()">
                                  Generar limitaciones con IA
                               </button>
                            </div>
@@ -272,11 +320,11 @@
                         <div class="card-body">
                            <div contenteditable="true" class="form-control" style="min-height: 150px;"
                               [innerHTML]="limitacionesText">
-                              <!-- Aquí se edita el borrador de la Introducción -->
                            </div>
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-success" title="Guardar borrador de Introducción">
+                              <!-- Botón para guardar (oculto si limitacionesSaved es true) -->
+                              <button *ngIf="!limitacionesSaved" class="btn btn-success"
+                                 title="Guardar borrador de Limitaciones" (click)="saveLimitacionesDraft()">
                                  Guardar limitaciones
                               </button>
                            </div>
@@ -284,27 +332,35 @@
                      </div>
                   </div>
 
+
                   <!-- Conclusión -->
                   <div class="tab-pane fade" id="conclusion" role="tabpanel" aria-labelledby="conclusion-tab">
                      <div class="card mb-3">
                         <div class="card-header bg-light">
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la izquierda para generar texto con IA -->
-                              <h5><strong>Conclusión</strong></h5>
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-primary" title="Generar introducción con IA">
+                              <h5>
+                                 <strong>Conclusión</strong> &nbsp;
+                                 <!-- Ícono check si ya está guardado -->
+                                 <span *ngIf="conclusionSaved">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                 </span>
+                              </h5>
+                              <!-- Botón para generar conclusión con IA -->
+                              <button class="btn btn-primary" title="Generar conclusión con IA"
+                                 (click)="generateConclusionWithIA()">
                                  Generar conclusión con IA
                               </button>
                            </div>
                         </div>
                         <div class="card-body">
+                           <!-- Área editable de la Conclusión -->
                            <div contenteditable="true" class="form-control" style="min-height: 150px;"
                               [innerHTML]="conclusionText">
-                              <!-- Aquí se edita el borrador de la Introducción -->
                            </div>
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-success" title="Guardar borrador de Introducción">
+                              <!-- Botón para guardar (solo visible si conclusionSaved es false) -->
+                              <button *ngIf="!conclusionSaved" class="btn btn-success"
+                                 title="Guardar borrador de Conclusión" (click)="saveConclusionDraft()">
                                  Guardar conclusión
                               </button>
                            </div>
@@ -312,33 +368,42 @@
                      </div>
                   </div>
 
+
                   <!-- Referencias -->
                   <div class="tab-pane fade" id="referencias" role="tabpanel" aria-labelledby="referencias-tab">
                      <div class="card mb-3">
                         <div class="card-header bg-light">
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la izquierda para generar texto con IA -->
-                              <h5><strong>Referencias</strong></h5>
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-primary" title="Generar introducción con IA">
+                              <h5>
+                                 <strong>Referencias</strong> &nbsp;
+                                 <!-- Ícono check si ya está guardado -->
+                                 <span *ngIf="referencesSaved">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                 </span>
+                              </h5>
+                              <!-- Botón para generar las referencias con IA -->
+                              <button class="btn btn-primary" title="Generar referencias con IA"
+                                 (click)="generateReferencesWithIA()">
                                  Generar referencias con IA
                               </button>
                            </div>
                         </div>
                         <div class="card-body">
+                           <!-- Área editable para la sección de Referencias -->
                            <div contenteditable="true" class="form-control" style="min-height: 150px;"
                               [innerHTML]="referenciasText">
-                              <!-- Aquí se edita el borrador de la Introducción -->
                            </div>
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón a la derecha para guardar -->
-                              <button class="btn btn-success" title="Guardar borrador de Introducción">
-                                 Guardar retodología
+                              <!-- Botón para guardar, sólo aparece si referencesSaved = false -->
+                              <button *ngIf="!referencesSaved" class="btn btn-success"
+                                 title="Guardar borrador de Referencias" (click)="saveReferencesDraft()">
+                                 Guardar referencias
                               </button>
                            </div>
                         </div>
                      </div>
                   </div>
+
 
                   <!-- Descarga -->
                   <div class="tab-pane fade" id="descarga" role="tabpanel" aria-labelledby="descarga-tab">
@@ -360,7 +425,7 @@
                         </div>
                      </div>
 
-                     <!-- Tarjeta para generar y subir informe PDF (opcional) -->
+                     <!-- Tarjeta para generar y subir informe PDF (opcional) 
                      <div class="card mb-3">
                         <div class="card-header bg-primary text-white">
                            <h5 class="mb-0">
@@ -376,7 +441,7 @@
                               <i class="bi bi-file-earmark-pdf"></i>&nbsp; Generar y Subir Informe PDF
                            </button>
                         </div>
-                     </div>
+                     </div>-->
                      <!-- Campos de entrada dinámicos 
                      <div class="card mb-3">
                         <div class="card-header bg-primary text-white">

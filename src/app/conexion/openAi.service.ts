@@ -15,8 +15,15 @@ export class OpenAiService {
   private criteriaUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-criteria';
   private qualityQuestionsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-quality-questions';
   private dataExtractionQuestionsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-data-extraction-questions';
-  private introductionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-introduction';
   private extractionSuggestionsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-extraction-suggestions';
+  private introductionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-introduction';
+  private qualityTrabajosUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-trabajos-relacionados';
+  private metodologiaUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-metodologia';
+  private resultadosUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-resultados';
+  private discussionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-discusion';
+  private limitacionesUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-limitaciones';
+  private conclusionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-conclusion';
+  private referenciasUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-referencias';
 
   constructor(private http: HttpClient) { }
 
@@ -80,7 +87,7 @@ export class OpenAiService {
   getQualityQuestions(title: string, objective: string): Observable<any> {
     return this.http.post<any>(this.qualityQuestionsUrl, { title, objective });
   }
-  
+
   generateDataExtractionQuestions(
     title: string,
     objective: string,
@@ -103,4 +110,38 @@ export class OpenAiService {
   }) {
     return this.http.post<any>(this.introductionUrl, data);
   }
+
+  generateTrabajosRelated(payload: any): Observable<any> {
+    return this.http.post<any>(this.qualityTrabajosUrl, payload);
+  }
+
+  generateMetodologia(payload: any): Observable<any> {
+    return this.http.post<any>(this.metodologiaUrl, payload);
+  }
+  
+  generateResultados(payload: any): Observable<any> {
+    // Ejemplo de URL
+    return this.http.post<any>(this.resultadosUrl, payload);
+  }
+
+  generateDiscussion(payload: any): Observable<any> {
+    return this.http.post<any>(this.discussionUrl, payload);
+  }
+
+  generateLimitaciones(payload: any): Observable<any> {
+    return this.http.post<any>(this.limitacionesUrl, payload);
+  }
+  
+  generateConclusion(payload: any): Observable<any> {
+    // Asegúrate de tener this.conclusionUrl definido en tu constructor
+    return this.http.post<any>(this.conclusionUrl, payload);
+  }
+  
+  generateReferencias(payload: any): Observable<any> {
+    // Asegúrate de que this.referenciasUrl apunte al endpoint correcto, ej:
+    // this.referenciasUrl = 'https://mi-backend.com/api/generate-referencias';
+    return this.http.post<any>(this.referenciasUrl, payload);
+  }
+  
+  
 }
