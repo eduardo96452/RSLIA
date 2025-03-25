@@ -150,7 +150,7 @@ export class InformesComponent implements OnInit {
       console.error('Excepción al cargar la introducción:', err);
     }
   }
-  
+
   async loadTrabajosDraft(): Promise<void> {
     try {
       const { data, error } = await this.authService.getSectionDraft(this.reviewId);
@@ -164,7 +164,7 @@ export class InformesComponent implements OnInit {
       console.error('Excepción al cargar trabajos relacionados:', err);
     }
   }
-  
+
   async loadMetodologiaDraft(): Promise<void> {
     try {
       const { data, error } = await this.authService.getSectionDraft(this.reviewId);
@@ -178,7 +178,7 @@ export class InformesComponent implements OnInit {
       console.error('Excepción al cargar metodología:', err);
     }
   }
-  
+
   async loadResultadosDraft(): Promise<void> {
     try {
       const { data, error } = await this.authService.getSectionDraft(this.reviewId);
@@ -192,7 +192,7 @@ export class InformesComponent implements OnInit {
       console.error('Excepción al cargar resultados:', err);
     }
   }
-  
+
   async loadDiscusionDraft(): Promise<void> {
     try {
       const { data, error } = await this.authService.getSectionDraft(this.reviewId);
@@ -206,7 +206,7 @@ export class InformesComponent implements OnInit {
       console.error('Excepción al cargar discusión:', err);
     }
   }
-  
+
   async loadLimitacionesDraft(): Promise<void> {
     try {
       const { data, error } = await this.authService.getSectionDraft(this.reviewId);
@@ -220,7 +220,7 @@ export class InformesComponent implements OnInit {
       console.error('Excepción al cargar limitaciones:', err);
     }
   }
-  
+
   async loadConclusionDraft(): Promise<void> {
     try {
       const { data, error } = await this.authService.getSectionDraft(this.reviewId);
@@ -234,7 +234,7 @@ export class InformesComponent implements OnInit {
       console.error('Excepción al cargar conclusión:', err);
     }
   }
-  
+
   async loadReferenciasDraft(): Promise<void> {
     try {
       const { data, error } = await this.authService.getSectionDraft(this.reviewId);
@@ -248,7 +248,7 @@ export class InformesComponent implements OnInit {
       console.error('Excepción al cargar referencias:', err);
     }
   }
-  
+
 
 
   generateIntroductionWithIA(): void {
@@ -1268,6 +1268,16 @@ export class InformesComponent implements OnInit {
 
   async downloadDraftPdf(): Promise<void> {
     try {
+      // Verificar que se haya generado la firma electrónica antes de continuar.
+      if (!this.firmaBase64) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Firma electrónica no generada',
+          text: 'Por favor, primero genera la firma electrónica para descargar el PDF.'
+        });
+        return;
+      }
+
       // 1. Crear una instancia de jsPDF
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
