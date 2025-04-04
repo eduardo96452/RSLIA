@@ -536,11 +536,6 @@ export class EstudiosComponent implements OnInit {
           case 'PY':
             currentStudy.year = value;
             break;
-          case 'Y1':
-            if (!currentStudy.year) {
-              currentStudy.year = value;
-            }
-            break;
           case 'KW':
             currentStudy.keywords += (currentStudy.keywords ? '; ' : '') + value;
             break;

@@ -1,17 +1,11 @@
-.form-control-dark {
-    border-color: var(--bs-gray);
-  }
-  .form-control-dark:focus {
-    border-color: #fff;
-    box-shadow: 0 0 0 .25rem rgba(255, 255, 255, .25);
-  }
-  
-  .text-small {
-    font-size: 85%;
-  }
-  
-  .dropdown-toggle:not(:focus) {
-    outline: 0;
-  }
-  
+.nav-link.active {
+  color: #4b6cb7 !important; /* Cambia #4b6cb7 por el color que prefieras */
+  font-weight: bold;
+  border-bottom: 2px solid #4b6cb7; /* Opcional: subraya el enlace activo */
+}
 
+/* Si deseas que también se apliquen efectos al pasar el mouse */
+.nav-link.active:hover {
+  color: #4b6cb7;
+  text-decoration: none;
+}

@@ -1,0 +1,22 @@
+.hero-section {
+    background: linear-gradient(135deg, #4b6cb7, #182848);
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+  }
+  
+  .features-section {
+    background: #f8f9fa;
+  }
+  
+  .feature-card {
+    background: white;
+    transition: transform 0.3s ease;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .cta-section {
+    background: #f0f2f5;
+  }
+  

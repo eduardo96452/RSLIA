@@ -2007,21 +2007,28 @@ export class PlanificacionComponent implements OnInit {
         // Usamos el nombre de la base como fuente
         const fuente = base.nombre;
         const { data, error } = await this.authService.getCadenaBusqueda(this.reviewId, fuente);
-        if (data) {
+  
+        // Si data existe y hay una cadena_busqueda no vacía,
+        // entonces asignamos base.cadenaGuardada = true
+        if (data && data.cadena_busqueda) {
           base.cadenaBusqueda = data.cadena_busqueda;
+          base.cadenaGuardada = true;  // Ya hay algo guardado, ocultamos el botón
         } else {
+          // No hay cadena de búsqueda en la BD o no hay data
           base.cadenaBusqueda = '';
+          base.cadenaGuardada = false; // Mostramos el botón de guardar
         }
+  
         base.isCadenaCopied = false;
-        base.cadenaGuardada = true; // Se oculta el botón de guardar para este bloque
       }
-
+  
       // Reasigna el array para forzar la detección de cambios en Angular
       this.bases = [...this.bases];
     } catch (err) {
       console.error('Error al cargar las cadenas de búsqueda para las bases:', err);
     }
   }
+  
 
   // Getter que verifica si la cadena global y las cadenas de todas las bases están completas
   get allCadenasComplete(): boolean {
@@ -2625,9 +2632,6 @@ export class PlanificacionComponent implements OnInit {
       }
     );
   }
-  
-  
-  
 
   // ---------------- RESPUESTAS ----------------
 

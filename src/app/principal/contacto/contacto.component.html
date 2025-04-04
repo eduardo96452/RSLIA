@@ -1,25 +1,73 @@
-<!-- Sección Contacto -->
-<section id="contacto" class="py-5">
-    <div class="container">
-      <h2 class="text-center mb-4">Contacto</h2>
-      <div class="row justify-content-center">
-        <div class="col-md-6">
-          <form>
+<section class="contact-hero-section text-white text-center position-relative">
+  <div class="container py-5">
+    <h2 class="fw-bold mb-3">📨 Contáctanos</h2>
+    <p class="lead mb-0">
+      ¿Tienes dudas o sugerencias? Completa el formulario y nos pondremos en contacto contigo.
+    </p>
+  </div>
+
+  <svg class="position-absolute bottom-0 start-0 w-100 flipped-wave" height="130" preserveAspectRatio="none" viewBox="0 0 1200 120">
+    <path d="M321.39,56.44C213.81,84.81,106.25,104.6,0,
+    104.57V0H1200V27.35c-89.29,19.87-178.58,39.75-272,
+    39.73-96.86-.02-193.71-21.2-290.57-21.3-96.28-.11-192.57,
+    21.82-289.04,50.66Z" fill="#ffffff"></path>
+  </svg>
+</section>
+
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0 rounded-4 p-4">
+          <!-- Asociar el método onSubmit() al evento (ngSubmit) -->
+          <form (ngSubmit)="onSubmit()">
             <div class="mb-3">
-              <label for="nombre" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="nombre" placeholder="Tu nombre">
+              <label class="form-label">Nombre completo</label>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Ingresa tu nombre"
+                [(ngModel)]="contactData.name"
+                name="name"
+                required
+              />
             </div>
             <div class="mb-3">
-              <label for="email" class="form-label">Correo electrónico</label>
-              <input type="email" class="form-control" id="email" placeholder="tuemail@ejemplo.com">
+              <label class="form-label">Correo electrónico</label>
+              <input
+                type="email"
+                class="form-control"
+                placeholder="tuemail@ejemplo.com"
+                [(ngModel)]="contactData.email"
+                name="email"
+                required
+              />
             </div>
             <div class="mb-3">
-              <label for="mensaje" class="form-label">Mensaje</label>
-              <textarea class="form-control" id="mensaje" rows="5" placeholder="Escribe tu mensaje aquí..."></textarea>
+              <label class="form-label">Mensaje</label>
+              <textarea
+                class="form-control"
+                rows="5"
+                placeholder="Escribe tu mensaje..."
+                [(ngModel)]="contactData.message"
+                name="message"
+                required
+              ></textarea>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Enviar</button>
+            <div class="d-grid">
+              <button class="btn btn-primary btn-lg">
+                <i class="fas fa-paper-plane me-2"></i> Enviar Mensaje
+              </button>
+            </div>
           </form>
+
+          <div class="text-center mt-3">
+            <small class="text-muted">
+              También puedes escribirnos a <strong>literia.contacto&#64;gmail.com</strong>
+            </small>
+          </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>

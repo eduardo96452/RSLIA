@@ -1,0 +1,14 @@
+.contact-hero-section {
+    background: linear-gradient(135deg, #4b6cb7, #182848);
+    padding-top: 3rem;
+    padding-bottom: 5rem;
+    overflow-x: hidden;
+    overflow-y: visible;
+    z-index: 0;
+}
+
+.flipped-wave {
+    transform: rotate(180deg);
+    z-index: 1;
+    pointer-events: none;
+  }

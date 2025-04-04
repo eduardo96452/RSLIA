@@ -1,0 +1,18 @@
+.about-hero-section {
+  background: linear-gradient(135deg, #4b6cb7, #182848);
+  padding-top: 4rem;
+  padding-bottom: 8rem;
+  position: relative;
+  padding-top: 1rem;
+  padding-bottom: 1.5rem;
+  z-index: 0;
+  /* overflow: hidden;  <-- ¡Evita esto o cámbialo por lo siguiente! */
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+.rotate-wave {
+  transform: rotate(180deg);
+  z-index: 1;
+  pointer-events: none;
+}
