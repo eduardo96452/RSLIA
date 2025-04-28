@@ -53,7 +53,7 @@
 
               <!-- Proyección de borrador de articulo -->
               <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
-                Proyección de informes
+                Redacción de articulo
               </div>
 
               <!-- Diagrama de flujo de datos -->
@@ -73,167 +73,178 @@
               </h5>
             </div>
             <div class="card-body">
+              <!-- extraccion-datos.component.html -->
               <div class="container">
-                <!-- Filtros y botones -->
-                <p>En esta sección se realiza la extracción de datos clave de los estudios seleccionados y que han
-                  pasado
-                  la puntuación minima de la evaluación de calidad. Aquí podrá responder preguntas específicas sobre
-                  cada
-                  estudio, registrando información relevante en diferentes
-                  formatos como texto, números, fechas o valores booleanos. Además, puede generar sugerencias con IA
-                  para
-                  agilizar el proceso y exportar los datos a Excel para su análisis posterior.</p>
-                <br>
-                <!-- Filtros y botones -->
-                <div class="mb-3 d-flex justify-content-between align-items-center">
-                  <!-- Filtro (lado izquierdo) -->
-                  <div>
-                    <button class="btn btn-outline-primary me-2" [ngClass]="{ 'active': filter === 'all' }"
-                      (click)="setFilter('all')">
-                      Todos
-                    </button>
-                    <button class="btn btn-outline-primary me-2" [ngClass]="{ 'active': filter === 'done' }"
-                      (click)="setFilter('done')">
-                      Hechos
-                    </button>
-                    <button class="btn btn-outline-primary" [ngClass]="{ 'active': filter === 'pending' }"
-                      (click)="setFilter('pending')">
-                      Por marcar
-                    </button>
-                    <!-- Nuevo select para filtro de calidad -->
-                    <select class="form-select mt-2" [(ngModel)]="qualityFilter">
+
+                <!-- Intro -->
+                <p>
+                  En esta sección se realiza la extracción de datos clave de los estudios que superaron la
+                  puntuación mínima de calidad. Responda cada pregunta, genere sugerencias con IA
+                  y exporte a Excel cuando termine.
+                </p>
+
+                <!-- ═════════════════════════════════ FILTROS ═════════════════════════════════ -->
+                <div class="mb-3 d-flex justify-content-between align-items-start flex-wrap">
+                  <div class="me-3">
+                    <button class="btn btn-outline-primary me-1 mb-1" [ngClass]="{active: filter==='all'}"
+                      (click)="setFilter('all')">Todos</button>
+                    <button class="btn btn-outline-primary me-1 mb-1" [ngClass]="{active: filter==='done'}"
+                      (click)="setFilter('done')">Hechos</button>
+                    <button class="btn btn-outline-primary mb-1" [ngClass]="{active: filter==='pending'}"
+                      (click)="setFilter('pending')">Por marcar</button>
+
+                    <select class="form-select mt-2" style="max-width:260px" [(ngModel)]="qualityFilter">
                       <option value="">Sin filtro de calidad</option>
-                      <option value="superior">Puntuación superior a {{puntuacionLimite}}</option>
-                      <option value="menorIgual">Puntuación menor o igual a {{puntuacionLimite}}</option>
+                      <option value="superior">Puntuación &gt; {{ puntuacionLimite }}</option>
+                      <option value="menorIgual">Puntuación ≤ {{ puntuacionLimite }}</option>
                     </select>
                   </div>
 
-                  <!-- Botones adicionales (lado derecho) -->
-                  <div>
-                    <button class="btn btn-primary me-2" (click)="exportToExcel()">
+                  <div class="d-flex flex-wrap">
+                    <button class="btn btn-primary me-2 mb-1" (click)="exportToExcel()">
                       <i class="bi bi-file-earmark-excel"></i>&nbsp; Exportar a Excel
                     </button>
-                    <button class="btn btn-info" [disabled]="isGenerateAISuggestionsDisabled()"
+
+                    <button class="btn btn-info mb-1" [disabled]="isGenerateAISuggestionsDisabled()"
                       (click)="generateAISuggestions()">
                       <i class="bi bi-robot"></i>&nbsp; Generar todas las sugerencias de IA
                     </button>
                   </div>
                 </div>
 
-                <br>
+                <!-- ═════════════════════════════════ LOADER PRINCIPAL ═════════════════════════ -->
+                <div *ngIf="!studiesReady" class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status"></div>
+                </div>
 
-                <!-- Tabla de Preguntas de Extracción -->
-                <ng-container *ngFor="let study of getFilteredStudies()">
-                  <!-- Título del estudio y botones -->
-                  <div class="mb-2 d-flex justify-content-between align-items-center">
-                    <!-- Título y puntaje -->
-                    <div class="align-items-center">
-                      <strong>{{ study.titulo }}</strong>
-                      <span class="badge ms-2 bg-info">Puntaje: {{ study.totalPeso }}</span>
-                      <ng-container *ngIf="study.url_pdf_articulo">
-                        <a [href]="study.url_pdf_articulo" target="_blank" title="Ver PDF" class="ms-2">
-                          <i class="bi bi-file-earmark-pdf" style="font-size: 1.5rem; color: #dc3545;"></i>
-                        </a>
-                      </ng-container>
-                    </div>
-                    &nbsp;
-                    &nbsp;
-                    <!-- Botones -->
-                    <div class="d-flex">
-                      <button class="btn btn-info me-2" (click)="generateAISuggestionsForStudy(study)">
-                        <i class="bi bi-robot"></i>&nbsp; Generar sugerencia de IA
-                      </button>
-                      <button type="button" class="btn btn-sm"
-                        [ngClass]="study.done ? 'btn-success' : 'btn-outline-primary'" (click)="toggleStudyDone(study)">
-                        {{ study.done ? 'Hecho' : 'Marcar como hecho' }}
-                      </button>
+                <!-- ══════════════════════════════ CONTENIDO PRINCIPAL ═════════════════════════ -->
+                <ng-container *ngIf="studiesReady">
 
-                    </div>
+                  <!-- Loader pequeño mientras llegan respuestas -->
+                  <div *ngIf="!dataLoaded" class="text-muted small mb-2">
+                    <i class="spinner-border spinner-border-sm me-1"></i>
+                    cargando respuestas guardadas…
                   </div>
 
-                  <!-- Campos de Extracción -->
-                  <form (ngSubmit)="saveExtractionData(study)">
-                    <table class="table table-sm table-bordered">
-                      <colgroup>
-                        <col style="width: 50%;"> <!-- Puntuación Total -->
-                        <col style="width: 50%;"> <!-- Acciones -->
-                      </colgroup>
-                      <thead>
-                        <tr>
-                          <th>Preguntas</th>
-                          <th class="text-center">Respuesta</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let field of extractionFields">
-                          <td>{{ field.descripcion }}</td>
-                          <td class="text-center">
-                            <ng-container [ngSwitch]="field.tipo">
-                              <!-- Texto -->
-                              <textarea *ngSwitchCase="'Texto'" type="text" class="form-control"
-                                [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
-                                (ngModelChange)="study.extractionSaved = false"></textarea>
+                  <!-- LISTA COMPLETA – sin altura fija, sin scroll -->
+                  <div>
+                    <div *ngFor="let study of getFilteredStudies(); trackBy: trackByStudy" class="mb-4">
 
-                              <!-- Decimal -->
-                              <input *ngSwitchCase="'Decimal'" type="number" step="any" class="form-control"
-                                [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
-                                (ngModelChange)="study.extractionSaved = false" />
+                      <!-- CABECERA DEL ESTUDIO -->
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                          <strong>{{ study.titulo }}</strong>
+                          <span class="badge bg-info ms-2">Puntaje: {{ study.total_peso }}</span>
 
-                              <!-- Entero -->
-                              <input *ngSwitchCase="'Entero'" type="number" step="1" class="form-control"
-                                [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
-                                (ngModelChange)="study.extractionSaved = false" />
+                          <a *ngIf="study.url_pdf_articulo" class="ms-2" target="_blank" [href]="study.url_pdf_articulo"
+                            title="Ver PDF">
+                            <i class="bi bi-file-earmark-pdf fs-4 text-danger"></i>
+                          </a>
+                        </div>
 
-                              <!-- Fecha -->
-                              <input *ngSwitchCase="'Fecha'" type="date" class="form-control"
-                                [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
-                                (ngModelChange)="study.extractionSaved = false" />
+                        <div class="d-flex">
+                          <button class="btn btn-info me-2" (click)="generateAISuggestionsForStudy(study)">
+                            <i class="bi bi-robot"></i>&nbsp; Sugerencia IA
+                          </button>
 
-                              <div *ngSwitchCase="'Booleano'">
-                                <label class="me-3" style="display: inline-flex; align-items: center;">
-                                  <input type="radio" [value]="true"
-                                    [ngModel]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                    [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
-                                    style="transform: scale(1.5); margin-right: 6px;"
-                                    (change)="updateBooleanField(true, study.id_estudios, field.id_campo_extraccion, study)" />
-                                  Sí
-                                </label>
-                                <label style="display: inline-flex; align-items: center;">
-                                  <input type="radio" [value]="false"
-                                    [ngModel]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                    [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion"
-                                    style="transform: scale(1.5); margin-right: 6px;"
-                                    (change)="updateBooleanField(false, study.id_estudios, field.id_campo_extraccion, study)" />
-                                  No
-                                </label>
-                              </div>
+                          <!-- Mostrar “Marcar como hecho” solo cuando YA se haya guardado
+         y esté sin modificaciones (hasSaved && extractionSaved) -->
+                          <button *ngIf="study.hasSaved && study.extractionSaved" type="button"
+                            class="btn btn-outline-primary btn-sm" (click)="toggleStudyDone(study)">
+                            {{ study.done ? 'Hecho' : 'Marcar como hecho' }}
+                          </button>
+                        </div>
+                      </div>
 
-                              <!-- Default -->
-                              <input *ngSwitchDefault type="text" class="form-control"
-                                [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
-                                [name]="'resp_'+study.id_estudios+'_'+field.id_campo_extraccion" />
-                            </ng-container>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                      <!-- FORMULARIO DE PREGUNTAS -->
+                      <form (ngSubmit)="saveExtractionData(study)">
+                        <table class="table table-sm table-bordered">
+                          <thead>
+                            <tr>
+                              <th style="width:50%">Preguntas</th>
+                              <th class="text-center" style="width:50%">Respuesta</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let field of extractionFields; trackBy: trackByField">
+                              <td>{{ field.descripcion }}</td>
+                              <td class="text-center">
+                                <!-- BLOQUE ngSwitch PARA TIPOS DE CAMPO -->
+                                <ng-container [ngSwitch]="field.tipo">
 
-                    <!-- Botones de Guardar/Actualizar -->
-                    <div class="d-flex justify-content-end">
-                      <button *ngIf="!study.extractionSaved" type="submit" class="btn btn-success btn-sm me-2">
-                        Guardar Extracción
-                      </button>
-                      <button *ngIf="study.extractionSaved" type="button" class="btn btn-warning btn-sm"
-                        (click)="updateExtractionData(study)">
-                        Actualizar
-                      </button>
+                                  <!-- TEXTO -->
+                                  <textarea *ngSwitchCase="'Texto'" class="form-control" rows="2"
+                                    [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                    [name]="'t_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                    (ngModelChange)="study.extractionSaved = false"></textarea>
+
+                                  <!-- DECIMAL -->
+                                  <input *ngSwitchCase="'Decimal'" type="number" step="any" class="form-control"
+                                    [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                    [name]="'d_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                    (ngModelChange)="study.extractionSaved = false" />
+
+                                  <!-- ENTERO -->
+                                  <input *ngSwitchCase="'Entero'" type="number" step="1" class="form-control"
+                                    [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                    [name]="'e_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                    (ngModelChange)="study.extractionSaved = false" />
+
+                                  <!-- FECHA -->
+                                  <input *ngSwitchCase="'Fecha'" type="date" class="form-control"
+                                    [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                    [name]="'f_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                    (ngModelChange)="study.extractionSaved = false" />
+
+                                  <!-- BOOLEANO -->
+                                  <div *ngSwitchCase="'Booleano'">
+                                    <label class="me-3 d-inline-flex align-items-center">
+                                      <input type="radio" [value]="true"
+                                        [ngModel]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                        [name]="'b_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                        class="form-check-input me-1"
+                                        (change)="updateBooleanField(true, study.id_estudios, field.id_campo_extraccion, study)">
+                                      Sí
+                                    </label>
+                                    <label class="d-inline-flex align-items-center">
+                                      <input type="radio" [value]="false"
+                                        [ngModel]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                        [name]="'b_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                        class="form-check-input me-1"
+                                        (change)="updateBooleanField(false, study.id_estudios, field.id_campo_extraccion, study)">
+                                      No
+                                    </label>
+                                  </div>
+
+                                  <!-- DEFAULT (si llega un tipo inesperado) -->
+                                  <input *ngSwitchDefault type="text" class="form-control"
+                                    [(ngModel)]="extractionData[study.id_estudios][field.id_campo_extraccion]"
+                                    [name]="'x_'+study.id_estudios+'_'+field.id_campo_extraccion"
+                                    (ngModelChange)="study.extractionSaved = false" />
+                                </ng-container>
+
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+
+                        <!-- BOTONES DEL FORMULARIO -->
+                        <div class="d-flex justify-content-end">
+                          <!-- 1ª vez: nunca se ha guardado -->
+                          <button *ngIf="!study.hasSaved" class="btn btn-success btn-sm me-2">
+                            Guardar
+                          </button>
+
+                          <!-- Después de la 1ª vez → solo aparece si hay cambios -->
+                          <button *ngIf="study.hasSaved && !study.extractionSaved" type="button"
+                            class="btn btn-warning btn-sm" (click)="updateExtractionData(study)">
+                            Actualizar
+                          </button>
+                        </div>
+                      </form>
+                      <hr>
                     </div>
-                  </form>
-                  <hr />
+                  </div>
                 </ng-container>
               </div>
             </div>

@@ -2255,6 +2255,16 @@ export class AuthService {
     return { data, error };
   }
 
+  // auth.service.ts
+  async getAcceptedStudie(idRevision: string) {
+    const { data, error } = await this._supabaseClient
+      .rpc('fn_get_studies_with_score_done', { id_revision: idRevision });
+  
+    return { data: data ?? [], error };
+  }
+  
+
+  
 
 
 

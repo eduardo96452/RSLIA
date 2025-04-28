@@ -1,270 +1,270 @@
+// extraccion-datos.component.ts
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, HostListener, OnInit } from '@angular/core';
-import { FormBuilder, FormsModule } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  OnInit,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
 import Swal from 'sweetalert2';
 import { Workbook } from 'exceljs';
 import { saveAs } from 'file-saver';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 @Component({
   selector: 'app-extraccion-datos',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
+  imports: [RouterLink, CommonModule, FormsModule, ScrollingModule],
   templateUrl: './extraccion-datos.component.html',
-  styleUrls: ['./extraccion-datos.component.css']
+  styleUrls: ['./extraccion-datos.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExtraccionDatosComponent implements OnInit {
+  /* ──────────────────── propiedades de UI ─────────────────── */
+  isLargeScreen = true;
+  filter: 'all' | 'done' | 'pending' = 'all';
+  qualityFilter = '';
+
+  /* ──────────────────── datos de la revisión ───────────────── */
   reviewId!: string;
   reviewData: any = {};
-  titulo_revision = '';
-  tipo_revision = '';
-  descripcion = '';
   userData: any = null;
-  isLargeScreen: boolean = true;
+
+  /* ──────────────────── puntuaciones / filtros ─────────────── */
+  puntuacionLimite = 0;
+
+  /* ──────────────────── estudios y extracción ──────────────── */
   acceptedStudiesThreshold: any[] = [];
   extractionFields: any[] = [];
   extractionData: { [studyId: string]: { [fieldId: string]: any } } = {};
-  minQualityScore: number = 0;
-  // Variable de filtro: 'all' | 'done' | 'pending'
-  filter: 'all' | 'done' | 'pending' = 'all';
 
-  // Nueva propiedad para el filtro de calidad:
-  // Valores: '' (sin filtro), 'superior' o 'menorIgual'
-  qualityFilter: string = '';
+  /* ──────────────────── loaders ─────────────────────────────── */
+  studiesReady = false; // estudios + campos
+  dataLoaded = false;   // respuestas
 
-  // Almacena la puntuación límite obtenida de la BD
-  puntuacionLimite: number = 0;
+  /* ──────────────────── tooltip ─────────────────────────────── */
+  showScoresHelp = false;
+
+  /* ──────────────────── control de scroll virtual ──────────── */
+  trackByStudy = (_: number, s: any) => s.id_estudios;
+  trackByField = (_: number, f: any) => f.id_campo_extraccion;
 
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
-    private fb: FormBuilder,
     private router: Router,
-    private openAiService: OpenAiService
+    private openAiService: OpenAiService,
+    private cd: ChangeDetectorRef
   ) {}
 
+  /* ──────────────────── ciclo de vida ───────────────────────── */
   async ngOnInit() {
     this.reviewId = this.route.snapshot.queryParams['id'];
-    await Promise.all([
-      this.loadReviewData(),
-      this.loadUserData()
+
+    // Carga ligera en segundo plano
+    this.loadReviewData();
+    this.loadUserData();
+
+    // ── PAR 1: estudios y campos en paralelo ──
+    const [studiesRes, fieldsRes] = await Promise.all([
+      this.authService.getAcceptedStudie(this.reviewId),
+      this.authService.getExtractionFields(this.reviewId),
     ]);
 
-    // Obtener estudios aceptados SIN filtrar por calidad
-    const { data: studiesData, error: studiesError } =
-      await this.authService.getAcceptedStudiesAboveLimit(this.reviewId);
-    if (studiesError) {
-      console.error('Error:', studiesError);
-      return;
-    }
-    this.acceptedStudiesThreshold = studiesData || [];
+    this.acceptedStudiesThreshold = studiesRes.data || [];
+    this.extractionFields = fieldsRes.data || [];
 
-    // Asumimos que la puntuación límite es la misma para todos (tomada desde la BD)
+    // Límite (viene repetido en cada fila, así que tomo el primero)
     if (this.acceptedStudiesThreshold.length > 0) {
       this.puntuacionLimite = this.acceptedStudiesThreshold[0].limite;
     }
 
-    // Obtener campos de extracción
-    const { data: fieldsData, error: fieldsError } =
-      await this.authService.getExtractionFields(this.reviewId);
-    if (fieldsError) {
-      console.error('Error:', fieldsError);
-      return;
-    }
-    this.extractionFields = fieldsData || [];
-
-    // Inicializar extractionData para cada estudio y campo
-    this.acceptedStudiesThreshold.forEach(study => {
-      this.extractionData[study.id_estudios] = {};
-      this.extractionFields.forEach(field => {
-        this.extractionData[study.id_estudios][field.id_campo_extraccion] = '';
+    // Inicializa mapa de respuestas
+    this.acceptedStudiesThreshold.forEach((s) => {
+      this.extractionData[s.id_estudios] = {};
+      this.extractionFields.forEach((f) => {
+        this.extractionData[s.id_estudios][f.id_campo_extraccion] = '';
       });
     });
 
-    // Obtener estado 'done' para cada estudio
-    const studyIds = this.acceptedStudiesThreshold.map(s => s.id_estudios);
-    const statusMap = await this.authService.getExtractionStatusForStudies(studyIds);
-    this.acceptedStudiesThreshold.forEach(study => {
-      study.done = !!statusMap[study.id_estudios];
-    });
+    this.studiesReady = true;
+    this.cd.markForCheck(); // dispara render temprano
 
-    // Cargar datos de extracción ya guardados
+    // ── PAR 2: respuestas guardadas ──
     await this.loadExistingExtractionData();
+    this.dataLoaded = true;
+    this.cd.markForCheck();
   }
 
-  @HostListener('window:resize', ['$event'])
+  /* ──────────────────── responsive ─────────────────────────── */
+  @HostListener('window:resize')
   onResize(): void {
-    this.checkScreenSize();
-  }
-
-  private checkScreenSize(): void {
     this.isLargeScreen = window.innerWidth >= 768;
+    this.cd.markForCheck();
   }
 
-  // Cargar datos de la reseña
-  async loadReviewData() {
+  /* ──────────────────── helpers de carga ───────────────────── */
+  private async loadReviewData() {
     try {
-      const reviewData = await this.authService.getReviewById(this.reviewId);
-      if (reviewData) {
-        this.reviewData = reviewData;
-        this.titulo_revision = reviewData.titulo_revision || '';
-        this.tipo_revision = reviewData.tipo_revision || '';
-        this.descripcion = reviewData.descripcion || '';
-      }
-    } catch (error) {
-      console.error('Error al cargar la reseña:', error);
+      this.reviewData = await this.authService.getReviewById(this.reviewId);
+      this.cd.markForCheck();
+    } catch (e) {
+      console.error('Error review', e);
     }
   }
 
-  // Cargar datos del usuario
-  async loadUserData() {
+  private async loadUserData() {
     try {
       this.userData = await this.authService.getCurrentUserData();
-    } catch (error) {
-      console.error('Error al cargar los datos del usuario:', error);
+      this.cd.markForCheck();
+    } catch (e) {
+      console.error('Error user', e);
     }
   }
 
-  // Establecer filtro
-  setFilter(newFilter: 'all' | 'done' | 'pending'): void {
-    this.filter = newFilter;
+  /* ──────────────────── filtros en tabla ───────────────────── */
+  setFilter(f: 'all' | 'done' | 'pending') {
+    this.filter = f;
   }
 
-  // Método que filtra los estudios según el estado y el filtro de calidad seleccionado
   getFilteredStudies() {
     let studies = this.acceptedStudiesThreshold;
-    // Filtro por estado: 'all', 'done' o 'pending'
-    if (this.filter === 'done') {
-      studies = studies.filter(study => study.done);
-    } else if (this.filter === 'pending') {
-      studies = studies.filter(study => !study.done);
-    }
-    // Filtro por calidad según el select:
+
+    if (this.filter === 'done') studies = studies.filter((s) => s.done);
+    else if (this.filter === 'pending')
+      studies = studies.filter((s) => !s.done);
+
     if (this.qualityFilter === 'superior') {
-      studies = studies.filter(study => study.totalPeso > this.puntuacionLimite);
+      studies = studies.filter((s) => s.total_peso > this.puntuacionLimite);
     } else if (this.qualityFilter === 'menorIgual') {
-      studies = studies.filter(study => study.totalPeso <= this.puntuacionLimite);
+      studies = studies.filter((s) => s.total_peso <= this.puntuacionLimite);
     }
     return studies;
   }
 
+  /* ──────────────────── estado done ────────────────────────── */
   toggleStudyDone(study: any) {
-    // Se invierte el estado "done" del estudio
-    const newDoneStatus = !study.done;
-  
-    // Se actualiza la base de datos para el estudio actual
-    this.authService.updateExtractionStatusForStudy(study.id_estudios, newDoneStatus)
+    const newDone = !study.done;
+    this.authService
+      .updateExtractionStatusForStudy(study.id_estudios, newDone)
       .then(() => {
-        // Si la actualización fue exitosa, se actualiza el estado local
-        study.done = newDoneStatus;
+        study.done = newDone;
+        this.cd.markForCheck();
       })
-      .catch(err => {
-        console.error("Error updating study status:", err);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo actualizar el estado del estudio.'
-        });
+      .catch((err) => {
+        console.error(err);
+        Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
       });
   }
-  
 
+  /* ──────────────────── respuestas existentes ─────────────── */
+  private async loadExistingExtractionData() {
+    const ids = this.acceptedStudiesThreshold.map((s) => s.id_estudios);
+    const { data, error } =
+      await this.authService.getExtractionResponsesForStudies(ids);
+    if (error) return console.error(error);
 
+    data.forEach((resp: any) => {
+      const val =
+        resp.valor?.toString().toLowerCase() === 'true'
+          ? true
+          : resp.valor?.toString().toLowerCase() === 'false'
+          ? false
+          : resp.valor;
+      this.extractionData[resp.id_estudios][resp.id_campo_extraccion] = val;
+      const st = this.acceptedStudiesThreshold.find(
+        (s) => s.id_estudios === resp.id_estudios
+      );
+      if (st) 
+        {
+          st.hasSaved        = true;
+          st.extractionSaved = true;
 
-  // Cargar respuestas de extracción ya guardadas
-  async loadExistingExtractionData() {
-    const studyIds = this.acceptedStudiesThreshold.map(s => s.id_estudios);
-    const { data, error } = await this.authService.getExtractionResponsesForStudies(studyIds);
-    if (error) {
-      console.error('Error al obtener respuestas de extracción:', error);
-      return;
-    }
-    data.forEach((response: any) => {
-      if (this.extractionData[response.id_estudios]) {
-        let valor: any = response.valor;
-        if (typeof valor === 'string') {
-          if (valor.toUpperCase() === 'TRUE') {
-            valor = true;
-          } else if (valor.toUpperCase() === 'FALSE') {
-            valor = false;
-          }
-        }
-        this.extractionData[response.id_estudios][response.id_campo_extraccion] = valor;
-        const study = this.acceptedStudiesThreshold.find(s => s.id_estudios === response.id_estudios);
-        if (study) {
-          study.extractionSaved = true;
-        }
       }
     });
+
+    
+    this.cd.markForCheck();
   }
 
-  // Función para preparar respuestas de extracción
-  private prepareExtractionResponses(study: any): any[] {
-    return this.extractionFields.map(field => ({
+  /* ──────────────────── guardado de extracción ─────────────── */
+  private prepareExtractionResponses(study: any) {
+    return this.extractionFields.map((f) => ({
       id_estudios: study.id_estudios,
-      id_campo_extraccion: field.id_campo_extraccion,
-      valor: this.extractionData[study.id_estudios][field.id_campo_extraccion],
-      done: study.done
+      id_campo_extraccion: f.id_campo_extraccion,
+      valor: this.extractionData[study.id_estudios][f.id_campo_extraccion],
+      done: study.done,
     }));
   }
 
-  // Guardar datos de extracción para un estudio
-  async saveExtractionData(study: any) {
-    const responsesToSave = this.prepareExtractionResponses(study);
-    const { data, error } = await this.authService.saveExtractionResponses(responsesToSave);
+  async saveExtractionData(study: any): Promise<void> {
+    const { error } = await this.authService.saveExtractionResponses(
+      this.prepareExtractionResponses(study)
+    );
+  
     if (error) {
       console.error('Error al guardar respuestas de extracción:', error);
-      Swal.fire({
+      await Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Hubo un error al guardar las respuestas de extracción. Por favor, inténtalo de nuevo.'
+        text: 'Hubo un error al guardar las respuestas. Vuelve a intentarlo.',
       });
-    } else {
-      console.log('Respuestas de extracción guardadas:', data);
-      Swal.fire({
-        icon: 'success',
-        title: '¡Guardado!',
-        text: 'Datos de extracción guardados con éxito para: ' + study.titulo,
-        timer: 3000,
-        showConfirmButton: false
-      });
-      study.extractionSaved = true;
-      study.done = false;
+      return;                     // ← devuelve void; todas las rutas devuelven
     }
+  
+    await Swal.fire({
+      icon: 'success',
+      title: '¡Guardado!',
+      text: 'Datos de extracción guardados con éxito.',
+      timer: 2000,
+      showConfirmButton: false,
+    });
+  
+    study.hasSaved        = true;
+    study.extractionSaved = true;
+    this.cd.markForCheck();
   }
 
-  // Actualizar datos de extracción para un estudio
-  async updateExtractionData(study: any) {
-    const responsesToSave = this.prepareExtractionResponses(study);
-    const { data, error } = await this.authService.saveExtractionResponses(responsesToSave);
+  async updateExtractionData(study: any): Promise<void> {
+    const { error } = await this.authService.saveExtractionResponses(
+      this.prepareExtractionResponses(study)
+    );
+  
     if (error) {
       console.error('Error al actualizar respuestas de extracción:', error);
-      Swal.fire({
+      await Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Hubo un error al actualizar las respuestas de extracción. Por favor, inténtalo de nuevo.'
+        text: 'Hubo un error al actualizar las respuestas.',
       });
-    } else {
-      console.log('Respuestas de extracción actualizadas:', data);
-      Swal.fire({
-        icon: 'success',
-        title: '¡Actualizado!',
-        text: 'Datos de extracción actualizados para: ' + study.titulo,
-        timer: 3000,
-        showConfirmButton: false
-      });
-      study.done = false;
+      return;
     }
+  
+    await Swal.fire({
+      icon: 'success',
+      title: '¡Actualizado!',
+      text: 'Datos de extracción actualizados.',
+      timer: 2000,
+      showConfirmButton: false,
+    });
+  
+    study.hasSaved       = true;
+    study.extractionSaved = true;
+    this.cd.markForCheck();
   }
 
-  // Actualizar campo booleano
-  updateBooleanField(value: boolean, studyId: string | number, fieldId: string | number, study: any): void {
-    if (!this.extractionData[studyId]) {
-      this.extractionData[studyId] = {};
-    }
-    this.extractionData[studyId][fieldId] = value;
+  updateBooleanField(
+    val: boolean,
+    studyId: number,
+    fieldId: number,
+    study: any
+  ) {
+    this.extractionData[studyId][fieldId] = val;
     study.extractionSaved = false;
   }
 
@@ -472,10 +472,13 @@ export class ExtraccionDatosComponent implements OnInit {
     );
   }
 
+  /* ========================================================================
+   *  UTILIDADES
+   * ====================================================================== */
   isGenerateAISuggestionsDisabled(): boolean {
-    // El botón se habilita solo si existe al menos un estudio sin responder (study.done === false) y con URL de PDF válida.
     return !this.acceptedStudiesThreshold.some(
-      study => study.url_pdf_articulo && study.url_pdf_articulo.trim() && !study.done
+      (s) => s.url_pdf_articulo?.trim() && !s.done
     );
   }
+
 }

@@ -27,6 +27,7 @@ export class PlanificacionComponent implements OnInit {
   reviewData: any = {};
   reviewId!: string;
   objetivo: string = '';
+  showObjectiveHelp = false;
   objectiveSaved: boolean = false;
   isCopied: boolean = false;
   charCount: number = 0;
@@ -81,9 +82,13 @@ export class PlanificacionComponent implements OnInit {
   spiceC = '';
   spiceE = '';
 
+  showFrameworkHelp = false;
+
   metodologiaGuardada = false;
 
   questions: Question[] = [];
+
+  showQuestionsHelp = false;
 
   questionsUpdated = false;
 
@@ -99,18 +104,20 @@ export class PlanificacionComponent implements OnInit {
   metodologiaName: string = '';
   metodologiaSeleccionada: string = '';
   defaultRelatedOption = { id: null, nombre: 'Elije un componente' };
+  showKeywordsHelp = false;
   keywordsUpdated: boolean = false;
 
   cadenaBusqueda: string = '';
   cadenaGuardada: boolean = false;
   isCadenaCopied: boolean = false;
+  showSearchHelp = false;
   globalCadena: string = '';
   isGlobalCadenaCopied: boolean = false;
   globalCadenaGuardada: boolean = false;
 
 
   bases: BaseBibliografica[] = [];
-
+  showBasesHelp = false;
 
   suggestions = [
     { nombre: 'IEEE Xplore', url: 'https://ieeexplore.ieee.org/' },
@@ -124,24 +131,29 @@ export class PlanificacionComponent implements OnInit {
   exclusions: Criterio[] = [];
   inclusionValue: string = '';
   inclusions: Criterio[] = [];
+  showSelectionHelp = false;
   criteriosGuardados: boolean = false;
 
   showScrollButton: boolean = true;
 
   questions1: Pregunta[] = [];
+  showQualityHelp = false;
   qualityQuestionsSaved: boolean = false;
 
 
   answers1: Respuesta[] = [];
+  showAnswersHelp = false;
   respuestasGuardadas: boolean = false;
 
   limitScore1: number = 0;
+  showScoresHelp = false;
   puntuacionesGuardadas: boolean = false;
 
   isLargeScreen: boolean = true;
   showButton = false;
 
   fields: DataField[] = [];
+  showExtractionHelp = false;
   fieldsSaved: boolean = false;
   dataExtractionQuestions: Array<{ pregunta: string; tipo: string }> = [];
   basesBibliograficas: any;
@@ -1787,6 +1799,19 @@ export class PlanificacionComponent implements OnInit {
     this.cadenaGuardada = false;
   }
 
+  // Para la cadena global
+  clearGlobalCadena() {
+    this.globalCadena = '';
+    this.globalCadenaGuardada = false;
+  }
+
+  // Para las cadenas de cada base
+  clearCadenaForBase(base: BaseBibliografica) {
+    base.cadenaBusqueda = '';
+    base.cadenaGuardada = false;
+  }
+
+
   async saveCadenaForBase(base: BaseBibliografica) {
     if (!base.cadenaBusqueda || !base.cadenaBusqueda.trim()) {
       Swal.fire({
@@ -2007,7 +2032,7 @@ export class PlanificacionComponent implements OnInit {
         // Usamos el nombre de la base como fuente
         const fuente = base.nombre;
         const { data, error } = await this.authService.getCadenaBusqueda(this.reviewId, fuente);
-  
+
         // Si data existe y hay una cadena_busqueda no vacía,
         // entonces asignamos base.cadenaGuardada = true
         if (data && data.cadena_busqueda) {
@@ -2018,17 +2043,17 @@ export class PlanificacionComponent implements OnInit {
           base.cadenaBusqueda = '';
           base.cadenaGuardada = false; // Mostramos el botón de guardar
         }
-  
+
         base.isCadenaCopied = false;
       }
-  
+
       // Reasigna el array para forzar la detección de cambios en Angular
       this.bases = [...this.bases];
     } catch (err) {
       console.error('Error al cargar las cadenas de búsqueda para las bases:', err);
     }
   }
-  
+
 
   // Getter que verifica si la cadena global y las cadenas de todas las bases están completas
   get allCadenasComplete(): boolean {
@@ -2524,7 +2549,7 @@ export class PlanificacionComponent implements OnInit {
 
   async deleteQuestion1(index: number): Promise<void> {
     const current = this.questions1[index];
-  
+
     // Si la pregunta no tiene id, significa que aún es local (no guardada en la BD)
     if (!current.id_pregunta) {
       const result = await Swal.fire({
@@ -2545,7 +2570,7 @@ export class PlanificacionComponent implements OnInit {
       }
       return;
     }
-  
+
     // Si la pregunta ya está guardada en la BD (tiene id)
     const result = await Swal.fire({
       title: '¿Eliminar pregunta?',
@@ -2558,7 +2583,7 @@ export class PlanificacionComponent implements OnInit {
     if (!result.isConfirmed) {
       return;
     }
-  
+
     const { error } = await this.authService.deletePregunta(current.id_pregunta);
     if (error) {
       Swal.fire({
@@ -2575,7 +2600,7 @@ export class PlanificacionComponent implements OnInit {
       });
     }
   }
-  
+
 
   generateQualityQuestions(): void {
     if (!this.titulo_revision || !this.objetivo) {
@@ -2586,7 +2611,7 @@ export class PlanificacionComponent implements OnInit {
       });
       return;
     }
-  
+
     Swal.fire({
       title: 'Generando preguntas con IA...',
       text: 'Por favor, espera un momento.',
@@ -2595,7 +2620,7 @@ export class PlanificacionComponent implements OnInit {
         Swal.showLoading(Swal.getConfirmButton());
       }
     });
-  
+
     this.openAiService.getQualityQuestions(this.titulo_revision, this.objetivo).subscribe(
       (response) => {
         Swal.close();
@@ -2799,23 +2824,12 @@ export class PlanificacionComponent implements OnInit {
     try {
       const data = await this.authService.getScoreByRevision(this.reviewId);
       if (data && data.length > 0) {
-        // Toma la primera fila
         const row = data[0];
+        // Cargo el valor que venga de la BD
         this.limitScore1 = row.puntuacion_limite;
-
-        // Valor de la base de datos
-        const dbMax = Number(row.puntuacion_maxima) || 0;
-        // Valor calculado localmente
-        const localMax = this.getMaxScore();
-
-        if (dbMax !== localMax) {
-          // Si la puntuación máxima en la BD es distinta de la calculada localmente => No está "guardado"
-          this.puntuacionesGuardadas = false;
-        } else {
-          // Si coincide => se asume que está guardada y coincide
-          this.puntuacionesGuardadas = true;
-        }
-
+  
+        // Ya existe en BD => marco como guardada
+        this.puntuacionesGuardadas = true;
       } else {
         this.puntuacionesGuardadas = false;
       }
@@ -2828,6 +2842,7 @@ export class PlanificacionComponent implements OnInit {
       });
     }
   }
+  
 
   async saveLimitScore() {
     try {

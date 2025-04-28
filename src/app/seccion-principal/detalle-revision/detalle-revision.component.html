@@ -41,7 +41,7 @@
               </div>
               <!-- Proyección de borrador de artículo -->
               <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
-                Proyección de artículo
+                Redacción de articulo
               </div>
               <!-- Diagrama de Flujo PRISMA -->
               <div class="menu-item" [routerLink]="['/prisma']" [queryParams]="{ id: reviewId }">
@@ -56,25 +56,25 @@
         <div class="col col-sm col-md-10">
           <!-- Tarjeta Principal -->
           <div class="card" style="flex-grow: 1;">
-            <div class="card-header position-relative">
-              <!-- Título a la izquierda -->
-              <h2 class="card-title mb-0 fw-bold">
-                <i class="fa-solid fa-pencil"></i>&nbsp; Editar revisión
+            <div class="card-header d-flex align-items-center">
+              <h2 class="card-title mb-0 fw-bold d-flex align-items-center">
+                <i class="fa-solid fa-pencil me-2"></i>
+                Editar revisión
+
+                <!-- Aquí va el tooltip, justo al lado del título -->
+                <span class="tooltip-container ms-2" (mouseenter)="showExplanation = true"
+                  (mouseleave)="showExplanation = false">
+                  <i class="fa-solid fa-circle-question tooltip-icon"></i>
+
+                  <div *ngIf="showExplanation" class="tooltip-content animate__animated animate__fadeIn">
+                    <p class="mb-0 fw-normal">
+                      En este formulario puedes actualizar los datos principales de tu revisión sistemática. Cuando
+                      termines, haz clic en Actualizar o Siguiente para guardar tus cambios.
+                    </p>
+                  </div>
+
+                </span>
               </h2>
-
-              <!-- Ícono de interrogación en la esquina superior derecha -->
-              <span style="position: absolute; top: 10px; right: 10px; cursor: pointer; color: #0d6efd;"
-                (mouseenter)="showExplanation = true" (mouseleave)="showExplanation = false">
-                <i class="fa-solid fa-circle-question"></i>
-              </span>
-
-              <!-- Tooltip que aparece cuando showExplanation es true -->
-              <div *ngIf="showExplanation" class="custom-tooltip">
-                <p class="mb-0">
-                  En esta sección puedes ajustar detalles de tu revisión, como el título, la metodología, el alcance y
-                  otros campos relevantes.
-                </p>
-              </div>
             </div>
 
             <div class="card-body">

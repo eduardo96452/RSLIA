@@ -43,7 +43,7 @@
                             </div>
                             <!-- Proyección de borrador de artículo -->
                             <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
-                                Proyección de artículo
+                                Redacción de articulo
                             </div>
                             <!-- Diagrama de Flujo PRISMA -->
                             <div class="menu-item active" [routerLink]="['/prisma']" [queryParams]="{ id: reviewId }">
@@ -54,12 +54,10 @@
                     <br />
                 </div>
 
-
                 <div class="col col-sm col-md-10">
-                    <!-- Contenedor flex para distribuir los botones -->
+                    <!-- Contenedor flex para distribuir los botones y el checkbox -->
                     <div class="d-flex justify-content-between align-items-center mb-2" style="width: 100%;">
-
-                        <!-- Grupo de botones de zoom (alineado a la izquierda) -->
+                        <!-- Grupo de botones de zoom (izquierda) -->
                         <div class="btn-group">
                             <button class="btn btn-primary" (click)="zoomIn()">
                                 <i class="bi bi-zoom-in"></i>
@@ -69,14 +67,24 @@
                             </button>
                         </div>
 
-                        <!-- Botón de centrar (en el centro) -->
-                        <div class="btn-group">
+                        <!-- Botón de centrar (centro) -->
+                        <div class="btn-group align-items-center">
                             <button class="btn btn-info" (click)="centerAndUnlock()">
                                 <i class="bi bi-arrows-fullscreen"></i>
                             </button>
+                            <!-- Contenedor para el checkbox con tamaño aumentado -->
+                            <div class="d-flex align-items-center ms-2">
+                                <input class="form-check-input" type="checkbox" id="enableShortVersion"
+                                    [(ngModel)]="shortVersionEnabled" (change)="onCheckboxChange($event)"
+                                    style="width: 38px; height: 38px;">
+                                <label class="form-check-label ms-1" for="enableShortVersion" style="font-size: 1rem;">
+                                    Versión completa
+                                </label>
+                            </div>
                         </div>
 
-                        <!-- Grupo de botones de descarga (alineado a la derecha) -->
+
+                        <!-- Grupo de botones de descarga (derecha) -->
                         <div class="btn-group">
                             <button class="btn btn-secondary" (click)="downloadPNG()">
                                 <i class="bi bi-cloud-download"></i>&nbsp;&nbsp;
@@ -87,13 +95,17 @@
                                 <i class="bi bi-file-earmark-pdf"></i>
                             </button>
                         </div>
+
+
                     </div>
+
                     <!-- Contenedor Cytoscape responsivo -->
                     <div id="cy"
                         style="width: 100%; height: calc(100% - 70px); border: 1px solid #ccc; position: relative;">
                         <!-- Contenido de Cytoscape aquí -->
                     </div>
                 </div>
+
             </div>
         </div>
     </div>

@@ -27,11 +27,15 @@ export class PrismaComponent implements OnInit, AfterViewInit {
   nodeId: string = '';
   nodeLabel: string = '';
   isLargeScreen: boolean = true;
+  shortVersionEnabled: boolean = false;
+  node8Label: string = 'Registros identificados \n desde: ... \n Bases de datos (n = 0) \n Total Registros (n = 0)';
+
 
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
     private fb: FormBuilder,
+
     private router: Router,
     private openAiService: OpenAiService
   ) { }
@@ -88,371 +92,6 @@ export class PrismaComponent implements OnInit, AfterViewInit {
     } catch (error) {
       console.error('Error al cargar los datos del usuario:', error);
     }
-  }
-
-  async ngAfterViewInit() {
-    this.cy = cytoscape({
-      container: document.getElementById('cy'),
-      elements: [
-        // Columna 1:
-        {
-          data: { id: 'node3', label: 'Identificación' },
-          position: { x: 50, y: 100 }
-        },
-        {
-          data: { id: 'node4', label: 'Cribado/Selección' },
-          position: { x: 50, y: 270 }
-        },
-        {
-          data: { id: 'node5', label: 'Incluidos' },
-          position: { x: 50, y: 440 }
-        },
-
-        // Columna 2:
-        {
-          data: { id: 'node6', label: 'Identificación de nuevos estudios a través de bases de datos y registros' },
-          position: { x: 307, y: 25 }
-        },
-        {
-          data: { id: 'node8', label: 'Registros identificados de:* \n Bases de datos (n = 0) \n Registros (n = 0)' },
-          position: { x: 170, y: 100 }
-        },
-        {
-          data: { id: 'node9', label: 'Registros eliminados antes del cribado: \n Registros duplicados eliminados (n = 0) \n Registros marcados como no elegibles por \n herramientas de automatización (n = 0) \n Registros eliminados por otras razones (n = 0)' },
-          position: { x: 402, y: 100 }
-        },
-        {
-          data: { id: 'node10', label: 'Registros cribados (n = 0)' },
-          position: { x: 170, y: 200 }
-        },
-        {
-          data: { id: 'node11', label: 'Informes buscados para \n su recuperación (n = 0)' },
-          position: { x: 170, y: 265 }
-        },
-        {
-          data: { id: 'node12', label: 'Informes evaluados \n para determinar su \n elegibilidad (n = 0)' },
-          position: { x: 170, y: 340 }
-        },
-        {
-          data: { id: 'node13', label: 'Registros excluidos (n = 0)' },
-          position: { x: 379, y: 200 }
-        },
-        {
-          data: { id: 'node14', label: 'Informes no recuperados (n = 0)' },
-          position: { x: 379, y: 265 }
-        },
-        {
-          data: { id: 'node15', label: 'Informes excluidos: \n Razón 1 (n = 0) \n Razón 2 (n = 0) \n Razón 3 (n = 0) \n etc.' },
-          position: { x: 379, y: 340 }
-        },
-        {
-          data: { id: 'node16', label: 'Nuevos estudios incluidos \n en la revisión (n = 0) \n Informes de nuevos \n estudios incluidos (n = 0)' },
-          position: { x: 170, y: 440 }
-        },
-
-        // Columna 3: node7, node2
-        {
-          data: { id: 'node7', label: 'Identificación de nuevos estudios a través de otros métodos' },
-          position: { x: 755, y: 25 }
-        },
-        {
-          data: { id: 'node1', label: 'Registros identificados de: \n Sitios web (n = 0) \n Organizaciones (n = 0) \n Búsqueda de citas (n = ) \n etc.' },
-          position: { x: 650, y: 100 }
-        },
-        {
-          data: { id: 'node2', label: 'Informes buscados para \n recuperación (n = 0)' },
-          position: { x: 650, y: 265 }
-        },
-        {
-          data: { id: 'node17', label: 'Informes no recuperados (n = 0)' },
-          position: { x: 850, y: 265 }
-        },
-        {
-          data: { id: 'node18', label: 'Informes evaluados para \n elegibilidad (n = 0)' },
-          position: { x: 650, y: 350 }
-        },
-        {
-          data: { id: 'node19', label: 'Informes excluidos: \n Motivo 1 (n = 0) \n Motivo 2 (n = 0) \n Motivo 3 (n = 0) \n etc.' },
-          position: { x: 850, y: 350 }
-        },
-
-        // Mantener la conexión entre node1 y node2
-        {
-          data: { id: 'edge1', source: 'node1', target: 'node2' }
-        },
-        {
-          data: { id: 'edge2', source: 'node8', target: 'node9' }
-        },
-        {
-          data: { id: 'edge3', source: 'node8', target: 'node10' }
-        },
-        {
-          data: { id: 'edge4', source: 'node10', target: 'node11' }
-        },
-        {
-          data: { id: 'edge5', source: 'node11', target: 'node12' }
-        },
-        {
-          data: { id: 'edge6', source: 'node10', target: 'node13' }
-        },
-        {
-          data: { id: 'edge7', source: 'node11', target: 'node14' }
-        },
-        {
-          data: { id: 'edge8', source: 'node12', target: 'node15' }
-        },
-        {
-          data: { id: 'edge9', source: 'node12', target: 'node16' }
-        },
-        {
-          data: { id: 'edge10', source: 'node2', target: 'node17' }
-        },
-        {
-          data: { id: 'edge11', source: 'node2', target: 'node18' }
-        },
-        {
-          data: { id: 'edge12', source: 'node18', target: 'node19' }
-        },
-        {
-          data: { id: 'edge13', source: 'node18', target: 'node16' }
-        }
-      ],
-
-      style: [
-        {
-          selector: 'node',
-          style: {
-            'background-color': '#11479e',
-            'label': 'data(label)',
-            'shape': 'roundrectangle',
-            'padding': '10px',        // propiedad problemática
-            'text-wrap': 'wrap',
-            'width': 'label',
-            'height': 'label',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'color': '#fff',
-            'font-size': '10px'
-          } as any  // Aserción de tipo para ignorar validación en este objeto
-        },
-        {
-          selector: '#node4',
-          style: {
-            'background-color': '#BCD2EE',
-            'width': '10px',            // ancho más reducido
-            'height': '210px',           // altura automática según el texto
-            'text-wrap': 'wrap',
-            'text-max-width': '200px',   // limitar el ancho del texto para forzar múltiples líneas
-            'text-valign': 'center',       // alinear el texto en la parte superior
-            'text-halign': 'center',
-            'color': 'black',
-            'text-rotation': 11,
-            'shape': 'roundrectangle'   // forma rectangular redondeada vertical
-          }
-        },
-        {
-          selector: '#node3, #node5',
-          style: {
-            'background-color': '#BCD2EE',
-            'width': '10px',            // ancho más reducido
-            'height': '80px',           // altura automática según el texto
-            'text-wrap': 'wrap',
-            'text-max-width': '200px',   // limitar el ancho del texto para forzar múltiples líneas
-            'text-valign': 'center',       // alinear el texto en la parte superior
-            'text-halign': 'center',
-            'color': 'black',
-            'text-rotation': 11,
-            'shape': 'roundrectangle'   // forma rectangular redondeada vertical
-          }
-        } as any,
-        {
-          selector: '#node6',
-          style: {
-            'background-color': '#FFC125',
-            'label': 'data(label)',
-            'shape': 'roundrectangle',
-            'padding': '10px',
-            'text-wrap': 'wrap',
-            'width': '392px',
-            'height': 'label',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'color': 'black',
-            'font-size': '10px'
-          }
-        },
-        {
-          selector: '#node7',
-          style: {
-            'background-color': '#DCDCDC',
-            'label': 'data(label)',
-            'shape': 'roundrectangle',
-            'padding': '10px',
-            'text-wrap': 'wrap',
-            'width': '340px',
-            'height': 'label',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'color': 'black',
-            'font-size': '10px'
-          }
-        },
-        {
-          selector: '#node8, #node16',
-          style: {
-            'background-color': '#FFFFFF',
-            'label': 'data(label)',
-            'shape': 'roundrectangle',
-            'padding': '10px',
-            'text-wrap': 'wrap',
-            'width': '110px',
-            'height': '40px',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'color': 'black',
-            'font-size': '10px',
-            'border-width': '2px',
-            'border-color': '#000000'
-          }
-        },
-        {
-          selector: '#node10, #node11, #node12',
-          style: {
-            'background-color': '#FFFFFF',
-            'label': 'data(label)',
-            'shape': 'roundrectangle',
-            'padding': '10px',
-            'text-wrap': 'wrap',
-            'width': '110px',
-            'height': '20px',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'color': 'black',
-            'font-size': '10px',
-            'border-width': '2px',
-            'border-color': '#000000'
-          }
-        },
-        {
-          selector: '#node9',
-          style: {
-            'background-color': '#FFFFFF',
-            'label': 'data(label)',
-            'shape': 'roundrectangle',
-            'padding': '10px',
-            'text-wrap': 'wrap',
-            'width': '203px',
-            'height': '40px',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'color': 'black',
-            'font-size': '10px',
-            'border-width': '2px',
-            'border-color': '#000000'
-          }
-        },
-        {
-          selector: '#node13, #node14, #node15',
-          style: {
-            'background-color': '#FFFFFF',
-            'label': 'data(label)',
-            'shape': 'roundrectangle',
-            'padding': '10px',
-            'text-wrap': 'wrap',
-            'width': '150px',
-            'height': '35px',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'color': 'black',
-            'font-size': '10px',
-            'border-width': '2px',
-            'border-color': '#000000'
-          }
-        },
-        {
-          selector: '#node1',
-          style: {
-            'background-color': '#DCDCDC',
-            'label': 'data(label)',
-            'shape': 'roundrectangle',
-            'padding': '10px',
-            'text-wrap': 'wrap',
-            'width': '150px',
-            'height': '40px',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'color': 'black',
-            'font-size': '10px',
-            'border-width': '2px',
-            'border-color': '#000000'
-          }
-        },
-        {
-          selector: '#node2, #node18',
-          style: {
-            'background-color': '#DCDCDC',
-            'label': 'data(label)',
-            'shape': 'roundrectangle',
-            'padding': '10px',
-            'text-wrap': 'wrap',
-            'width': '110px',
-            'height': '20px',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'color': 'black',
-            'font-size': '10px',
-            'border-width': '2px',
-            'border-color': '#000000'
-          }
-        },
-        {
-          selector: '#node17, #node19',
-          style: {
-            'background-color': '#DCDCDC',
-            'label': 'data(label)',
-            'shape': 'roundrectangle',
-            'padding': '10px',
-            'text-wrap': 'wrap',
-            'width': '150px',
-            'height': '40px',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'color': 'black',
-            'font-size': '10px',
-            'border-width': '2px',
-            'border-color': '#000000'
-          }
-        },
-        {
-          selector: 'edge',
-          style: {
-            'width': 3,
-            'line-color': '#333a',
-            'target-arrow-color': '#333',
-            'target-arrow-shape': 'triangle',
-            'curve-style': 'taxi',           // Estilo taxi para aristas con esquinas
-            'taxi-turn': 90,                 // Ángulo de la vuelta (90° para esquinas rectas)
-            'taxi-turn-min-distance': 20     // Distancia mínima para forzar la vuelta
-          } as any
-        }
-      ],
-      layout: {
-        name: 'preset',  // Usar posiciones definidas manualmente en cada nodo
-        fit: true,       // Ajusta el grafo para encajar en el contenedor
-      }
-    });
-
-    // Opcional: ajustar comportamiento de zoom al inicializar
-    this.cy.zoomingEnabled(true);
-    this.cy.panningEnabled(true);
-
-    // Ajuste inicial para encajar nodos
-    this.cy.resize();
-    this.cy.fit();
-
-
-    // Bloquear permanentemente la interacción del panel y nodos
-    this.lockPanel();
   }
 
   @HostListener('window:resize')
@@ -534,4 +173,625 @@ export class PrismaComponent implements OnInit, AfterViewInit {
       this.locked = false;
     }
   }
+
+  onCheckboxChange(event: Event) {
+    // Cuando el checkbox cambie, reinicializamos Cytoscape con la nueva configuración
+    this.initializeCytoscape();
+  }
+
+  initializeCytoscape() {
+    // Opcionalmente, si ya existe un this.cy previo, destruirlo antes de recrearlo
+    if (this.cy) {
+      this.cy.destroy();
+    }
+
+    // Elegir cuál conjunto de elementos usar según el valor de shortVersionEnabled
+    const elements = this.shortVersionEnabled
+      ? this.getFullVersionElements()   // Versión "reducida"
+      : this.getShortVersionElements();   // Versión "completa"
+
+    // Elegir el style (podrías tener dos listas de estilos distintas si deseas)
+    const style = this.shortVersionEnabled
+      ? this.getFullVersionStyle()
+      : this.getFullVersionStyle();
+
+    // Inicializar Cytoscape
+    this.cy = cytoscape({
+      container: document.getElementById('cy'),
+      elements,
+      style,
+      layout: {
+        name: 'preset',
+        fit: true,
+      }
+    });
+
+    // Ajustes de zoom y panning
+    this.cy.zoomingEnabled(true);
+    this.cy.panningEnabled(true);
+    this.cy.resize();
+    this.cy.fit();
+
+    // (Opcional) bloquear panel
+    this.lockPanel();
+  }
+
+  // Devuelve los elementos (nodos / edges) de la versión completa
+  getFullVersionElements() {
+    return [
+      // Columna 1:
+      {
+        data: { id: 'node3', label: 'Identificación' },
+        position: { x: 50, y: 100 }
+      },
+      {
+        data: { id: 'node4', label: 'Cribado/Selección' },
+        position: { x: 50, y: 270 }
+      },
+      {
+        data: { id: 'node5', label: 'Incluidos' },
+        position: { x: 50, y: 440 }
+      },
+
+      // Columna 2:
+      {
+        data: { id: 'node6', label: 'Identificación de nuevos estudios a través de bases de datos y registros' },
+        position: { x: 307, y: 25 }
+      },
+      {
+        data: { id: 'node8', label: 'Registros identificados de:* \n Bases de datos (n = 0) \n Registros (n = 0)' },
+        position: { x: 170, y: 100 }
+      },
+      {
+        data: { id: 'node9', label: 'Registros eliminados antes del cribado: \n Registros duplicados eliminados (n = 0) \n Registros marcados como no elegibles por \n herramientas de automatización (n = 0) \n Registros eliminados por otras razones (n = 0)' },
+        position: { x: 402, y: 100 }
+      },
+      {
+        data: { id: 'node10', label: 'Registros cribados (n = 0)' },
+        position: { x: 170, y: 200 }
+      },
+      {
+        data: { id: 'node11', label: 'Informes buscados para \n su recuperación (n = 0)' },
+        position: { x: 170, y: 265 }
+      },
+      {
+        data: { id: 'node12', label: 'Informes evaluados \n para determinar su \n elegibilidad (n = 0)' },
+        position: { x: 170, y: 340 }
+      },
+      {
+        data: { id: 'node13', label: 'Registros excluidos (n = 0)' },
+        position: { x: 379, y: 200 }
+      },
+      {
+        data: { id: 'node14', label: 'Informes no recuperados (n = 0)' },
+        position: { x: 379, y: 265 }
+      },
+      {
+        data: { id: 'node15', label: 'Informes excluidos: \n Razón 1 (n = 0) \n Razón 2 (n = 0) \n Razón 3 (n = 0) \n etc.' },
+        position: { x: 379, y: 340 }
+      },
+      {
+        data: { id: 'node16', label: 'Nuevos estudios incluidos \n en la revisión (n = 0) \n Informes de nuevos \n estudios incluidos (n = 0)' },
+        position: { x: 170, y: 440 }
+      },
+
+      // Columna 3: node7, node2
+      {
+        data: { id: 'node7', label: 'Identificación de nuevos estudios a través de otros métodos' },
+        position: { x: 755, y: 25 }
+      },
+      {
+        data: { id: 'node1', label: 'Registros identificados de: \n Sitios web (n = 0) \n Organizaciones (n = 0) \n Búsqueda de citas (n = ) \n etc.' },
+        position: { x: 650, y: 100 }
+      },
+      {
+        data: { id: 'node2', label: 'Informes buscados para \n recuperación (n = 0)' },
+        position: { x: 650, y: 265 }
+      },
+      {
+        data: { id: 'node17', label: 'Informes no recuperados (n = 0)' },
+        position: { x: 850, y: 265 }
+      },
+      {
+        data: { id: 'node18', label: 'Informes evaluados para \n elegibilidad (n = 0)' },
+        position: { x: 650, y: 350 }
+      },
+      {
+        data: { id: 'node19', label: 'Informes excluidos: \n Motivo 1 (n = 0) \n Motivo 2 (n = 0) \n Motivo 3 (n = 0) \n etc.' },
+        position: { x: 850, y: 350 }
+      },
+
+      // Mantener la conexión entre node1 y node2
+      {
+        data: { id: 'edge1', source: 'node1', target: 'node2' }
+      },
+      {
+        data: { id: 'edge2', source: 'node8', target: 'node9' }
+      },
+      {
+        data: { id: 'edge3', source: 'node8', target: 'node10' }
+      },
+      {
+        data: { id: 'edge4', source: 'node10', target: 'node11' }
+      },
+      {
+        data: { id: 'edge5', source: 'node11', target: 'node12' }
+      },
+      {
+        data: { id: 'edge6', source: 'node10', target: 'node13' }
+      },
+      {
+        data: { id: 'edge7', source: 'node11', target: 'node14' }
+      },
+      {
+        data: { id: 'edge8', source: 'node12', target: 'node15' }
+      },
+      {
+        data: { id: 'edge9', source: 'node12', target: 'node16' }
+      },
+      {
+        data: { id: 'edge10', source: 'node2', target: 'node17' }
+      },
+      {
+        data: { id: 'edge11', source: 'node2', target: 'node18' }
+      },
+      {
+        data: { id: 'edge12', source: 'node18', target: 'node19' }
+      },
+      {
+        data: { id: 'edge13', source: 'node18', target: 'node16' }
+      }
+    ];
+  }
+
+  async loadEstudiosData() {
+    const response = await this.authService.getEstudiosByRevision(+this.reviewId);
+    if (response.data) {
+      const estudios = response.data;
+      // Supongamos que cada estudio tiene la propiedad 'database' que indica la base de datos utilizada.
+      // Si la propiedad tiene otro nombre, ajústala según corresponda.
+      const agrupados = estudios.reduce((acc, estudio) => {
+        const db = estudio.fuente_bibliografica || 'Desconocido';
+        acc[db] = (acc[db] || 0) + 1;
+        return acc;
+      }, {} as { [db: string]: number });
+
+      // Armamos la etiqueta con el formato deseado:
+      let labelLines: string[] = [];
+      labelLines.push("Registros identificados:");
+      const dbEntries = Object.entries(agrupados);
+      dbEntries.forEach(([db, count], index) => {
+        let punctuation = "";
+        if (index === 0) {
+          // Primer registro: termina con punto.
+          punctuation = '.';
+        } else if (index < dbEntries.length - 1) {
+          // Los intermedios: terminan con coma.
+          punctuation = ',';
+        } else {
+          // El último sin puntuación.
+          punctuation = '';
+        }
+        labelLines.push(`${db} (n = ${count})${punctuation}`);
+      });
+      labelLines.push(""); // Línea en blanco
+      const total = estudios.length;
+      labelLines.push(`Total Registros (${total})`);
+      this.node8Label = labelLines.join('\n');
+
+      // Actualiza el dato del nodo "node8" en Cytoscape, si ya está inicializado:
+      if (this.cy) {
+        const node8 = this.cy.$('#node8');
+        node8.data('label', this.node8Label);
+      }
+    } else {
+      console.error('Error al cargar estudios:', response.error);
+    }
+  }
+
+  // Devuelve los elementos (nodos / edges) de la versión "reducida"
+  getShortVersionElements() {
+    return [
+      // Columna 1:
+      {
+        data: { id: 'node3', label: 'Identificación' },
+        position: { x: 50, y: 100 }
+      },
+      {
+        data: { id: 'node4', label: 'Cribado/Selección' },
+        position: { x: 50, y: 270 }
+      },
+      {
+        data: { id: 'node5', label: 'Incluidos' },
+        position: { x: 50, y: 440 }
+      },
+
+      // Columna 2:
+      {
+        data: { id: 'node6', label: 'Identificación de nuevos estudios a través de bases de datos y registros' },
+        position: { x: 307, y: 25 }
+      },
+      {
+        data: { id: 'node8', label: this.node8Label },
+        position: { x: 170, y: 100 }
+      },
+      {
+        data: { id: 'node9', label: 'Registros eliminados antes del cribado: \n Registros duplicados eliminados (n = 0) \n Registros marcados como no elegibles por \n herramientas de automatización (n = 0) \n Registros eliminados por otras razones (n = 0)' },
+        position: { x: 402, y: 100 }
+      },
+      {
+        data: { id: 'node10', label: 'Registros cribados (n = 0)' },
+        position: { x: 170, y: 200 }
+      },
+      {
+        data: { id: 'node11', label: 'Informes buscados para \n su recuperación (n = 0)' },
+        position: { x: 170, y: 265 }
+      },
+      {
+        data: { id: 'node12', label: 'Informes evaluados \n para determinar su \n elegibilidad (n = 0)' },
+        position: { x: 170, y: 340 }
+      },
+      {
+        data: { id: 'node13', label: 'Registros excluidos (n = 0)' },
+        position: { x: 379, y: 200 }
+      },
+      {
+        data: { id: 'node14', label: 'Informes no recuperados (n = 0)' },
+        position: { x: 379, y: 265 }
+      },
+      {
+        data: { id: 'node15', label: 'Informes excluidos: \n Razón 1 (n = 0) \n Razón 2 (n = 0) \n Razón 3 (n = 0) \n etc.' },
+        position: { x: 379, y: 340 }
+      },
+      {
+        data: { id: 'node16', label: 'Nuevos estudios incluidos \n en la revisión (n = 0) \n Informes de nuevos \n estudios incluidos (n = 0)' },
+        position: { x: 170, y: 440 }
+      },
+
+      // Mantener la conexión entre node1 y node2
+      {
+        data: { id: 'edge2', source: 'node8', target: 'node9' }
+      },
+      {
+        data: { id: 'edge3', source: 'node8', target: 'node10' }
+      },
+      {
+        data: { id: 'edge4', source: 'node10', target: 'node11' }
+      },
+      {
+        data: { id: 'edge5', source: 'node11', target: 'node12' }
+      },
+      {
+        data: { id: 'edge6', source: 'node10', target: 'node13' }
+      },
+      {
+        data: { id: 'edge7', source: 'node11', target: 'node14' }
+      },
+      {
+        data: { id: 'edge8', source: 'node12', target: 'node15' }
+      },
+      {
+        data: { id: 'edge9', source: 'node12', target: 'node16' }
+      }
+    ];
+  }
+
+
+
+
+
+
+
+  // Estilos para la versión completa
+  getFullVersionStyle() {
+    return [
+      {
+        selector: 'node',
+        style: {
+          'background-color': '#11479e',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': 'label',
+          'height': 'label',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': '#fff',
+          'font-size': '10px'
+        } as any
+      },
+      {
+        selector: '#node4',
+        style: {
+          'background-color': '#BCD2EE',
+          'width': '10px',
+          'height': '210px',
+          'text-wrap': 'wrap',
+          'text-max-width': '200px',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'text-rotation': 11,
+          'shape': 'roundrectangle'
+        }
+      },
+      {
+        selector: '#node3, #node5',
+        style: {
+          'background-color': '#BCD2EE',
+          'width': '10px',
+          'height': '80px',
+          'text-wrap': 'wrap',
+          'text-max-width': '200px',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'text-rotation': 11,
+          'shape': 'roundrectangle'
+        } as any
+      },
+      {
+        selector: '#node6',
+        style: {
+          'background-color': '#FFC125',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': '392px',
+          'height': 'label',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px'
+        }
+      },
+      {
+        selector: '#node7',
+        style: {
+          'background-color': '#DCDCDC',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': '340px',
+          'height': 'label',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px'
+        }
+      },
+      {
+        selector: '#node8',
+        style: {
+          'background-color': '#FFFFFF',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': 'label',         // Ancho se calcula en base al contenido
+          'height': 'label',        // Altura se calcula en base al contenido
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px',
+          'border-width': '2px',
+          'border-color': '#000000'
+        }
+      },
+      {
+        selector: '#node10, #node11, #node12',
+        style: {
+          'background-color': '#FFFFFF',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': '110px',
+          'height': '20px',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px',
+          'border-width': '2px',
+          'border-color': '#000000'
+        }
+      },
+      {
+        selector: '#node9',
+        style: {
+          'background-color': '#FFFFFF',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': '203px',
+          'height': '40px',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px',
+          'border-width': '2px',
+          'border-color': '#000000'
+        }
+      },
+      {
+        selector: '#node13, #node14, #node15',
+        style: {
+          'background-color': '#FFFFFF',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': '150px',
+          'height': '35px',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px',
+          'border-width': '2px',
+          'border-color': '#000000'
+        }
+      },
+      {
+        selector: '#node1',
+        style: {
+          'background-color': '#DCDCDC',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': '150px',
+          'height': '40px',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px',
+          'border-width': '2px',
+          'border-color': '#000000'
+        }
+      },
+      {
+        selector: '#node2, #node18',
+        style: {
+          'background-color': '#DCDCDC',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': '110px',
+          'height': '20px',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px',
+          'border-width': '2px',
+          'border-color': '#000000'
+        }
+      },
+      {
+        selector: '#node17, #node19',
+        style: {
+          'background-color': '#DCDCDC',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': '150px',
+          'height': '40px',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px',
+          'border-width': '2px',
+          'border-color': '#000000'
+        }
+      },
+      {
+        selector: 'edge',
+        style: {
+          'width': 3,
+          'line-color': '#333a',
+          'target-arrow-color': '#333',
+          'target-arrow-shape': 'triangle',
+          'curve-style': 'taxi',
+          'taxi-turn': 90,
+          'taxi-turn-min-distance': 20
+        } as any
+      }
+    ];
+  }
+
+  // Estilos para la versión reducida
+  getShortVersionStyle() {
+    return [
+      {
+        selector: 'node',
+        style: {
+          'background-color': '#11479e',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': 'label',
+          'height': 'label',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': '#fff',
+          'font-size': '10px'
+        } as any
+      },
+      {
+        selector: '#node3, #node4, #node5',
+        style: {
+          'background-color': '#BCD2EE',
+          'width': 'label',
+          'height': 'label',
+          'text-wrap': 'wrap',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'shape': 'roundrectangle'
+        }
+      },
+      {
+        selector: '#node6',
+        style: {
+          'background-color': '#FFC125',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'width': 'label',
+          'height': 'label',
+          'text-wrap': 'wrap',
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px'
+        }
+      },
+      {
+        selector: '#node8',
+        style: {
+          'background-color': '#FFFFFF',
+          'label': 'data(label)',
+          'shape': 'roundrectangle',
+          'padding': '10px',
+          'text-wrap': 'wrap',
+          'width': 'label',         // Ancho se calcula en base al contenido
+          'height': 'label',        // Altura se calcula en base al contenido
+          'text-valign': 'center',
+          'text-halign': 'center',
+          'color': 'black',
+          'font-size': '10px',
+          'border-width': '2px',
+          'border-color': '#000000'
+        }
+      },
+      // Agrega más selectores si es necesario para tu versión reducida
+
+      {
+        selector: 'edge',
+        style: {
+          'width': 2,
+          'line-color': '#9dbaea',
+          'target-arrow-color': '#9dbaea',
+          'target-arrow-shape': 'triangle',
+          'curve-style': 'taxi',
+          'taxi-turn': 90,
+          'taxi-turn-min-distance': 20
+        } as any
+      }
+    ];
+  }
+
+  async ngAfterViewInit() {
+    // Inicializar Cytoscape al cargar la vista
+    this.initializeCytoscape();
+
+    this.loadEstudiosData();
+
+  }
+
 }

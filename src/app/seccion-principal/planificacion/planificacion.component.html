@@ -44,7 +44,7 @@
                             </div>
                             <!-- Proyección de borrador de artículo -->
                             <div class="menu-item" [routerLink]="['/informes']" [queryParams]="{ id: reviewId }">
-                                Proyección de artículo
+                                Redacción de articulo
                             </div>
                             <!-- Diagrama de Flujo PRISMA -->
                             <div class="menu-item" [routerLink]="['/prisma']" [queryParams]="{ id: reviewId }">
@@ -103,28 +103,46 @@
 
                                             <!-- Acordeon de Objetivo-->
                                             <div class="accordion-item">
-                                                <h2 class="accordion-header d-flex align-items-center">
-                                                    <!-- Botón del acordeón con ancho reducido -->
-                                                    <!-- Encabezado del acordeón -->
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseOne"
-                                                        aria-expanded="false" aria-controls="flush-collapseOne"
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button d-flex align-items-center collapsed"
+                                                        type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#flush-collapseOne" aria-expanded="false"
+                                                        aria-controls="flush-collapseOne"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0 fw-bold">
-                                                            <!-- Mostramos el ícono de lápiz si NO está guardado -->
-                                                            <ng-container *ngIf="!objectiveSaved; else iconCheck">
-                                                                <i class="fa-solid fa-pencil"></i>&nbsp;&nbsp;1.-
-                                                                Objetivo de la revisión
-                                                            </ng-container>
-                                                            <!-- Mostramos el ícono de check verde si SÍ está guardado -->
-                                                            <ng-template #iconCheck>
-                                                                <i class="fa-solid fa-pencil"></i>&nbsp;&nbsp;1.-
-                                                                Objetivo de la revisión&nbsp;&nbsp;&nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
-                                                            </ng-template>
-                                                        </h5>
+                                                        <!-- Contenedor flex para título + tooltip -->
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <h5
+                                                                class="card-title mb-0 fw-bold d-flex align-items-center">
+                                                                <ng-container *ngIf="!objectiveSaved; else iconCheck">
+                                                                    <i class="fa-solid fa-pencil me-2"></i>
+                                                                    1.&nbsp;- Objetivo de la revisión
+                                                                </ng-container>
+                                                                <ng-template #iconCheck>
+                                                                    <i class="fa-solid fa-pencil me-2"></i>
+                                                                    1.&nbsp;- Objetivo de la revisión&nbsp;&nbsp;
+                                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                                </ng-template>
+                                                            </h5>
+
+                                                            <!-- Tooltip junto al título -->
+                                                            <span class="tooltip-container ms-2"
+                                                                (mouseenter)="showObjectiveHelp = true"
+                                                                (mouseleave)="showObjectiveHelp = false">
+                                                                <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                                <div *ngIf="showObjectiveHelp"
+                                                                    class="tooltip-content animate__animated animate__fadeIn">
+                                                                    <p class="mb-0 fw-normal">
+                                                                        Aquí debes definir el objetivo principal de tu
+                                                                        revisión. Describe en una
+                                                                        sola oración qué quieres alcanzar con este
+                                                                        estudio sistemático.
+                                                                    </p>
+                                                                </div>
+                                                            </span>
+                                                        </div>
                                                     </button>
                                                 </h2>
+
                                                 <div id="flush-collapseOne" class="accordion-collapse collapse"
                                                     aria-labelledby="flush-headingOne"
                                                     data-bs-parent="#accordionFlushExample">
@@ -189,25 +207,46 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Acordeon de pregunta de investigación -->
+                                            <!-- Acordeón de pregunta de investigación -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseThree"
-                                                        aria-expanded="false" aria-controls="flush-collapseThree"
+                                                    <button class="accordion-button collapsed d-flex align-items-center"
+                                                        type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#flush-collapseThree" aria-expanded="false"
+                                                        aria-controls="flush-collapseThree"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0 fw-bold">
-                                                            <i class="bi bi-question-circle"></i>&nbsp;&nbsp;2.-
-                                                            Preguntas de investigación
-                                                            <span *ngIf="questionsUpdated">
-                                                                &nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <!-- Título con icono y check -->
+                                                            <h5
+                                                                class="card-title mb-0 fw-bold d-flex align-items-center">
+                                                                <i class="bi bi-question-circle me-2"></i>
+                                                                2.- Preguntas de investigación
+                                                                <span *ngIf="questionsUpdated" class="ms-2">
+                                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                                </span>
+                                                            </h5>
+
+                                                            <!-- Tooltip de ayuda -->
+                                                            <span class="tooltip-container ms-2"
+                                                                (mouseenter)="showQuestionsHelp = true"
+                                                                (mouseleave)="showQuestionsHelp = false">
+                                                                <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                                <div *ngIf="showQuestionsHelp"
+                                                                    class="tooltip-content animate__animated animate__fadeIn">
+                                                                    <p class="mb-0 fw-normal">
+                                                                        Aquí debes redactar una o varias preguntas que
+                                                                        guiarán tu revisión. Cada pregunta debe reflejar
+                                                                        un aspecto clave que deseas investigar.
+                                                                    </p>
+                                                                </div>
                                                             </span>
-                                                        </h5>
+                                                        </div>
                                                     </button>
                                                 </h2>
+
                                                 <div id="flush-collapseThree" class="accordion-collapse collapse"
                                                     data-bs-parent="#accordionFlushExample">
+
                                                     <div class="accordion-body">
                                                         <div class="d-flex justify-content-between">
                                                             <!-- Botón Agregar pregunta alineado a la derecha -->
@@ -284,23 +323,45 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Acordeon de framework -->
+                                            <!-- Acordeón de framework -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo"
-                                                        aria-expanded="false" aria-controls="flush-collapseTwo"
+                                                    <button class="accordion-button collapsed d-flex align-items-center"
+                                                        type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#flush-collapseTwo" aria-expanded="false"
+                                                        aria-controls="flush-collapseTwo"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0 fw-bold">
-                                                            <i class="bi bi-book-half"></i>&nbsp;&nbsp;3.- Selecciona un
-                                                            Framework
-                                                            <ng-container *ngIf="metodologiaGuardada">
-                                                                &nbsp;&nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
-                                                            </ng-container>
-                                                        </h5>
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <!-- Título con icono y check -->
+                                                            <h5
+                                                                class="card-title mb-0 fw-bold d-flex align-items-center">
+                                                                <i class="bi bi-book-half me-2"></i>
+                                                                3.- Selecciona un Framework
+                                                                <ng-container *ngIf="metodologiaGuardada">
+                                                                    &nbsp;&nbsp;<i
+                                                                        class="bi bi-check-circle-fill text-success"></i>
+                                                                </ng-container>
+                                                            </h5>
+
+                                                            <!-- Tooltip de ayuda -->
+                                                            <span class="tooltip-container ms-2"
+                                                                (mouseenter)="showFrameworkHelp = true"
+                                                                (mouseleave)="showFrameworkHelp = false">
+                                                                <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                                <div *ngIf="showFrameworkHelp"
+                                                                    class="tooltip-content animate__animated animate__fadeIn">
+                                                                    <p class="mb-0 fw-normal">
+                                                                        Aquí eliges la estructura de revisión que
+                                                                        seguirás (PICO, PICOC, PICOTT, SPICE…).
+                                                                        Selecciona el modelo que mejor se adapte a tu
+                                                                        pregunta de investigación.
+                                                                    </p>
+                                                                </div>
+                                                            </span>
+                                                        </div>
                                                     </button>
                                                 </h2>
+
                                                 <div id="flush-collapseTwo" class="accordion-collapse collapse"
                                                     data-bs-parent="#accordionFlushExample">
                                                     <div class="accordion-body">
@@ -664,21 +725,40 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Acordeon de Terminos claves y sinonimos -->
+                                            <!-- Acordeón de Términos claves y sinónimos -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseFour"
-                                                        aria-expanded="false" aria-controls="flush-collapseThree"
+                                                    <button class="accordion-button collapsed d-flex align-items-center"
+                                                        type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#flush-collapseFour" aria-expanded="false"
+                                                        aria-controls="flush-collapseFour"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0 fw-bold">
-                                                            <i class="bi bi-key-fill"></i>&nbsp;&nbsp;4.- Terminos
-                                                            claves y sinónimos
-                                                            <span *ngIf="keywordsUpdated">
-                                                                &nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <!-- Título con icono y check -->
+                                                            <h5
+                                                                class="card-title mb-0 fw-bold d-flex align-items-center">
+                                                                <i class="bi bi-key-fill me-2"></i>
+                                                                4.- Términos claves y sinónimos
+                                                                <span *ngIf="keywordsUpdated" class="ms-2">
+                                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                                </span>
+                                                            </h5>
+
+                                                            <!-- Tooltip de ayuda -->
+                                                            <span class="tooltip-container ms-2"
+                                                                (mouseenter)="showKeywordsHelp = true"
+                                                                (mouseleave)="showKeywordsHelp = false">
+                                                                <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                                <div *ngIf="showKeywordsHelp"
+                                                                    class="tooltip-content animate__animated animate__fadeIn">
+                                                                    <p class="mb-0 fw-normal">
+                                                                        Aquí defines los términos clave que guiarán tu
+                                                                        búsqueda y agregas sinónimos relevantes para
+                                                                        ampliar la cobertura en las bases de datos.
+                                                                    </p>
+                                                                </div>
                                                             </span>
-                                                        </h5>
+                                                        </div>
                                                     </button>
                                                 </h2>
                                                 <div id="flush-collapseFour" class="accordion-collapse collapse"
@@ -815,23 +895,43 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Acordeon de base bibliografica -->
+                                            <!-- Acordeón de Gestión de Bases Bibliográficas -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseSix"
-                                                        aria-expanded="false" aria-controls="flush-collapseSix"
+                                                    <button class="accordion-button collapsed d-flex align-items-center"
+                                                        type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#flush-collapseSix" aria-expanded="false"
+                                                        aria-controls="flush-collapseSix"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0 fw-bold">
-                                                            <i class="bi bi-clipboard-data-fill"></i>&nbsp;&nbsp;5.-
-                                                            Gestión de Bases Bibliográficas
-                                                            <span *ngIf="basesGuardadas">
-                                                                &nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <!-- Título con icono y check -->
+                                                            <h5
+                                                                class="card-title mb-0 fw-bold d-flex align-items-center">
+                                                                <i class="bi bi-clipboard-data-fill me-2"></i>
+                                                                5.- Gestión de Bases Bibliográficas
+                                                                <span *ngIf="basesGuardadas" class="ms-2">
+                                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                                </span>
+                                                            </h5>
+
+                                                            <!-- Tooltip de ayuda -->
+                                                            <span class="tooltip-container ms-2"
+                                                                (mouseenter)="showBasesHelp = true"
+                                                                (mouseleave)="showBasesHelp = false">
+                                                                <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                                <div *ngIf="showBasesHelp"
+                                                                    class="tooltip-content animate__animated animate__fadeIn">
+                                                                    <p class="mb-0 fw-normal">
+                                                                        Aquí puedes añadir, editar o eliminar las bases
+                                                                        de datos que consultará tu revisión; asegúrate
+                                                                        de incluir nombre y URL de cada fuente.
+                                                                    </p>
+                                                                </div>
                                                             </span>
-                                                        </h5>
+                                                        </div>
                                                     </button>
                                                 </h2>
+
                                                 <div id="flush-collapseSix" class="accordion-collapse collapse"
                                                     data-bs-parent="#accordionFlushExample">
                                                     <div class="accordion-body">
@@ -915,22 +1015,43 @@
                                             <!-- Acordeón de Cadena de búsqueda -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseFive"
-                                                        aria-expanded="false" aria-controls="flush-collapseFive"
+                                                    <button class="accordion-button collapsed d-flex align-items-center"
+                                                        type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#flush-collapseFive" aria-expanded="false"
+                                                        aria-controls="flush-collapseFive"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0 fw-bold">
-                                                            <i class="bi bi-stack-overflow"></i>&nbsp;&nbsp;6.- Cadena
-                                                            de búsqueda
-                                                            <!-- Condicional: si están completos, check verde; si no, warning amarillo -->
-                                                            <span *ngIf="allCadenasComplete; else warningIcon">
-                                                                <i class="bi bi-check-circle-fill text-success"></i>
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <!-- Título con icono y estado -->
+                                                            <h5
+                                                                class="card-title mb-0 fw-bold d-flex align-items-center">
+                                                                <i class="bi bi-stack-overflow me-2"></i>
+                                                                6.- Cadena de búsqueda
+                                                                <span *ngIf="allCadenasComplete; else warningIcon"
+                                                                    class="ms-2">
+                                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                                </span>
+                                                                <ng-template #warningIcon>
+                                                                    <i
+                                                                        class="bi bi-exclamation-triangle-fill text-warning ms-2"></i>
+                                                                </ng-template>
+                                                            </h5>
+
+                                                            <!-- Tooltip de ayuda junto al título -->
+                                                            <span class="tooltip-container ms-2"
+                                                                (mouseenter)="showSearchHelp = true"
+                                                                (mouseleave)="showSearchHelp = false">
+                                                                <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                                <div *ngIf="showSearchHelp"
+                                                                    class="tooltip-content animate__animated animate__fadeIn">
+                                                                    <p class="mb-0 fw-normal">
+                                                                        Aquí defines tu cadena de búsqueda global y las
+                                                                        alternativas por base; combina términos,
+                                                                        operadores booleanos y sinónimos para optimizar
+                                                                        tus resultados.
+                                                                    </p>
+                                                                </div>
                                                             </span>
-                                                            <ng-template #warningIcon>
-                                                                <i
-                                                                    class="bi bi-exclamation-triangle-fill text-warning"></i>
-                                                            </ng-template>
-                                                        </h5>
+                                                        </div>
                                                     </button>
                                                 </h2>
                                                 <div id="flush-collapseFive" class="accordion-collapse collapse"
@@ -956,26 +1077,27 @@
                                                                         {{ isGlobalCadenaCopied ? 'Copiado' : 'Copiar'
                                                                         }}
                                                                     </button>
+
                                                                     <textarea class="form-control" rows="3"
                                                                         [(ngModel)]="globalCadena" name="globalCadena"
                                                                         placeholder="Ingrese la cadena de búsqueda global"
-                                                                        maxlength="1200"></textarea>
+                                                                        maxlength="1200"
+                                                                        (ngModelChange)="globalCadenaGuardada = false"></textarea>
                                                                 </div>
-                                                                <div class="text-end text-muted mt-1">
-                                                                    <small>{{ globalCadena.length || 0 }}/1200
-                                                                        caracteres</small>
-                                                                </div>
+
                                                                 <div class="row mt-2">
                                                                     <div class="col-auto">
+                                                                        <!-- Ahora llama al método que limpia y resetea el flag -->
                                                                         <button class="btn btn-secondary me-2"
-                                                                            type="button" (click)="globalCadena = ''">
+                                                                            type="button" (click)="clearGlobalCadena()">
                                                                             <i class="fa-solid fa-eraser"></i>&nbsp;
                                                                             Limpiar
                                                                         </button>
                                                                     </div>
-                                                                    <div class="col text-end"
-                                                                        *ngIf="!globalCadenaGuardada">
+                                                                    <div class="col text-end">
+                                                                        <!-- Este botón reaparecerá tras limpiar -->
                                                                         <button class="btn btn-success" type="button"
+                                                                            *ngIf="!globalCadenaGuardada"
                                                                             (click)="saveGlobalCadena()">
                                                                             <i
                                                                                 class="fa-solid fa-paper-plane"></i>&nbsp;
@@ -998,32 +1120,33 @@
                                                                         <i class="bi bi-clipboard"></i>&nbsp;
                                                                         {{ base.isCadenaCopied ? 'Copiado' : 'Copiar' }}
                                                                     </button>
+
                                                                     <textarea class="form-control" rows="3"
                                                                         [(ngModel)]="base.cadenaBusqueda"
                                                                         name="cadenaBusqueda{{i}}"
                                                                         placeholder="Ingrese la cadena de búsqueda para {{ base.nombre }}"
-                                                                        maxlength="1200"></textarea>
+                                                                        maxlength="1200"
+                                                                        (ngModelChange)="base.cadenaGuardada = false"></textarea>
                                                                 </div>
-                                                                <div class="text-end text-muted mt-1">
-                                                                    <small>{{ base.cadenaBusqueda?.length || 0 }}/1200
-                                                                        caracteres</small>
-                                                                </div>
+
                                                                 <div class="row mt-2">
                                                                     <div class="col-auto">
+                                                                        <!-- Llama al método que limpia y resetea el flag -->
                                                                         <button class="btn btn-secondary me-2"
                                                                             type="button"
-                                                                            (click)="base.cadenaBusqueda = ''">
+                                                                            (click)="clearCadenaForBase(base)">
                                                                             <i class="fa-solid fa-eraser"></i>&nbsp;
                                                                             Limpiar
                                                                         </button>
                                                                     </div>
-                                                                    <div class="col text-end"
-                                                                        *ngIf="!base.cadenaGuardada">
+                                                                    <div class="col text-end">
+                                                                        <!-- Reaparecerá tras limpiar -->
                                                                         <button class="btn btn-success" type="button"
+                                                                            *ngIf="!base.cadenaGuardada"
                                                                             (click)="saveCadenaForBase(base)">
                                                                             <i
                                                                                 class="fa-solid fa-paper-plane"></i>&nbsp;
-                                                                            Guardar cadena de búsqueda alternativa
+                                                                            Guardar cadena
                                                                         </button>
                                                                     </div>
                                                                 </div>
@@ -1034,23 +1157,44 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Acordeon de criterios de selección -->
+                                            <!-- Acordeón de Criterios de selección -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseSeven"
-                                                        aria-expanded="false" aria-controls="flush-collapseSeven"
+                                                    <button class="accordion-button collapsed d-flex align-items-center"
+                                                        type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#flush-collapseSeven" aria-expanded="false"
+                                                        aria-controls="flush-collapseSeven"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0 fw-bold">
-                                                            <i class="bi bi-stack"></i>&nbsp;&nbsp;7.- Criterios de
-                                                            selección
-                                                            <span *ngIf="criteriosGuardados">
-                                                                &nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <!-- Título con icono y check -->
+                                                            <h5
+                                                                class="card-title mb-0 fw-bold d-flex align-items-center">
+                                                                <i class="bi bi-stack me-2"></i>
+                                                                7.- Criterios de selección
+                                                                <span *ngIf="criteriosGuardados" class="ms-2">
+                                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                                </span>
+                                                            </h5>
+
+                                                            <!-- Tooltip de ayuda -->
+                                                            <span class="tooltip-container ms-2"
+                                                                (mouseenter)="showSelectionHelp = true"
+                                                                (mouseleave)="showSelectionHelp = false">
+                                                                <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                                <div *ngIf="showSelectionHelp"
+                                                                    class="tooltip-content animate__animated animate__fadeIn">
+                                                                    <p class="mb-0 fw-normal">
+                                                                        Aquí defines tus criterios de inclusión y
+                                                                        exclusión: especifica las reglas que
+                                                                        determinarán qué estudios serán considerados
+                                                                        válidos o descartados en tu revisión.
+                                                                    </p>
+                                                                </div>
                                                             </span>
-                                                        </h5>
+                                                        </div>
                                                     </button>
                                                 </h2>
+
                                                 <div id="flush-collapseSeven" class="accordion-collapse collapse"
                                                     data-bs-parent="#accordionFlushExample">
                                                     <div class="accordion-body">
@@ -1240,21 +1384,41 @@
                                         </p>
 
                                         <div class="accordion accordion-flush" id="accordionFlushExample1">
-                                            <!-- Acordeón de Preguntas -->
+                                            <!-- Acordeón de Preguntas de evaluación de calidad -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseEight"
-                                                        aria-expanded="false" aria-controls="flush-collapseEight"
+                                                    <button class="accordion-button collapsed d-flex align-items-center"
+                                                        type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#flush-collapseEight" aria-expanded="false"
+                                                        aria-controls="flush-collapseEight"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0 fw-bold">
-                                                            <i class="bi bi-question-circle"></i>&nbsp;&nbsp;8.-
-                                                            Preguntas de evaluación de calidad
-                                                            <span *ngIf="qualityQuestionsSaved">
-                                                                &nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <!-- Título con icono y check -->
+                                                            <h5
+                                                                class="card-title mb-0 fw-bold d-flex align-items-center">
+                                                                <i class="bi bi-question-circle me-2"></i>
+                                                                8.- Preguntas de evaluación de calidad
+                                                                <span *ngIf="qualityQuestionsSaved" class="ms-2">
+                                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                                </span>
+                                                            </h5>
+
+                                                            <!-- Tooltip de ayuda -->
+                                                            <span class="tooltip-container ms-2"
+                                                                (mouseenter)="showQualityHelp = true"
+                                                                (mouseleave)="showQualityHelp = false">
+                                                                <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                                <div *ngIf="showQualityHelp"
+                                                                    class="tooltip-content animate__animated animate__fadeIn">
+                                                                    <p class="mb-0 fw-normal">
+                                                                        Aquí defines las preguntas que utilizarás para
+                                                                        evaluar la calidad metodológica de los estudios
+                                                                        incluidos, por ejemplo rigurosidad, validez y
+                                                                        aplicabilidad.
+                                                                    </p>
+                                                                </div>
                                                             </span>
-                                                        </h5>
+                                                        </div>
                                                     </button>
                                                 </h2>
                                                 <div id="flush-collapseEight" class="accordion-collapse collapse"
@@ -1322,23 +1486,43 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Acordeon de Respuestas -->
+                                            <!-- Acordeón de Respuestas de evaluación -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseNine"
-                                                        aria-expanded="false" aria-controls="flush-collapseNine"
+                                                    <button class="accordion-button collapsed d-flex align-items-center"
+                                                        type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#flush-collapseNine" aria-expanded="false"
+                                                        aria-controls="flush-collapseNine"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0 fw-bold">
-                                                            <i class="bi bi-check-circle"></i>&nbsp;&nbsp;9.-
-                                                            Respuestas de evaluación
-                                                            <span *ngIf="respuestasGuardadas">
-                                                                &nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <!-- Título con icono y check -->
+                                                            <h5
+                                                                class="card-title mb-0 fw-bold d-flex align-items-center">
+                                                                <i class="bi bi-check-circle me-2"></i>
+                                                                9.- Respuestas de evaluación
+                                                                <span *ngIf="respuestasGuardadas" class="ms-2">
+                                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                                </span>
+                                                            </h5>
+
+                                                            <!-- Tooltip de ayuda -->
+                                                            <span class="tooltip-container ms-2"
+                                                                (mouseenter)="showAnswersHelp = true"
+                                                                (mouseleave)="showAnswersHelp = false">
+                                                                <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                                <div *ngIf="showAnswersHelp"
+                                                                    class="tooltip-content animate__animated animate__fadeIn">
+                                                                    <p class="mb-0 fw-normal">
+                                                                        Aquí añades o editas cada posible respuesta para
+                                                                        tus criterios de evaluación, asignando
+                                                                        descripción y un peso relativo antes de guardar.
+                                                                    </p>
+                                                                </div>
                                                             </span>
-                                                        </h5>
+                                                        </div>
                                                     </button>
                                                 </h2>
+
                                                 <div id="flush-collapseNine" class="accordion-collapse collapse"
                                                     data-bs-parent="#accordionFlushExample1">
                                                     <div class="accordion-body">
@@ -1424,21 +1608,41 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Acordeón de Puntuación Límite -->
+                                            <!-- Acordeón de Puntuaciones de evaluación de calidad -->
                                             <div class="accordion-item">
                                                 <h2 class="accordion-header">
-                                                    <button class="accordion-button collapsed" type="button"
-                                                        data-bs-toggle="collapse" data-bs-target="#flush-collapseTen"
-                                                        aria-expanded="false" aria-controls="flush-collapseTen"
+                                                    <button class="accordion-button collapsed d-flex align-items-center"
+                                                        type="button" data-bs-toggle="collapse"
+                                                        data-bs-target="#flush-collapseTen" aria-expanded="false"
+                                                        aria-controls="flush-collapseTen"
                                                         style="background-color: #F8F8F8; flex: 7;">
-                                                        <h5 class="card-title mb-0 fw-bold">
-                                                            <i class="bi bi-bar-chart"></i>&nbsp;&nbsp;10.- Puntuaciones
-                                                            de evaluación de calidad
-                                                            <span *ngIf="puntuacionesGuardadas">
-                                                                &nbsp;<i
-                                                                    class="bi bi-check-circle-fill text-success"></i>
+                                                        <div class="d-flex align-items-center w-100">
+                                                            <!-- Título con icono y check -->
+                                                            <h5
+                                                                class="card-title mb-0 fw-bold d-flex align-items-center">
+                                                                <i class="bi bi-bar-chart me-2"></i>
+                                                                10.- Puntuaciones de evaluación de calidad
+                                                                <span *ngIf="puntuacionesGuardadas" class="ms-2">
+                                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                                </span>
+                                                            </h5>
+
+                                                            <!-- Tooltip de ayuda -->
+                                                            <span class="tooltip-container ms-2"
+                                                                (mouseenter)="showScoresHelp = true"
+                                                                (mouseleave)="showScoresHelp = false">
+                                                                <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                                <div *ngIf="showScoresHelp"
+                                                                    class="tooltip-content animate__animated animate__fadeIn">
+                                                                    <p class="mb-0 fw-normal">
+                                                                        Aquí se muestra la puntuación máxima calculada y
+                                                                        puedes establecer la puntuación mínima de
+                                                                        aceptación. Guarda el límite para filtrar los
+                                                                        estudios según su calidad.
+                                                                    </p>
+                                                                </div>
                                                             </span>
-                                                        </h5>
+                                                        </div>
                                                     </button>
                                                 </h2>
                                                 <div id="flush-collapseTen" class="accordion-collapse collapse"
@@ -1492,12 +1696,28 @@
                                         </p>
                                         <div class="container">
                                             <div class="card">
-                                                <div class="card-header position-relative">
-                                                    <h5 class="mb-0 fw-bold">
-                                                        <i class="bi bi-clipboard-data-fill"></i>&nbsp;&nbsp;11.-
-                                                        Formulario de extracción de datos
-                                                        <span *ngIf="fieldsSaved">
-                                                            &nbsp;<i class="bi bi-check-circle-fill text-success"></i>
+                                                <div class="card-header d-flex align-items-center">
+                                                    <h5 class="mb-0 fw-bold d-flex align-items-center">
+                                                        <i class="bi bi-clipboard-data-fill me-2"></i>
+                                                        11.- Formulario de extracción de datos
+                                                        <span *ngIf="fieldsSaved" class="ms-2">
+                                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                                        </span>
+
+                                                        <!-- Tooltip de ayuda -->
+                                                        <span class="tooltip-container ms-3"
+                                                            (mouseenter)="showExtractionHelp = true"
+                                                            (mouseleave)="showExtractionHelp = false">
+                                                            <i class="fa-solid fa-circle-question tooltip-icon"></i>
+                                                            <div *ngIf="showExtractionHelp"
+                                                                class="tooltip-content animate__animated animate__fadeIn">
+                                                                <p class="mb-0 fw-normal">
+                                                                    Aquí defines los campos que quieres extraer de cada
+                                                                    estudio. Añade una descripción clara y selecciona el
+                                                                    tipo de dato (texto, numérico, fecha…) para cada
+                                                                    campo antes de guardar.
+                                                                </p>
+                                                            </div>
                                                         </span>
                                                     </h5>
                                                 </div>
