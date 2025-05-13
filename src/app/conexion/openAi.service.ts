@@ -21,7 +21,7 @@ export class OpenAiService {
   private qualityTrabajosUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-trabajos-relacionados';
   private metodologiaUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-metodologia';
   private resultadosUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-resultados';
-  private discussionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-discussion';
+  private discussionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-discusion';
   private discussionKeywordsUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-discussion-keywords';
   private limitacionesUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-limitaciones';
   private conclusionUrl = 'https://backend-chatgpt-g3rn.onrender.com/api/generate-conclusion';

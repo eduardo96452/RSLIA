@@ -5,7 +5,7 @@ import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/rout
 import { filter } from 'rxjs';
 import { AuthService, Informe } from '../../auth/data-access/auth.service';
 import { OpenAiService } from '../../conexion/openAi.service';
-import { Document, Packer, Paragraph, HeadingLevel, TextRun, AlignmentType, Table, TableRow, TableCell, WidthType, TableLayoutType, BorderStyle, ShadingType } from 'docx';
+import { Document, Packer, Paragraph, HeadingLevel, TextRun, AlignmentType, Table, TableRow, TableCell, WidthType, TableLayoutType, BorderStyle, ShadingType, ImageRun } from 'docx';
 import { saveAs } from 'file-saver';
 import Swal from 'sweetalert2';
 import { jsPDF } from "jspdf";
@@ -97,7 +97,7 @@ export class InformesComponent implements OnInit {
   loadingResultados = false;
   respuestasPorPregunta: { [key: string]: string[] } = {};
   isReflexionCopied = false;
-  isRespuestaCopied: Record<string,boolean> = {};
+  isRespuestaCopied: Record<string, boolean> = {};
   isReferenciasResultadosCopied = false;
   ratingResultados: number | null = null;  // 1 = like, 0 = dislike
 
@@ -1864,7 +1864,36 @@ export class InformesComponent implements OnInit {
   // Función para generar y subir el DOCX
   async downloadDraftWord(): Promise<void> {
     try {
-      // 1) Construcción del documento
+      // 0) Confirmación
+      const { isConfirmed } = await Swal.fire({
+        title: '¿Descargo la imagen del diagrama de flujo de Prisma de la sección siguiente?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No'
+      });
+
+      let diagramData: ArrayBuffer | null = null;
+
+      if (isConfirmed) {
+        // 1) Pedir fichero de imagen
+        const { value: file } = await Swal.fire({
+          title: 'Selecciona la imagen del Diagrama de Flujo Prisma',
+          input: 'file',
+          inputAttributes: { accept: 'image/*' }
+        });
+
+        if ((file as File)?.size) {
+          diagramData = await new Promise<ArrayBuffer>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as ArrayBuffer);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsArrayBuffer(file as File);
+          });
+        }
+      }
+
+      // 3) Construcción del documento
       const doc = new Document({
         styles: {
           paragraphStyles: [
@@ -1959,9 +1988,25 @@ export class InformesComponent implements OnInit {
               ...this.parseHtmlToNodes(this.metTablaCadenas),
               ...this.parseHtmlToNodes(this.metCriterios.toString()),
               ...this.parseHtmlToNodes(this.metProceso),
-              ...this.parseHtmlToNodes("Añada el Diagrama de Flujo Prisma que esta en la aplicación"),
 
-              // (si tuvieras referencias específicas, las meterías igual)
+              // --- Diagrama de Flujo Prisma ---
+              ...(diagramData
+                ? [
+                  new Paragraph({ text: "Diagrama de Flujo Prisma", style: "SubHeading" }),
+                  new Paragraph({
+                    children: [
+                      new ImageRun({
+                        data: diagramData,
+                        transformation: { width: 600, height: 400 },
+                        type: 'png'
+                      })
+                    ]
+                  })
+                ]
+                : this.parseHtmlToNodes(
+                  "Añada el Diagrama de Flujo Prisma que esta en la aplicación"
+                )
+              ),
 
               // --- Resultados (nueva página) ---
               new Paragraph({ text: "", pageBreakBefore: true }),
@@ -1996,7 +2041,7 @@ export class InformesComponent implements OnInit {
         ],
       });
 
-      // 3) Generar blob y subir (igual que antes)
+      // 4) Generar blob y subir
       const blob = await Packer.toBlob(doc);
       const uploadResult = await this.authService.uploadInformeDocx(blob, this.reviewId);
       if (!uploadResult) throw new Error("No se pudo subir DOCX");
@@ -2017,7 +2062,9 @@ export class InformesComponent implements OnInit {
         timer: 2000,
         showConfirmButton: false,
       });
+
       await this.loadInformesGenerados();
+
     } catch (e) {
       console.error(e);
       Swal.fire("Error", "No se pudo generar el DOCX.", "error");
