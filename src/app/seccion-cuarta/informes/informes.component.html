@@ -55,14 +55,9 @@
             <div class="col col-sm col-md-10">
                <!-- Nav Tabs para cada sección del artículo -->
                <ul class="nav nav-tabs" role="tablist">
+
                   <li class="nav-item" role="presentation">
-                     <button class="nav-link active" id="intro-tab" data-bs-toggle="tab" data-bs-target="#introduccion"
-                        type="button" role="tab" aria-controls="introduccion" aria-selected="true">
-                        Introducción
-                     </button>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                     <button class="nav-link" id="trabajos-tab" data-bs-toggle="tab" data-bs-target="#trabajos"
+                     <button class="nav-link active" id="trabajos-tab" data-bs-toggle="tab" data-bs-target="#trabajos"
                         type="button" role="tab" aria-controls="trabajos" aria-selected="false">
                         Trabajos relacionados
                      </button>
@@ -98,9 +93,15 @@
                      </button>
                   </li>
                   <li class="nav-item" role="presentation">
-                     <button class="nav-link" id="referencias-tab" data-bs-toggle="tab" data-bs-target="#referencias"
-                        type="button" role="tab" aria-controls="referencias" aria-selected="false">
-                        Referencias
+                     <button class="nav-link" id="intro-tab" data-bs-toggle="tab" data-bs-target="#introduccion"
+                        type="button" role="tab" aria-controls="introduccion" aria-selected="true">
+                        Introducción
+                     </button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                     <button class="nav-link" id="resumen-tab" data-bs-toggle="tab" data-bs-target="#resumen"
+                        type="button" role="tab" aria-controls="resumen" aria-selected="false">
+                        Resumen
                      </button>
                   </li>
                   <li class="nav-item" role="presentation">
@@ -112,298 +113,697 @@
                         Descargas
                      </button>
                   </li>
-
-
                </ul>
 
                <!-- Contenido de cada pestaña -->
                <div class="tab-content mt-3">
-                  <!-- Introducción -->
-                  <div class="tab-pane fade show active" id="introduccion" role="tabpanel" aria-labelledby="intro-tab">
+
+                  <!-- Trabajos relacionados -->
+                  <div class="tab-pane fade show active" id="trabajos" role="tabpanel" aria-labelledby="trabajos-tab">
+                     <!-- 1) GENERACIÓN DE KEYWORDS -->
                      <div class="card mb-3">
-                        <div class="card-header bg-light">
-                           <div class="d-flex justify-content-between mt-2">
-                              <!-- Título de la sección -->
-                              <h5>
-                                 <strong>Introducción</strong> &nbsp;
-                                 <!-- Muestra el ícono de check solo si introductionSaved es true -->
-                                 <span *ngIf="introductionSaved">
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                 </span>
-                              </h5>
-                              <!-- Botón para generar texto con IA -->
-                              <button class="btn btn-primary" title="Generar introducción con IA"
-                                 (click)="generateIntroductionWithIA()">
-                                 Generar introducción con IA
-                              </button>
-                           </div>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0"><strong>Palabras clave</strong>&nbsp;
+                              <span *ngIf="trabajosSaved"><i class="bi bi-check-circle-fill text-success"></i></span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingKeywords"
+                              (click)="generateKeywordsWithIA()">
+                              <i class="bi bi-robot"></i> Generar con IA
+                           </button>
                         </div>
                         <div class="card-body">
-                           <!-- Área editable para el borrador de Introducción -->
-                           <div contenteditable="true" class="form-control" style="min-height: 150px;"
-                              [innerHTML]="introductionText">
-                              <!-- El contenido generado se mostrará aquí -->
-                           </div>
-                           <div class="d-flex justify-content-between mt-2">
-                              <!-- El botón de guardar solo se muestra si introductionSaved es false -->
-                              <button *ngIf="!introductionSaved" class="btn btn-success"
-                                 title="Guardar borrador de Introducción" (click)="saveIntroductionDraft()">
-                                 Guardar introducción
+                           <label class="form-label fw-bold">Palabras</label>
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyKeywords()"
+                                 [disabled]="!keywordsText">
+                                 <i class="bi bi-clipboard"></i> {{ isKeywordsCopied ? 'Copiado' : 'Copiar' }}
                               </button>
+                              <div contenteditable="true" class="form-control" [textContent]="keywordsText" (input)="
+    keywordsText = $any($event.target).textContent;
+    trabajosSaved = false
+  " style="min-height: 2.5rem; padding-top: 2.25rem;"></div>
+
                            </div>
                         </div>
                      </div>
-                  </div>
 
-
-                  <!-- Trabajos relacionados -->
-                  <div class="tab-pane fade" id="trabajos" role="tabpanel" aria-labelledby="trabajos-tab">
+                     <!-- 2) GENERACIÓN DE TRABAJOS RELACIONADOS -->
                      <div class="card mb-3">
-                        <div class="card-header bg-light">
-                           <div class="d-flex justify-content-between mt-2">
-                              <h5>
-                                 <strong>Trabajos relacionados</strong> &nbsp;
-                                 <!-- Si se guardó el borrador, se muestra el check -->
-                                 <span *ngIf="trabajosSaved">
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                 </span>
-                              </h5>
-                              <!-- Botón para generar sugerencias con IA -->
-                              <button class="btn btn-primary" title="Generar trabajos relacionados con IA"
-                                 (click)="generateTrabajosRelacionadosWithData()">
-                                 Generar trabajos relacionados con IA
-                              </button>
-                           </div>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0">
+                              <strong>Trabajos relacionados</strong>&nbsp;
+                              <span *ngIf="trabajosSaved"><i class="bi bi-check-circle-fill text-success"></i></span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingTrabajos"
+                              (click)="generateTrabajosRelacionadosWithData()">
+                              <i class="bi bi-robot"></i> Generar con IA
+                           </button>
                         </div>
-                        <div class="card-body">
-                           <!-- Área editable para el borrador de Trabajos relacionados -->
-                           <div contenteditable="true" class="form-control" style="min-height: 150px;"
-                              [innerHTML]="trabajosText">
+                        <div class="card-body position-relative">
+                           <!-- Cuerpo -->
+                           <div class="d-flex justify-content-between align-items-center mb-2">
+                              <label class="form-label fw-bold mb-0">Cuerpo</label>
+                              <div class="d-flex align-items-center">
+                                 <span class="me-2">Valora la sugerencia:</span>
+                                 <!-- Like -->
+                                 <i class="bi" [ngClass]="ratingTR === 1 
+          ? 'bi-hand-thumbs-up-fill text-success' 
+          : 'bi-hand-thumbs-up'" title="Respuesta adecuada" (click)="rateTrabajoRelated(true)"
+                                    style="cursor: pointer;"></i>
+                                 <!-- Dislike -->
+                                 <i class="bi ms-3" [ngClass]="ratingTR === 0 
+          ? 'bi-hand-thumbs-down-fill text-danger' 
+          : 'bi-hand-thumbs-down'" title="Respuesta inadecuada" (click)="rateTrabajoRelated(false)"
+                                    style="cursor: pointer;"></i>
+                              </div>
                            </div>
-                           <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón para guardar se muestra solo si aún no se ha guardado -->
-                              <button *ngIf="!trabajosSaved" class="btn btn-success"
-                                 title="Guardar borrador de Trabajos relacionados" (click)="saveTrabajosRelatedDraft()">
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyTrabajosText()">
+                                 <i class="bi bi-clipboard"></i> {{ isTrabajosCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control" [innerHTML]="trabajosText"
+                                 (input)="onTrabajosInput($event)" style="padding-top: 2.25rem;"></div>
+                           </div>
+
+                           <!-- Bibliografía -->
+                           <label class="form-label fw-bold">Bibliografía</label>
+                           <div class="position-relative textarea-container mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn"
+                                 (click)="copyTrabajosRefsText()">
+                                 <i class="bi bi-clipboard"></i> {{ isTrabajosRefsCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control" [innerHTML]="trabajosRefsText"
+                                 (input)="onTrabajosRefsInput($event)" style="padding-top: 2.25rem;"></div>
+                           </div>
+
+                           <!-- Botones de guardar y valoración -->
+                           <div class="d-flex align-items-center">
+                              <button *ngIf="!trabajosSaved" class="btn btn-success btn-sm me-3"
+                                 (click)="saveTrabajosRelatedDraft()">
                                  Guardar trabajos relacionados
                               </button>
                            </div>
                         </div>
                      </div>
-                  </div>
 
+                  </div>
 
                   <!-- Metodología -->
                   <div class="tab-pane fade" id="metodologia" role="tabpanel" aria-labelledby="metodologia-tab">
                      <div class="card mb-3">
-                        <div class="card-header bg-light">
-                           <div class="d-flex justify-content-between mt-2">
-                              <h5>
-                                 <strong>Metodología</strong> &nbsp;
-                                 <!-- Ícono de check que aparece si metodología ya se guardó -->
-                                 <span *ngIf="metodologiaSaved">
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                 </span>
-                              </h5>
-                              <!-- Botón para generar texto con IA -->
-                              <button class="btn btn-primary" title="Generar metodología con IA"
-                                 (click)="generateMetodologiaWithIA()">
-                                 Generar metodología con IA
-                              </button>
-                           </div>
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0">
+                              <strong>Metodología</strong>&nbsp;
+                              <span *ngIf="metodologiaSaved"><i class="bi bi-check-circle-fill text-success"></i></span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingMetodologia"
+                              (click)="generateMetodologiaWithIA()">
+                              <i class="bi bi-robot"></i>&nbsp; Generar con IA
+                           </button>
                         </div>
                         <div class="card-body">
-                           <!-- Área editable para la metodología -->
-                           <div contenteditable="true" class="form-control" style="min-height: 150px;"
-                              [innerHTML]="metodologiaText">
+                           <!-- Enfoque metodológico -->
+                           <div class="d-flex justify-content-between align-items-center">
+                              <label class="form-label fw-bold mb-0">Enfoque metodológico</label>
+                              <div class="d-flex align-items-center">
+                                 <span class="me-2">Valora la sugerencia:</span>
+                                 <!-- Like -->
+                                 <i class="bi" [ngClass]="ratingMetodologia === 1 
+          ? 'bi-hand-thumbs-up-fill text-success' 
+          : 'bi-hand-thumbs-up'" title="Respuesta adecuada" (click)="rateMetodologia(true)"
+                                    style="cursor: pointer;"></i>
+                                 <!-- Dislike -->
+                                 <i class="bi ms-3" [ngClass]="ratingMetodologia === 0 
+          ? 'bi-hand-thumbs-down-fill text-danger' 
+          : 'bi-hand-thumbs-down'" title="Respuesta inadecuada" (click)="rateMetodologia(false)"
+                                    style="cursor: pointer;"></i>
+                              </div>
                            </div>
-                           <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón para guardar metodología (aparece solo si no está guardado) -->
-                              <button *ngIf="!metodologiaSaved" class="btn btn-success"
-                                 title="Guardar borrador de Metodología" (click)="saveMetodologiaDraft()">
-                                 Guardar metodología
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyMetEnfoque()"
+                                 [disabled]="!metEnfoque">
+                                 <i class="bi bi-clipboard"></i> {{ isMetEnfoqueCopied ? 'Copiado' : 'Copiar' }}
                               </button>
+                              <div contenteditable="true" class="form-control mb-2" [innerText]="metEnfoque"
+                                 (input)="metEnfoque = $any($event.target).innerText; metodologiaSaved = false"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;">
+                              </div>
                            </div>
+
+                           <!-- Fases PRISMA -->
+                           <label class="form-label fw-bold">Fases PRISMA</label>
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyMetFases()"
+                                 [disabled]="!metFases">
+                                 <i class="bi bi-clipboard"></i> {{ isMetFasesCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control mb-2" [innerText]="metFases"
+                                 (input)="metFases = $any($event.target).innerText; metodologiaSaved = false"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <!-- Procedimiento de búsqueda -->
+                           <label class="form-label fw-bold">Procedimiento de búsqueda</label>
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn"
+                                 (click)="copyMetProcedimiento()" [disabled]="!metProcedimiento">
+                                 <i class="bi bi-clipboard"></i> {{ isMetProcedimientoCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control mb-2" [innerText]="metProcedimiento"
+                                 (input)="metProcedimiento = $any($event.target).innerText; metodologiaSaved = false"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <!-- Tabla PICOC -->
+                           <label class="form-label fw-bold">Tabla PICOC</label>
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyMetTablaPicos()"
+                                 [disabled]="!metTablaPicos">
+                                 <i class="bi bi-clipboard"></i> {{ isMetTablaPicosCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div id="picoc-editor" contenteditable="true" class="form-control mb-2"
+                                 [innerHTML]="metTablaPicos"
+                                 (input)="metTablaPicos = $any($event.target).innerHTML; metodologiaSaved = false"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <!-- Análisis de la cadena -->
+                           <label class="form-label fw-bold">Análisis de la cadena</label>
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn"
+                                 (click)="copyMetAnalisisCadena()" [disabled]="!metAnalisisCadena">
+                                 <i class="bi bi-clipboard"></i> {{ isMetAnalisisCadenaCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control mb-2" [innerText]="metAnalisisCadena"
+                                 (input)="metAnalisisCadena = $any($event.target).innerText; metodologiaSaved = false"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <!-- Cadena de búsqueda global -->
+                           <label class="form-label fw-bold">Cadena de búsqueda global</label>
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyMetCadenaGlobal()"
+                                 [disabled]="!metCadenaGlobal">
+                                 <i class="bi bi-clipboard"></i> {{ isMetCadenaGlobalCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control mb-2" [innerText]="metCadenaGlobal"
+                                 (input)="metCadenaGlobal = $any($event.target).innerText; metodologiaSaved = false"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <!-- Introducción a bases de datos -->
+                           <label class="form-label fw-bold">Introducción a bases de datos</label>
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyMetIntroBases()"
+                                 [disabled]="!metIntroBases">
+                                 <i class="bi bi-clipboard"></i> {{ isMetIntroBasesCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control mb-2" [innerText]="metIntroBases"
+                                 (input)="metIntroBases = $any($event.target).innerText; metodologiaSaved = false"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <!-- Tabla de bases de datos -->
+                           <label class="form-label fw-bold">Tabla de bases de datos</label>
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyMetTablaBases()"
+                                 [disabled]="!metTablaBases">
+                                 <i class="bi bi-clipboard"></i> {{ isMetTablaBasesCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div id="bases-editor" contenteditable="true" class="form-control mb-2"
+                                 [innerHTML]="metTablaBases"
+                                 (input)="metTablaBases = $any($event.target).innerHTML; metodologiaSaved = false"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <!-- Tabla de cadenas por base -->
+                           <label class="form-label fw-bold">Tabla de cadenas por base</label>
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyMetTablaCadenas()"
+                                 [disabled]="!metTablaCadenas">
+                                 <i class="bi bi-clipboard"></i> {{ isMetTablaCadenasCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div id="cadenas-editor" contenteditable="true" class="form-control mb-2"
+                                 [innerHTML]="metTablaCadenas"
+                                 (input)="metTablaCadenas = $any($event.target).innerHTML; metodologiaSaved = false"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <!-- Criterios de selección -->
+                           <label class="form-label fw-bold">Criterios de selección</label>
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyMetCriterios()"
+                                 [disabled]="!metCriterios">
+                                 <i class="bi bi-clipboard"></i> {{ isMetCriteriosCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control mb-2" [innerHTML]="metCriterios"
+                                 (input)="metCriterios = $any($event.target).innerText; metodologiaSaved = false"
+                                 style="white-space: pre-line;" style="min-height: 2.5rem; padding-top: 2.25rem;"></div>
+                           </div>
+
+                           <div class="position-relative mb-2">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyMetProceso()"
+                                 [disabled]="!metProceso">
+                                 <i class="bi bi-clipboard"></i> {{ isMetProcesoCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control" [innerText]="metProceso"
+                                 (input)="onMetProcesoInput($event)" style="min-height: 2.5rem; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <!-- Botón de guardar -->
+                           <button *ngIf="!metodologiaSaved" class="btn btn-success btn-sm"
+                              (click)="saveMetodologiaDraft()">
+                              Guardar Metodología
+                           </button>
                         </div>
                      </div>
                   </div>
-
 
                   <!-- Resultados -->
                   <div class="tab-pane fade" id="resultados" role="tabpanel" aria-labelledby="resultados-tab">
                      <div class="card mb-3">
-                        <div class="card-header bg-light">
-                           <div class="d-flex justify-content-between mt-2">
-                              <h5>
-                                 <strong>Resultados</strong> &nbsp;
-                                 <!-- Ícono de check que aparece si resultados ya se guardó -->
-                                 <span *ngIf="resultadosSaved">
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                 </span>
-                              </h5>
-                              <!-- Botón para generar texto con IA -->
-                              <button class="btn btn-primary" title="Generar resultados con IA"
-                                 (click)="generateResultadosWithIA()">
-                                 Generar resultados con IA
-                              </button>
-                           </div>
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0">
+                              <strong>Resultados</strong>&nbsp;
+                              <span *ngIf="resultadosSaved">
+                                 <i class="bi bi-check-circle-fill text-success"></i>
+                              </span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingResultados"
+                              (click)="generateResultadosWithIA()">
+                              <i class="bi bi-robot"></i>&nbsp; Generar con IA
+                           </button>
                         </div>
                         <div class="card-body">
-                           <div contenteditable="true" class="form-control" style="min-height: 150px;"
-                              [innerHTML]="resultadosText">
+
+                           <!-- Reflexión inicial -->
+                           <div class="d-flex justify-content-between align-items-center mb-2">
+                              <label class="form-label fw-bold mb-0">Reflexión inicial</label>
+                              <div class="d-flex align-items-center">
+                                 <span class="me-2">Valora la sugerencia:</span>
+                                 <i class="bi"
+                                    [ngClass]="ratingResultados === 1 ? 'bi-hand-thumbs-up-fill text-success' : 'bi-hand-thumbs-up'"
+                                    title="Respuesta adecuada" (click)="rateResultados(true)"
+                                    style="cursor: pointer;"></i>
+                                 <i class="bi ms-3"
+                                    [ngClass]="ratingResultados === 0 ? 'bi-hand-thumbs-down-fill text-danger' : 'bi-hand-thumbs-down'"
+                                    title="Respuesta inadecuada" (click)="rateResultados(false)"
+                                    style="cursor: pointer;"></i>
+                              </div>
                            </div>
-                           <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón para guardar resultados (se muestra solo si resultadosSaved es false) -->
-                              <button *ngIf="!resultadosSaved" class="btn btn-success"
-                                 title="Guardar borrador de Resultados" (click)="saveResultadosDraft()">
-                                 Guardar resultados
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyReflexionText()"
+                                 [disabled]="!reflexionInicial">
+                                 <i class="bi bi-clipboard"></i> {{ isReflexionCopied ? 'Copiado' : 'Copiar' }}
                               </button>
+                              <div contenteditable="true" class="form-control autosize" [innerText]="reflexionInicial"
+                                 (input)="onReflexionInput($event)" style="padding-top: 2.25rem;"></div>
                            </div>
+
+                           <!-- Bloques por pregunta -->
+                           <div *ngFor="let pregunta of preguntasList" class="mb-4">
+                              <label class="form-label fw-bold">{{ pregunta }}</label>
+                              <div class="position-relative mb-2">
+                                 <button class="btn btn-secondary btn-sm floating-copy-btn"
+                                    (click)="copyRespuestaText(pregunta)"
+                                    [disabled]="!respuestasConcatenadas[pregunta]">
+                                    <i class="bi bi-clipboard"></i> {{ isRespuestaCopied[pregunta] ? 'Copiado' :
+                                    'Copiar' }}
+                                 </button>
+                                 <div contenteditable="true" class="form-control autosize"
+                                    [innerText]="respuestasConcatenadas[pregunta]"
+                                    (input)="onRespuestasInput(pregunta, $event)" style="padding-top: 2.25rem;"></div>
+                              </div>
+                           </div>
+
+                           <!-- Bibliografía -->
+                           <label class="form-label fw-bold">Bibliografía</label>
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn"
+                                 (click)="copyReferenciasResultados()" [disabled]="!referenciasConcatenadas">
+                                 <i class="bi bi-clipboard"></i> {{ isReferenciasResultadosCopied ? 'Copiado' : 'Copiar'
+                                 }}
+                              </button>
+                              <div contenteditable="true" class="form-control autosize"
+                                 [innerText]="referenciasConcatenadas" (input)="onReferenciasInput($event)"
+                                 style="padding-top: 2.25rem;"></div>
+                           </div>
+
+                           <!-- Guardar -->
+                           <button *ngIf="!resultadosSaved" class="btn btn-success btn-sm"
+                              (click)="saveResultadosDraft()">
+                              Guardar Resultados
+                           </button>
                         </div>
                      </div>
                   </div>
-
 
                   <!-- Discusión -->
                   <div class="tab-pane fade" id="discusion" role="tabpanel" aria-labelledby="discusion-tab">
                      <div class="card mb-3">
-                        <div class="card-header bg-light">
-                           <div class="d-flex justify-content-between mt-2">
-                              <h5>
-                                 <strong>Discusión</strong> &nbsp;
-                                 <!-- Ícono check si ya está guardada -->
-                                 <span *ngIf="discusionSaved">
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                 </span>
-                              </h5>
-                              <!-- Botón para generar la discusión con IA -->
-                              <button class="btn btn-primary" title="Generar discusión con IA"
-                                 (click)="generateDiscussionWithIA()">
-                                 Generar discusión con IA
-                              </button>
-                           </div>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0">
+                              <strong>Palabras clave</strong>&nbsp;
+                              <span *ngIf="discusionSaved">
+                                 <i class="bi bi-check-circle-fill text-success"></i>
+                              </span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingKeywordsDiscusion"
+                              (click)="generateDiscussionKeywordsWithIA()">
+                              <i class="bi bi-robot"></i> Generar keywords
+                           </button>
                         </div>
                         <div class="card-body">
-                           <div contenteditable="true" class="form-control" style="min-height: 150px;"
-                              [innerHTML]="discusionText">
-                           </div>
-                           <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón para guardar la discusión, sólo visible si discusionSaved es false -->
-                              <button *ngIf="!discusionSaved" class="btn btn-success"
-                                 title="Guardar borrador de Discusión" (click)="saveDiscussionDraft()">
-                                 Guardar discusión
+                           <label class="form-label fw-bold">Palabras</label>
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn"
+                                 (click)="copyKeywordsDiscusion()" [disabled]="!keywordsDiscusionText">
+                                 <i class="bi bi-clipboard"></i>
+                                 {{ isKeywordsDiscusionCopied ? 'Copiado' : 'Copiar' }}
                               </button>
+                              <div contenteditable="true" class="form-control" [textContent]="keywordsDiscusionText"
+                                 (input)="onKeywordsDiscusionInput($event)"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;"></div>
                            </div>
                         </div>
                      </div>
-                  </div>
 
+                     <!-- DISCUSIÓN -->
+                     <div class="card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0">
+                              <strong>Discusión</strong>&nbsp;
+                              <span *ngIf="discusionSaved">
+                                 <i class="bi bi-check-circle-fill text-success"></i>
+                              </span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingDiscusion || !keywordsDiscusionText"
+                              (click)="generateDiscussionWithIA()">
+                              <i class="bi bi-robot"></i> Generar discusión
+                           </button>
+                        </div>
+                        <div class="card-body">
+                           <!-- Texto de discusión -->
+                           <div class="d-flex justify-content-between align-items-center mb-2">
+                              <label class="form-label fw-bold mb-0">Cuerpo</label>
+                              <div class="d-flex align-items-center">
+                                 <span class="me-2">Valora la sugerencia:</span>
+                                 <!-- Like -->
+                                 <i class="bi" [ngClass]="ratingDiscusion === 1
+          ? 'bi-hand-thumbs-up-fill text-success'
+          : 'bi-hand-thumbs-up'" title="Respuesta adecuada" (click)="rateDiscusion(true)" style="cursor: pointer;"></i>
+                                 <!-- Dislike -->
+                                 <i class="bi ms-3" [ngClass]="ratingDiscusion === 0
+          ? 'bi-hand-thumbs-down-fill text-danger'
+          : 'bi-hand-thumbs-down'" title="Respuesta inadecuada" (click)="rateDiscusion(false)"
+                                    style="cursor: pointer;"></i>
+                              </div>
+                           </div>
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyDiscusionText()"
+                                 [disabled]="!discusionText">
+                                 <i class="bi bi-clipboard"></i>
+                                 {{ isDiscusionCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control" [innerHTML]="discusionText"
+                                 (input)="onDiscusionInput($event)" style="min-height: 5rem; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <!-- Referencias -->
+                           <label class="form-label fw-bold">Bibliografía</label>
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn"
+                                 (click)="copyReferenciasDiscusionText()" [disabled]="!referenciasDiscusionText">
+                                 <i class="bi bi-clipboard"></i>
+                                 {{ isReferenciasDiscusionCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control" [innerHTML]="referenciasDiscusionText"
+                                 (input)="onReferenciasdiscusionInput($event)"
+                                 style="min-height: 3rem; padding-top: 2.25rem;"></div>
+                           </div>
+
+                           <!-- Botón de guardar -->
+                           <button *ngIf="!discusionSaved" class="btn btn-success btn-sm"
+                              (click)="saveDiscussionDraft()">
+                              Guardar Discusión
+                           </button>
+                        </div>
+                     </div>
+                  </div>
 
                   <!-- Limitaciones -->
                   <div class="tab-pane fade" id="limitaciones" role="tabpanel" aria-labelledby="limitaciones-tab">
                      <div class="card mb-3">
-                        <div class="card-header bg-light">
-                           <div class="d-flex justify-content-between mt-2">
-                              <h5>
-                                 <strong>Limitaciones</strong> &nbsp;
-                                 <!-- Ícono de check para indicar si ya se guardó -->
-                                 <span *ngIf="limitacionesSaved">
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                 </span>
-                              </h5>
-                              <!-- Botón para generar texto con IA -->
-                              <button class="btn btn-primary" title="Generar limitaciones con IA"
-                                 (click)="generateLimitacionesWithIA()">
-                                 Generar limitaciones con IA
-                              </button>
-                           </div>
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0">
+                              <strong>Limitaciones</strong>&nbsp;
+                              <span *ngIf="limitacionesSaved">
+                                 <i class="bi bi-check-circle-fill text-success"></i>
+                              </span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingLimitaciones"
+                              (click)="generateLimitacionesWithIA()">
+                              <i class="bi bi-robot"></i>&nbsp; Generar con IA
+                           </button>
                         </div>
                         <div class="card-body">
-                           <div contenteditable="true" class="form-control" style="min-height: 150px;"
-                              [innerHTML]="limitacionesText">
+                           <!-- Valoración alineada a la derecha -->
+                           <div class="d-flex justify-content-end align-items-center mb-2">
+                              <span class="me-2">Valora la sugerencia:</span>
+                              <i class="bi" [ngClass]="ratingLimitaciones === 1
+            ? 'bi-hand-thumbs-up-fill text-success'
+            : 'bi-hand-thumbs-up'" title="Respuesta adecuada" (click)="rateLimitaciones(true)"
+                                 style="cursor: pointer;"></i>
+                              <i class="bi ms-3" [ngClass]="ratingLimitaciones === 0
+            ? 'bi-hand-thumbs-down-fill text-danger'
+            : 'bi-hand-thumbs-down'" title="Respuesta inadecuada" (click)="rateLimitaciones(false)"
+                                 style="cursor: pointer;"></i>
                            </div>
+
+                           <!-- Botón copiar + contenido editable -->
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn"
+                                 (click)="copyLimitacionesText()" [disabled]="!limitacionesText">
+                                 <i class="bi bi-clipboard"></i> {{ isLimitacionesCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control"
+                                 style="min-height:150px; padding-top:2.25rem;" [innerHTML]="limitacionesText"
+                                 (input)="limitacionesSaved = false"></div>
+                           </div>
+
                            <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón para guardar (oculto si limitacionesSaved es true) -->
-                              <button *ngIf="!limitacionesSaved" class="btn btn-success"
-                                 title="Guardar borrador de Limitaciones" (click)="saveLimitacionesDraft()">
-                                 Guardar limitaciones
+                              <button *ngIf="!limitacionesSaved" class="btn btn-success btn-sm"
+                                 (click)="saveLimitacionesDraft()">
+                                 Guardar Limitaciones
                               </button>
                            </div>
                         </div>
                      </div>
                   </div>
 
-
-                  <!-- Conclusión -->
+                  <!-- Conclusiones -->
                   <div class="tab-pane fade" id="conclusion" role="tabpanel" aria-labelledby="conclusion-tab">
                      <div class="card mb-3">
-                        <div class="card-header bg-light">
-                           <div class="d-flex justify-content-between mt-2">
-                              <h5>
-                                 <strong>Conclusión</strong> &nbsp;
-                                 <!-- Ícono check si ya está guardado -->
-                                 <span *ngIf="conclusionSaved">
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                 </span>
-                              </h5>
-                              <!-- Botón para generar conclusión con IA -->
-                              <button class="btn btn-primary" title="Generar conclusión con IA"
-                                 (click)="generateConclusionWithIA()">
-                                 Generar conclusión con IA
-                              </button>
-                           </div>
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0">
+                              <strong>Conclusiones</strong>&nbsp;
+                              <span *ngIf="conclusionSaved">
+                                 <i class="bi bi-check-circle-fill text-success"></i>
+                              </span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingConclusions"
+                              (click)="generateConclusionsWithIA()">
+                              <i class="bi bi-robot"></i>&nbsp; Generar con IA
+                           </button>
                         </div>
                         <div class="card-body">
-                           <!-- Área editable de la Conclusión -->
-                           <div contenteditable="true" class="form-control" style="min-height: 150px;"
-                              [innerHTML]="conclusionText">
+                           <!-- Valoración alineada a la derecha -->
+                           <div class="d-flex justify-content-end align-items-center mb-2">
+                              <span class="me-2">Valora la sugerencia:</span>
+                              <i class="bi" [ngClass]="ratingConclusion === 1
+            ? 'bi-hand-thumbs-up-fill text-success'
+            : 'bi-hand-thumbs-up'" title="Respuesta adecuada" (click)="rateConclusion(true)"
+                                 style="cursor: pointer;"></i>
+                              <i class="bi ms-3" [ngClass]="ratingConclusion === 0
+            ? 'bi-hand-thumbs-down-fill text-danger'
+            : 'bi-hand-thumbs-down'" title="Respuesta inadecuada" (click)="rateConclusion(false)"
+                                 style="cursor: pointer;"></i>
                            </div>
-                           <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón para guardar (solo visible si conclusionSaved es false) -->
-                              <button *ngIf="!conclusionSaved" class="btn btn-success"
-                                 title="Guardar borrador de Conclusión" (click)="saveConclusionDraft()">
-                                 Guardar conclusión
+
+                           <!-- Botón Copiar + Texto de conclusiones -->
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyConclusionText()"
+                                 [disabled]="!conclusionText">
+                                 <i class="bi bi-clipboard"></i>&nbsp; {{ isConclusionCopied ? 'Copiado' : 'Copiar'
+                                 }}
                               </button>
+                              <div contenteditable="true" class="form-control mb-3"
+                                 style="min-height:150px; padding-top:2.25rem;" [innerHTML]="conclusionText"
+                                 (input)="onConclusionInput($event)"></div>
                            </div>
+
+                           <button *ngIf="!conclusionSaved" class="btn btn-success btn-sm"
+                              (click)="saveConclusionDraft()">
+                              Guardar Conclusiones
+                           </button>
                         </div>
                      </div>
                   </div>
 
-
-                  <!-- Referencias -->
-                  <div class="tab-pane fade" id="referencias" role="tabpanel" aria-labelledby="referencias-tab">
+                  <!-- Introducción -->
+                  <div class="tab-pane fade " id="introduccion" role="tabpanel" aria-labelledby="intro-tab">
+                     <!-- Introducción - Keywords -->
                      <div class="card mb-3">
-                        <div class="card-header bg-light">
-                           <div class="d-flex justify-content-between mt-2">
-                              <h5>
-                                 <strong>Referencias</strong> &nbsp;
-                                 <!-- Ícono check si ya está guardado -->
-                                 <span *ngIf="referencesSaved">
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                 </span>
-                              </h5>
-                              <!-- Botón para generar las referencias con IA -->
-                              <button class="btn btn-primary" title="Generar referencias con IA"
-                                 (click)="generateReferencesWithIA()">
-                                 Generar referencias con IA
-                              </button>
-                           </div>
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0">
+                              <strong>Palabras clave</strong>&nbsp;
+                              <span *ngIf="keywordsIntroText"><i
+                                    class="bi bi-check-circle-fill text-success"></i></span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingIntroKeywords"
+                              (click)="generateIntroKeywordsWithIA()">
+                              <i class="bi bi-robot"></i>&nbsp; Generar con IA
+                           </button>
                         </div>
                         <div class="card-body">
-                           <!-- Área editable para la sección de Referencias -->
-                           <div contenteditable="true" class="form-control" style="min-height: 150px;"
-                              [innerHTML]="referenciasText">
-                           </div>
-                           <div class="d-flex justify-content-between mt-2">
-                              <!-- Botón para guardar, sólo aparece si referencesSaved = false -->
-                              <button *ngIf="!referencesSaved" class="btn btn-success"
-                                 title="Guardar borrador de Referencias" (click)="saveReferencesDraft()">
-                                 Guardar referencias
+                           <label class="form-label fw-bold">Palabras</label>
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyKeywordsIntro()"
+                                 [disabled]="!keywordsIntroText">
+                                 <i class="bi bi-clipboard"></i> {{ isKeywordsIntroCopied ? 'Copiado' : 'Copiar' }}
                               </button>
+                              <div contenteditable="true" class="form-control" [textContent]="keywordsIntroText"
+                                 (input)="onKeywordsIntroInput($event)"
+                                 style="min-height: 2.5rem; padding-top: 2.25rem;"></div>
                            </div>
+                        </div>
+                     </div>
+
+                     <!-- Introducción -->
+                     <div class="card mb-3">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0">
+                              <strong>Introducción</strong>&nbsp;
+                              <span *ngIf="introSaved"><i class="bi bi-check-circle-fill text-success"></i></span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingIntro || !keywordsIntroText"
+                              (click)="generateIntroductionWithIA()">
+                              <ng-container *ngIf="!loadingIntro; else spinIntro">
+                                 <i class="bi bi-robot"></i>&nbsp; Generar con IA
+                              </ng-container>
+                              <ng-template #spinIntro>
+                                 <span class="spinner-border spinner-border-sm"></span>&nbsp; Generando…
+                              </ng-template>
+                           </button>
+                        </div>
+
+                        <!-- CUERPO DE INTRODUCCIÓN -->
+                        <div class="card-body">
+                           <div class="d-flex justify-content-between align-items-center mb-2">
+                              <label class="form-label fw-bold mb-0">Cuerpo</label>
+                              <div class="d-flex align-items-center">
+                                 <span class="me-2">Valora la sugerencia:</span>
+                                 <!-- Like -->
+                                 <i class="bi" [ngClass]="ratingIntroduction === 1
+          ? 'bi-hand-thumbs-up-fill text-success'
+          : 'bi-hand-thumbs-up'" title="Respuesta adecuada" (click)="rateIntroduction(true)"
+                                    style="cursor: pointer;"></i>
+                                 <!-- Dislike -->
+                                 <i class="bi ms-3" [ngClass]="ratingIntroduction === 0
+          ? 'bi-hand-thumbs-down-fill text-danger'
+          : 'bi-hand-thumbs-down'" title="Respuesta inadecuada" (click)="rateIntroduction(false)"
+                                    style="cursor: pointer;"></i>
+                              </div>
+                           </div>
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyIntroText()"
+                                 [disabled]="!introText">
+                                 <i class="bi bi-clipboard"></i>&nbsp; {{ isIntroCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control" [innerHTML]="introText"
+                                 (input)="onIntroInput($event)" style="min-height:150px; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+                        </div>
+
+                        <hr class="m-0">
+
+                        <!-- Bibliografía -->
+                        <div class="card-body">
+                           <label class="form-label fw-bold">Bibliografía</label>
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyIntroRefsText()"
+                                 [disabled]="!introRefsText">
+                                 <i class="bi bi-clipboard"></i>&nbsp; {{ isIntroRefsCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control" [innerHTML]="introRefsText"
+                                 (input)="onIntroRefsInput($event)" style="min-height:100px; padding-top: 2.25rem;">
+                              </div>
+                           </div>
+
+                           <button *ngIf="!introRefsSaved || !introSaved" class="btn btn-success btn-sm"
+                              (click)="saveIntroductionDraft()">
+                              Guardar introducción
+                           </button>
                         </div>
                      </div>
                   </div>
 
+                  <!-- Resumen -->
+                  <div class="tab-pane fade" id="resumen" role="tabpanel" aria-labelledby="resumen-tab">
+                     <div class="card mb-3">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                           <h5 class="mb-0">
+                              <strong>Resumen</strong>&nbsp;
+                              <span *ngIf="resumenSaved">
+                                 <i class="bi bi-check-circle-fill text-success"></i>
+                              </span>
+                           </h5>
+                           <button class="btn btn-primary" [disabled]="loadingResumen"
+                              (click)="generateResumenWithIA()">
+                              <i class="bi bi-robot"></i>&nbsp; Generar con IA
+                           </button>
+                        </div>
+                        <div class="card-body">
+                           <!-- Valoración alineada a la derecha -->
+                           <div class="d-flex justify-content-end align-items-center mb-2">
+                              <span class="me-2">Valora la sugerencia:</span>
+                              <i class="bi" [ngClass]="ratingResumen === 1
+            ? 'bi-hand-thumbs-up-fill text-success'
+            : 'bi-hand-thumbs-up'" title="Respuesta adecuada" (click)="rateResumen(true)" style="cursor: pointer;"></i>
+                              <i class="bi ms-3" [ngClass]="ratingResumen === 0
+            ? 'bi-hand-thumbs-down-fill text-danger'
+            : 'bi-hand-thumbs-down'" title="Respuesta inadecuada" (click)="rateResumen(false)"
+                                 style="cursor: pointer;"></i>
+                           </div>
+
+                           <!-- Botón Copiar + Texto del resumen -->
+                           <div class="position-relative mb-3">
+                              <button class="btn btn-secondary btn-sm floating-copy-btn" (click)="copyResumenText()"
+                                 [disabled]="!resumenText">
+                                 <i class="bi bi-clipboard"></i>&nbsp; {{ isResumenCopied ? 'Copiado' : 'Copiar' }}
+                              </button>
+                              <div contenteditable="true" class="form-control mb-2"
+                                 style="min-height:150px; padding-top:2.25rem;" [innerHTML]="resumenText"
+                                 (input)="onResumenInput($event)"></div>
+                           </div>
+
+                           <button *ngIf="!resumenSaved" class="btn btn-success btn-sm" (click)="saveResumenDraft()">
+                              Guardar resumen
+                           </button>
+                        </div>
+                     </div>
+                  </div>
 
                   <!-- Descarga -->
                   <div class="tab-pane fade" id="descarga" role="tabpanel" aria-labelledby="descarga-tab">
@@ -416,8 +816,8 @@
                         </div>
                         <div class="card-body">
                            <p class="text-muted">
-                              Haga clic en el botón para generar el borrador del artículo en formato DOCX. El archivo se
-                              subirá automáticamente al storage de Supabase y se registrará en la base de datos.
+                              Haga clic en el botón para generar el borrador del artículo en formato DOCX. El archivo
+                              utilizara formato de APA 7° Edición.
                            </p>
                            <button class="btn btn-outline-primary" (click)="downloadDraftWord()">
                               <i class="bi bi-file-earmark-word"></i>&nbsp; Generar y Subir Informe DOCX

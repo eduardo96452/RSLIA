@@ -22,22 +22,26 @@ export class PrismaComponent implements OnInit, AfterViewInit {
   titulo_revision = '';
   tipo_revision = '';
   descripcion = '';
-  private cy!: cytoscape.Core;
   locked = false;
-  nodeId: string = '';
-  nodeLabel: string = '';
-  isLargeScreen: boolean = true;
-  shortVersionEnabled: boolean = false;
-  node8Label: string = 'Registros identificados \n desde: ... \n Bases de datos (n = 0) \n Total Registros (n = 0)';
 
+  private cy!: cytoscape.Core;
+  isLargeScreen = true;
+  shortVersionEnabled = false;
+
+  // Métricas cargadas desde AuthService
+  metrics: {
+    perSource: { fuente: string; count: number }[];
+    totalIdentified: number;
+    duplicatesCount: number;
+    screenedCount: number;
+    excludedByCriteria: { code: string; count: number }[];
+    includedCount: number;
+  } | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
-    private fb: FormBuilder,
-
-    private router: Router,
-    private openAiService: OpenAiService
+    private router: Router
   ) { }
 
   async ngOnInit() {
@@ -45,21 +49,23 @@ export class PrismaComponent implements OnInit, AfterViewInit {
     this.loadReviewData();
     this.loadUserData();
 
-    if (this.cy) {
-      // Centrar la vista y ajustar el grafo para mostrar todos los nodos
-      this.cy.resize();
-      this.cy.fit();
+    const reviewData = await this.authService.getReviewById(this.reviewId);
+    if (reviewData) {
+      this.titulo_revision = reviewData.titulo_revision || '';
+      this.tipo_revision = reviewData.tipo_revision || '';
+      this.descripcion = reviewData.descripcion || '';
     }
+
+    // Obtiene métricas y luego inicializa el grafo
+    this.metrics = await this.authService.getSectionMetrics(this.reviewId);
+    this.initializeCytoscape();
 
     this.checkScreenSize();
 
-    // Nos suscribimos a NavigationEnd, que indica que la navegación ha finalizado.
+    // Scroll to top tras navegación
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => {
-        // Llevamos el scroll al tope
-        window.scrollTo(0, 0);
-      });
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => window.scrollTo(0, 0));
   }
 
   @HostListener('window:resize', ['$event'])
@@ -68,7 +74,7 @@ export class PrismaComponent implements OnInit, AfterViewInit {
   }
 
   private checkScreenSize(): void {
-    this.isLargeScreen = window.innerWidth >= 768; // Cambia a true si la pantalla es md o más grande
+    this.isLargeScreen = window.innerWidth >= 768;
   }
 
   // Cargar datos de la base de datos
@@ -102,15 +108,9 @@ export class PrismaComponent implements OnInit, AfterViewInit {
     }
   }
 
-  zoomIn() {
-    const currentZoom = this.cy.zoom();
-    this.cy.zoom({ level: currentZoom + 0.1, renderedPosition: { x: 10, y: 10 } });
-  }
-
-  zoomOut() {
-    const currentZoom = this.cy.zoom();
-    this.cy.zoom({ level: currentZoom - 0.1, renderedPosition: { x: 10, y: 10 } });
-  }
+  /** Zoom in/out y export */
+  zoomIn() { this.cy.zoom(this.cy.zoom() + 0.1); }
+  zoomOut() { this.cy.zoom(this.cy.zoom() - 0.1); }
 
   private lockPanel() {
     // Indicar que el panel está bloqueado (opcional, para mantener el estado)
@@ -121,9 +121,9 @@ export class PrismaComponent implements OnInit, AfterViewInit {
     this.cy.userZoomingEnabled(false);
 
     // Deshabilitar el arrastre de todos los nodos
-    /*this.cy.nodes().forEach((node: cytoscape.NodeSingular) => {
+    this.cy.nodes().forEach((node: cytoscape.NodeSingular) => {
       node.ungrabify();
-    });*/
+    });
   }
 
   private downloadFile(dataUrl: string, filename: string) {
@@ -136,11 +136,8 @@ export class PrismaComponent implements OnInit, AfterViewInit {
   }
 
   downloadPNG() {
-    // Exportar PNG con mayor escala para mejorar la calidad
-    const pngDataUrl = this.cy.png({ full: true, bg: 'white', scale: 6 });
-    // Ajusta scale a un valor mayor según la calidad deseada
-
-    this.downloadFile(pngDataUrl, 'graph.png');
+    const png = this.cy.png({ full: true, bg: 'white', scale: 6 });
+    const a = document.createElement('a'); a.href = png; a.download = 'graph.png'; a.click();
   }
 
   downloadPDF() {
@@ -179,41 +176,29 @@ export class PrismaComponent implements OnInit, AfterViewInit {
     this.initializeCytoscape();
   }
 
-  initializeCytoscape() {
-    // Opcionalmente, si ya existe un this.cy previo, destruirlo antes de recrearlo
-    if (this.cy) {
-      this.cy.destroy();
-    }
+  private initializeCytoscape() {
+    if (this.cy) this.cy.destroy();
 
-    // Elegir cuál conjunto de elementos usar según el valor de shortVersionEnabled
     const elements = this.shortVersionEnabled
-      ? this.getFullVersionElements()   // Versión "reducida"
-      : this.getShortVersionElements();   // Versión "completa"
+      ? this.getFullVersionElements()
+      : this.getShortVersionElements();
 
-    // Elegir el style (podrías tener dos listas de estilos distintas si deseas)
     const style = this.shortVersionEnabled
-      ? this.getFullVersionStyle()
+      ? this.getShortVersionStyle()
       : this.getFullVersionStyle();
 
-    // Inicializar Cytoscape
     this.cy = cytoscape({
-      container: document.getElementById('cy'),
+      container: document.getElementById('cy')!,
       elements,
       style,
-      layout: {
-        name: 'preset',
-        fit: true,
-      }
+      layout: { name: 'preset', fit: true }
     });
 
-    // Ajustes de zoom y panning
     this.cy.zoomingEnabled(true);
     this.cy.panningEnabled(true);
+    this.lockPanel();
     this.cy.resize();
     this.cy.fit();
-
-    // (Opcional) bloquear panel
-    this.lockPanel();
   }
 
   // Devuelve los elementos (nodos / edges) de la versión completa
@@ -377,20 +362,30 @@ export class PrismaComponent implements OnInit, AfterViewInit {
       labelLines.push(""); // Línea en blanco
       const total = estudios.length;
       labelLines.push(`Total Registros (${total})`);
-      this.node8Label = labelLines.join('\n');
 
       // Actualiza el dato del nodo "node8" en Cytoscape, si ya está inicializado:
-      if (this.cy) {
+      /*if (this.cy) {
         const node8 = this.cy.$('#node8');
         node8.data('label', this.node8Label);
-      }
+      }*/
     } else {
       console.error('Error al cargar estudios:', response.error);
     }
   }
 
-  // Devuelve los elementos (nodos / edges) de la versión "reducida"
-  getShortVersionElements() {
+  /** Construye nodos/edges para la versión reducida */
+  getShortVersionElements(): cytoscape.ElementDefinition[] {
+    if (!this.metrics) return [];
+
+    const m = this.metrics;
+    const fuentesText = m.perSource
+      .map(ps => `${ps.fuente} (n = ${ps.count})`)
+      .join('\n');
+    // Ahora sólo mostramos el código ECx y su conteo
+    const criteriosText = m.excludedByCriteria
+      .map(c => `${c.code} (n = ${c.count})`)
+      .join('\n');
+
     return [
       // Columna 1:
       {
@@ -405,82 +400,53 @@ export class PrismaComponent implements OnInit, AfterViewInit {
         data: { id: 'node5', label: 'Incluidos' },
         position: { x: 50, y: 440 }
       },
-
-      // Columna 2:
       {
         data: { id: 'node6', label: 'Identificación de nuevos estudios a través de bases de datos y registros' },
         position: { x: 307, y: 25 }
       },
       {
-        data: { id: 'node8', label: this.node8Label },
+        data: {
+          id: 'node8',
+          label: `Registros identificados:\n${fuentesText}\nTotal (n = ${m.totalIdentified})`
+        },
         position: { x: 170, y: 100 }
       },
       {
-        data: { id: 'node9', label: 'Registros eliminados antes del cribado: \n Registros duplicados eliminados (n = 0) \n Registros marcados como no elegibles por \n herramientas de automatización (n = 0) \n Registros eliminados por otras razones (n = 0)' },
+        data: {
+          id: 'node9',
+          label: `Registros eliminados antes del cribado:\nDuplicados (n = ${m.duplicatesCount})`
+        },
         position: { x: 402, y: 100 }
       },
       {
-        data: { id: 'node10', label: 'Registros cribados (n = 0)' },
-        position: { x: 170, y: 200 }
-      },
-      {
-        data: { id: 'node11', label: 'Informes buscados para \n su recuperación (n = 0)' },
+        data: {
+          id: 'node10',
+          label: `Registros cribados (n = ${m.screenedCount})`
+        },
         position: { x: 170, y: 265 }
       },
       {
-        data: { id: 'node12', label: 'Informes evaluados \n para determinar su \n elegibilidad (n = 0)' },
-        position: { x: 170, y: 340 }
-      },
-      {
-        data: { id: 'node13', label: 'Registros excluidos (n = 0)' },
-        position: { x: 379, y: 200 }
-      },
-      {
-        data: { id: 'node14', label: 'Informes no recuperados (n = 0)' },
+        data: {
+          id: 'node15',
+          label: `Informes excluidos:\n${criteriosText}`
+        },
         position: { x: 379, y: 265 }
       },
       {
-        data: { id: 'node15', label: 'Informes excluidos: \n Razón 1 (n = 0) \n Razón 2 (n = 0) \n Razón 3 (n = 0) \n etc.' },
-        position: { x: 379, y: 340 }
-      },
-      {
-        data: { id: 'node16', label: 'Nuevos estudios incluidos \n en la revisión (n = 0) \n Informes de nuevos \n estudios incluidos (n = 0)' },
+        data: {
+          id: 'node16',
+          label: `Registros incluidos en \nel estudio (n = ${m.includedCount})`
+        },
         position: { x: 170, y: 440 }
       },
 
-      // Mantener la conexión entre node1 y node2
-      {
-        data: { id: 'edge2', source: 'node8', target: 'node9' }
-      },
-      {
-        data: { id: 'edge3', source: 'node8', target: 'node10' }
-      },
-      {
-        data: { id: 'edge4', source: 'node10', target: 'node11' }
-      },
-      {
-        data: { id: 'edge5', source: 'node11', target: 'node12' }
-      },
-      {
-        data: { id: 'edge6', source: 'node10', target: 'node13' }
-      },
-      {
-        data: { id: 'edge7', source: 'node11', target: 'node14' }
-      },
-      {
-        data: { id: 'edge8', source: 'node12', target: 'node15' }
-      },
-      {
-        data: { id: 'edge9', source: 'node12', target: 'node16' }
-      }
+      // Conexiones
+      { data: { id: 'edge2', source: 'node8', target: 'node9' } },
+      { data: { id: 'edge3', source: 'node8', target: 'node10' } },
+      { data: { id: 'edge6', source: 'node10', target: 'node15' } },
+      { data: { id: 'edge9', source: 'node10', target: 'node16' } }
     ];
   }
-
-
-
-
-
-
 
   // Estilos para la versión completa
   getFullVersionStyle() {
@@ -564,7 +530,7 @@ export class PrismaComponent implements OnInit, AfterViewInit {
         }
       },
       {
-        selector: '#node8',
+        selector: '#node8, #node16',
         style: {
           'background-color': '#FFFFFF',
           'label': 'data(label)',
@@ -582,7 +548,7 @@ export class PrismaComponent implements OnInit, AfterViewInit {
         }
       },
       {
-        selector: '#node10, #node11, #node12',
+        selector: '#node10',
         style: {
           'background-color': '#FFFFFF',
           'label': 'data(label)',
@@ -618,7 +584,7 @@ export class PrismaComponent implements OnInit, AfterViewInit {
         }
       },
       {
-        selector: '#node13, #node14, #node15',
+        selector: '#node15',
         style: {
           'background-color': '#FFFFFF',
           'label': 'data(label)',
@@ -654,7 +620,7 @@ export class PrismaComponent implements OnInit, AfterViewInit {
         }
       },
       {
-        selector: '#node2, #node18',
+        selector: '#node2',
         style: {
           'background-color': '#DCDCDC',
           'label': 'data(label)',
@@ -663,24 +629,6 @@ export class PrismaComponent implements OnInit, AfterViewInit {
           'text-wrap': 'wrap',
           'width': '110px',
           'height': '20px',
-          'text-valign': 'center',
-          'text-halign': 'center',
-          'color': 'black',
-          'font-size': '10px',
-          'border-width': '2px',
-          'border-color': '#000000'
-        }
-      },
-      {
-        selector: '#node17, #node19',
-        style: {
-          'background-color': '#DCDCDC',
-          'label': 'data(label)',
-          'shape': 'roundrectangle',
-          'padding': '10px',
-          'text-wrap': 'wrap',
-          'width': '150px',
-          'height': '40px',
           'text-valign': 'center',
           'text-halign': 'center',
           'color': 'black',

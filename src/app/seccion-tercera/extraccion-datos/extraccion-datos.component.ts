@@ -46,6 +46,7 @@ export class ExtraccionDatosComponent implements OnInit {
   /* ──────────────────── loaders ─────────────────────────────── */
   studiesReady = false; // estudios + campos
   dataLoaded = false;   // respuestas
+  loadingAI: { [id: number]: boolean } = {};
 
   /* ──────────────────── tooltip ─────────────────────────────── */
   showScoresHelp = false;
@@ -60,7 +61,7 @@ export class ExtraccionDatosComponent implements OnInit {
     private router: Router,
     private openAiService: OpenAiService,
     private cd: ChangeDetectorRef
-  ) {}
+  ) { }
 
   /* ──────────────────── ciclo de vida ───────────────────────── */
   async ngOnInit() {
@@ -174,21 +175,20 @@ export class ExtraccionDatosComponent implements OnInit {
         resp.valor?.toString().toLowerCase() === 'true'
           ? true
           : resp.valor?.toString().toLowerCase() === 'false'
-          ? false
-          : resp.valor;
+            ? false
+            : resp.valor;
       this.extractionData[resp.id_estudios][resp.id_campo_extraccion] = val;
       const st = this.acceptedStudiesThreshold.find(
         (s) => s.id_estudios === resp.id_estudios
       );
-      if (st) 
-        {
-          st.hasSaved        = true;
-          st.extractionSaved = true;
+      if (st) {
+        st.hasSaved = true;
+        st.extractionSaved = true;
 
       }
     });
 
-    
+
     this.cd.markForCheck();
   }
 
@@ -206,7 +206,7 @@ export class ExtraccionDatosComponent implements OnInit {
     const { error } = await this.authService.saveExtractionResponses(
       this.prepareExtractionResponses(study)
     );
-  
+
     if (error) {
       console.error('Error al guardar respuestas de extracción:', error);
       await Swal.fire({
@@ -216,7 +216,7 @@ export class ExtraccionDatosComponent implements OnInit {
       });
       return;                     // ← devuelve void; todas las rutas devuelven
     }
-  
+
     await Swal.fire({
       icon: 'success',
       title: '¡Guardado!',
@@ -224,8 +224,8 @@ export class ExtraccionDatosComponent implements OnInit {
       timer: 2000,
       showConfirmButton: false,
     });
-  
-    study.hasSaved        = true;
+
+    study.hasSaved = true;
     study.extractionSaved = true;
     this.cd.markForCheck();
   }
@@ -234,7 +234,7 @@ export class ExtraccionDatosComponent implements OnInit {
     const { error } = await this.authService.saveExtractionResponses(
       this.prepareExtractionResponses(study)
     );
-  
+
     if (error) {
       console.error('Error al actualizar respuestas de extracción:', error);
       await Swal.fire({
@@ -244,7 +244,7 @@ export class ExtraccionDatosComponent implements OnInit {
       });
       return;
     }
-  
+
     await Swal.fire({
       icon: 'success',
       title: '¡Actualizado!',
@@ -252,8 +252,8 @@ export class ExtraccionDatosComponent implements OnInit {
       timer: 2000,
       showConfirmButton: false,
     });
-  
-    study.hasSaved       = true;
+
+    study.hasSaved = true;
     study.extractionSaved = true;
     this.cd.markForCheck();
   }
@@ -324,64 +324,81 @@ export class ExtraccionDatosComponent implements OnInit {
   }
 
   // Generar sugerencias de IA para un solo estudio
-  async generateAISuggestionsForStudy(study: any) {
-    if (!study.url_pdf_articulo) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Sin URL',
-        text: 'El estudio no tiene una URL de PDF asociada.'
-      });
-      return;
-    }
-
-    const questionsPayload = this.extractionFields.map(field => ({
-      pregunta: field.descripcion,
-      tipoRespuesta: field.tipo
-    }));
-
-    const payload = { url: study.url_pdf_articulo, questions: questionsPayload };
-
-    Swal.fire({
-      title: 'Generando sugerencias de IA...',
-      text: 'Por favor, espera un momento.',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading(Swal.getConfirmButton());
-      }
+async generateAISuggestionsForStudy(study: any): Promise<void> {
+  /* 1. Pedir URL si falta */
+  if (!study.url_pdf_articulo?.trim()) {
+    const { value: url } = await Swal.fire({
+      title: 'Ingresar URL del PDF',
+      input: 'url',
+      inputPlaceholder: 'https://ejemplo.com/articulo.pdf',
+      showCancelButton: true,
+      confirmButtonText: 'Usar URL',
     });
+    if (!url) return;
+    study.url_pdf_articulo = url.trim();
+  }
 
-    try {
-      const response = await this.openAiService.generateExtractionSuggestions(payload).toPromise();
-      Swal.close();
+  /* 2. Payload con title + url + preguntas */
+  const payload = {
+    url  : study.url_pdf_articulo,
+    title: study.titulo,
+    questions: this.extractionFields.map(f => ({
+      pregunta: f.descripcion,
+      tipoRespuesta: f.tipo,
+    })),
+  };
 
-      if (response && Array.isArray(response.suggestions)) {
-        response.suggestions.forEach((suggestion: any, index: number) => {
-          this.extractionData[study.id_estudios][this.extractionFields[index].id_campo_extraccion] = suggestion.answer;
-        });
-        Swal.fire({
-          icon: 'success',
-          title: 'Sugerencias generadas',
-          text: 'Las respuestas sugeridas se han asignado a las preguntas correspondientes.',
-          timer: 2500,
-          showConfirmButton: false
-        });
-      } else {
-        Swal.fire({
-          icon: 'info',
-          title: 'Sin sugerencias',
-          text: 'No se generaron sugerencias de IA para este estudio.'
-        });
-      }
-    } catch (error) {
-      console.error('Error al generar sugerencias de IA:', error);
-      Swal.close();
+  /* 3. Spinner ON */
+  this.loadingAI[study.id_estudios] = true;
+  this.cd.markForCheck();
+
+  try {
+    const { suggestions } = await this.openAiService
+      .generateExtractionSuggestions(payload)
+      .toPromise();
+
+    /* 4. Asigna sugerencias */
+    if (Array.isArray(suggestions)) {
+      suggestions.forEach((s: any, idx: number) => {
+        const fieldId = this.extractionFields[idx].id_campo_extraccion;
+        this.extractionData[study.id_estudios][fieldId] = s.answer;
+      });
       Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Ocurrió un problema al generar las sugerencias de IA.'
+        icon: 'success',
+        title: 'Sugerencias generadas',
+        text: 'Las respuestas sugeridas se asignaron al formulario.',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      study.extractionSaved = false;
+    } else {
+      Swal.fire('Sin sugerencias', 'OpenAI no devolvió resultados.', 'info');
+    }
+
+  } catch (err: any) {
+    /* 5. ALERTA según código de error */
+    if (err?.status === 412) {                       // PDF no coincide
+      Swal.fire({
+        icon : 'warning',
+        title: 'Documento incorrecto',
+        text : err.error?.error || 'El PDF no concuerda con el título del artículo.',
+      });
+    } else {
+      console.error('IA error:', err);
+      Swal.fire({
+        icon : 'error',
+        title: 'Error IA',
+        text : 'No se pudo generar la sugerencia de IA.',
       });
     }
+
+  } finally {
+    /* 6. Spinner OFF */
+    this.loadingAI[study.id_estudios] = false;
+    this.cd.markForCheck();
   }
+}
+
 
   // Generar sugerencias de IA para todos los estudios
   async generateAISuggestions() {
@@ -389,7 +406,7 @@ export class ExtraccionDatosComponent implements OnInit {
     const studiesSinResponder = this.acceptedStudiesThreshold.filter(
       study => !study.done
     );
-  
+
     // Verificar que todos los estudios sin responder tengan un PDF
     const studiesMissingPDF = studiesSinResponder.filter(
       study => !study.url_pdf_articulo || !study.url_pdf_articulo.trim()
@@ -402,7 +419,7 @@ export class ExtraccionDatosComponent implements OnInit {
       });
       return;
     }
-  
+
     Swal.fire({
       title: 'Generando sugerencias para estudios sin responder...',
       text: 'Por favor, espere un momento.',
@@ -411,7 +428,7 @@ export class ExtraccionDatosComponent implements OnInit {
         Swal.showLoading(Swal.getConfirmButton());
       }
     });
-  
+
     try {
       const suggestionsPromises = studiesSinResponder.map(study => {
         const questionsPayload = this.extractionFields.map(field => ({
@@ -429,7 +446,7 @@ export class ExtraccionDatosComponent implements OnInit {
             return { studyId: study.id_estudios, suggestions: [] };
           });
       });
-  
+
       const results = await Promise.all(suggestionsPromises);
       results.forEach(result => {
         if (this.extractionData[result.studyId]) {
@@ -437,15 +454,15 @@ export class ExtraccionDatosComponent implements OnInit {
           const suggestionsArray = Array.isArray(result.suggestions)
             ? result.suggestions
             : result.suggestions ? [result.suggestions] : [];
-            
+
           suggestionsArray.forEach((suggestion: any, index: number) => {
             const fieldId = this.extractionFields[index].id_campo_extraccion;
             this.extractionData[result.studyId][fieldId] = suggestion.answer;
           });
         }
       });
-      
-  
+
+
       Swal.close();
       Swal.fire({
         icon: 'success',
@@ -464,7 +481,7 @@ export class ExtraccionDatosComponent implements OnInit {
       });
     }
   }
-  
+
 
   get allStudiesHavePdf(): boolean {
     return this.acceptedStudiesThreshold?.every(study =>

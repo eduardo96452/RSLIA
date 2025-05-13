@@ -114,3 +114,39 @@
 .input-field:focus {
   box-shadow: none;
 }
+
+textarea.autosize {
+  overflow: hidden;
+  resize: none;
+}
+
+
+.textarea-container {
+  position: relative;
+}
+
+.floating-copy-btn {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  z-index: 10;
+
+  /* Estilo transparente */
+  background-color: transparent;
+  border: none;
+  color: #000;      /* Escoge el color del texto */
+  font-size: 0.875rem; /* Tamaño de fuente, por ejemplo 14px */
+
+  /* Opcional: Cambiar cursor y quitar subrayados */
+  cursor: pointer;
+  text-decoration: none;
+
+  /* Transición suave al pasar el cursor */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Cuando pasas el cursor por encima del botón */
+.floating-copy-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1); /* leve oscurecimiento */
+  border: 1px solid rgba(0,0,0,0.1);
+}

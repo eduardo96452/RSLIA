@@ -197,7 +197,7 @@ export class AuthService {
   private authState = new BehaviorSubject<boolean>(false);
   private router = inject(Router);  // Inyección de Router
   private inactivityTimeoutId: any;  // ID del temporizador de inactividad
-  private readonly inactivityLimit = 10 * 60 * 60 * 1000; // 15 horas en milisegundos
+  private readonly inactivityLimit = 10 * 60 * 60 * 1000; // 10 horas en milisegundos
 
   constructor() {
     // Manejar cambios en el estado de autenticación de Supabase
@@ -1697,34 +1697,50 @@ export class AuthService {
 
 
   async uploadPDF(file: File, estudioId: number): Promise<string> {
-    try {
-      // Construye una ruta (path) única para el archivo en el bucket
-      const filePath = `estudios/${estudioId}/${file.name}`;
-
-      // Subir al bucket "documentos"
-      const { data, error } = await this._supabaseClient.storage
-        .from('documentos')
-        .upload(filePath, file, {
-          upsert: true
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      // Obtener URL pública (asegúrate de que el bucket tenga política pública o uses signedUrl)
-      const { data: publicData } = this._supabaseClient.storage
-        .from('documentos')
-        .getPublicUrl(filePath);
-
-      // publicData.publicUrl contiene la URL pública
-      const publicUrl = publicData.publicUrl;
-      return publicUrl;
-    } catch (error: any) {
-      console.error('Error subiendo PDF:', error.message);
-      throw error;
+    // 1. Validaciones rápidas
+    if (file.type !== 'application/pdf') {
+      throw new Error('El archivo debe ser un PDF.');
     }
+    const MAX_MB = 50;
+    if (file.size > MAX_MB * 1024 * 1024) {
+      throw new Error(`El PDF supera los ${MAX_MB} MB permitidos.`);
+    }
+
+    // 2. Ruta única (opcional: Date.now() para evitar colisiones)
+    const filePath = `estudios/${estudioId}/${Date.now()}_${file.name}`;
+
+    // 3. Subir al bucket "documentos"
+    const { error: uploadError } = await this._supabaseClient.storage
+      .from('documentos')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        contentType: 'application/pdf',
+        upsert: false           // true si quieres sobre-escribir
+      });
+
+    if (uploadError) {
+      throw new Error(`Supabase upload error: ${uploadError.message}`);
+    }
+
+    /* 4. Obtener URL */
+    // 4a. Si el bucket es PÚBLICO (policy read*):
+    const {
+      data: { publicUrl }
+    } = this._supabaseClient.storage
+      .from('documentos')
+      .getPublicUrl(filePath);
+    return publicUrl;
+
+    // 4b. Si el bucket es PRIVADO, usa signed URL:
+    /*
+    const { data, error } = await this._supabaseClient.storage
+      .from('documentos')
+      .createSignedUrl(filePath, 60 * 60); // 1 h
+    if (error) throw error;
+    return data.signedUrl;
+    */
   }
+
 
 
   async updateStudy(estudioData: Partial<Estudio>): Promise<any> {
@@ -2245,7 +2261,7 @@ export class AuthService {
     });
     return statusMap;
   }
-  
+
 
   async getExtractionResponsesForStudies(studyIds: number[]): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
@@ -2259,14 +2275,9 @@ export class AuthService {
   async getAcceptedStudie(idRevision: string) {
     const { data, error } = await this._supabaseClient
       .rpc('fn_get_studies_with_score_done', { id_revision: idRevision });
-  
+
     return { data: data ?? [], error };
   }
-  
-
-  
-
-
 
   // auth.service.ts
   async saveSectionDraft(sectionData: {
@@ -2278,7 +2289,16 @@ export class AuthService {
     discusion?: string;
     limitaciones?: string;
     conclusion?: string;
-    referencias?: string;
+    resumen?: string;
+    calidadtrabajorelacionado?: string;
+    calidadmetodologia?: string;
+    calidadresultados?: string;
+    calidaddiscusion?: string;
+    calidadlimitaciones?: string;
+    calidadconclusion?: string;
+    calidadintroduccion?: string;
+    calidadresumen?: string;
+
   }): Promise<{ data: any; error: any }> {
     const { id_detalles_revision } = sectionData;
 
@@ -2329,8 +2349,32 @@ export class AuthService {
       if (sectionData.conclusion !== undefined) {
         mergedPayload.conclusion = sectionData.conclusion;
       }
-      if (sectionData.referencias !== undefined) {
-        mergedPayload.referencias = sectionData.referencias;
+      if (sectionData.resumen !== undefined) {
+        mergedPayload.resumen = sectionData.resumen;
+      }
+      if (sectionData.calidadtrabajorelacionado !== undefined) {
+        mergedPayload.calidadtrabajorelacionado = sectionData.calidadtrabajorelacionado;
+      }
+      if (sectionData.calidadmetodologia !== undefined) {
+        mergedPayload.calidadmetodologia = sectionData.calidadmetodologia;
+      }
+      if (sectionData.calidadresultados !== undefined) {
+        mergedPayload.calidadresultados = sectionData.calidadresultados;
+      }
+      if (sectionData.calidaddiscusion !== undefined) {
+        mergedPayload.calidaddiscusion = sectionData.calidaddiscusion;
+      }
+      if (sectionData.calidadlimitaciones !== undefined) {
+        mergedPayload.calidadlimitaciones = sectionData.calidadlimitaciones;
+      }
+      if (sectionData.calidadconclusion !== undefined) {
+        mergedPayload.calidadconclusion = sectionData.calidadconclusion;
+      }
+      if (sectionData.calidadintroduccion !== undefined) {
+        mergedPayload.calidadintroduccion = sectionData.calidadintroduccion;
+      }
+      if (sectionData.calidadresumen !== undefined) {
+        mergedPayload.calidadresumen = sectionData.calidadresumen;
       }
 
       // id_detalles_revision y fecha de ingreso
@@ -2356,8 +2400,6 @@ export class AuthService {
     return { data, error };
   }
 
-
-
   async getSectionDraft(id_detalles_revision: string): Promise<{ data: any; error: any }> {
     const { data, error } = await this._supabaseClient
       .from('secciones_revision')
@@ -2370,6 +2412,73 @@ export class AuthService {
     return { data, error };
   }
 
+  // auth.service.ts
+  async getIAContext(p_id_rev: number): Promise<{ data: any[]; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .rpc('fn_get_ia_context', { p_id_rev });
+    return { data, error };
+  }
+
+  async getExtractionResponsesByRevision(
+    idRevision: number
+  ): Promise<{ data: any[] | null; error: any }> {
+    const { data, error } = await this._supabaseClient
+      .rpc('fn_get_extraction_responses', { p_id_rev: idRevision });
+  
+    return { data, error };
+  }
+
+  async getSectionMetrics(id_detalles_revision: string) {
+  const { data: estudios, error: err1 } = await this._supabaseClient
+    .from('estudios')
+    .select('fuente_bibliografica, estado, id_criterio')
+    .eq('id_detalles_revision', id_detalles_revision);
+
+  if (err1) throw err1;
+
+  const totalIdentified = estudios.length;
+  const duplicatesCount = estudios
+    .filter(e => (e.estado || '').toLowerCase() === 'duplicado')
+    .length;
+  const screenedCount   = totalIdentified - duplicatesCount;
+  const acceptedCount   = estudios
+    .filter(e => (e.estado || '').toLowerCase() === 'aceptado')
+    .length;
+
+  // … resto idéntico …
+  const perSourceMap: Record<string, number> = {};
+  estudios.forEach(e => {
+    const fuente = e.fuente_bibliografica || 'Desconocida';
+    perSourceMap[fuente] = (perSourceMap[fuente] || 0) + 1;
+  });
+  const perSource = Object.entries(perSourceMap)
+    .map(([fuente, count]) => ({ fuente, count }));
+
+  const { data: criterios, error: err2 } = await this._supabaseClient
+    .from('criterios')
+    .select('id_criterios, descripcion')
+    .eq('id_detalles_revision', id_detalles_revision)
+    .eq('tipo', 'exclusion');
+  if (err2) throw err2;
+
+  const excludedByCriteria = criterios.map((c, idx) => {
+    const code = `EC${idx + 1}`;
+    const count = estudios.filter(e => e.id_criterio === c.id_criterios).length;
+    return { code, count };  // ya no incluimos descripcion
+  });
+
+  const totalExcluded = excludedByCriteria.reduce((sum, c) => sum + c.count, 0);
+  const includedCount  = Math.max(0, screenedCount - totalExcluded);
+
+  return {
+    perSource,
+    totalIdentified,
+    duplicatesCount,
+    screenedCount,
+    excludedByCriteria,
+    includedCount
+  };
+}
 
 
 

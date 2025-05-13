@@ -105,10 +105,11 @@
                       <i class="bi bi-file-earmark-excel"></i>&nbsp; Exportar a Excel
                     </button>
 
+                    <!--
                     <button class="btn btn-info mb-1" [disabled]="isGenerateAISuggestionsDisabled()"
                       (click)="generateAISuggestions()">
                       <i class="bi bi-robot"></i>&nbsp; Generar todas las sugerencias de IA
-                    </button>
+                    </button>-->
                   </div>
                 </div>
 
@@ -143,12 +144,22 @@
                         </div>
 
                         <div class="d-flex">
-                          <button class="btn btn-info me-2" (click)="generateAISuggestionsForStudy(study)">
-                            <i class="bi bi-robot"></i>&nbsp; Sugerencia IA
+                          <!-- Dentro de la cabecera del estudio -->
+                          <button class="btn btn-info me-2"
+                            [disabled]="loadingAI[study.id_estudios] || !study.url_pdf_articulo"
+                            (click)="generateAISuggestionsForStudy(study)">
+                            <ng-container *ngIf="!loadingAI[study.id_estudios]; else loadingTpl">
+                              <i class="bi bi-robot"></i>&nbsp; Sugerencia IA
+                            </ng-container>
+
+                            <!-- spinner mientras se genera -->
+                            <ng-template #loadingTpl>
+                              <span class="spinner-border spinner-border-sm"></span>&nbsp; Generando…
+                            </ng-template>
                           </button>
 
                           <!-- Mostrar “Marcar como hecho” solo cuando YA se haya guardado
-         y esté sin modificaciones (hasSaved && extractionSaved) -->
+                          y esté sin modificaciones (hasSaved && extractionSaved) -->
                           <button *ngIf="study.hasSaved && study.extractionSaved" type="button"
                             class="btn btn-outline-primary btn-sm" (click)="toggleStudyDone(study)">
                             {{ study.done ? 'Hecho' : 'Marcar como hecho' }}
